@@ -63,11 +63,26 @@ td.actions{min-width:210px}
   .markIcon.tri::after{content:"△"}
   @page{size:A4 portrait;margin:8mm}
 }
+
+/* teacher select modal */
+.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:500;align-items:center;justify-content:center;padding:16px}
+.modalBox{background:#fff;border-radius:16px;width:100%;max-width:560px;max-height:82vh;overflow:auto;padding:18px;box-shadow:0 20px 50px rgba(0,0,0,.25)}
+.teacherChecks label{display:block;padding:8px 4px;border-bottom:1px solid #eee;font-weight:800}
+.teacherChecks input{width:18px;height:18px;margin-right:8px}
+.selectSummary{font-weight:900;color:#1565c0;margin:8px 0}
+@media print{
+  .teacherCard{page-break-after:always;break-after:page}
+  .teacherCard:last-child{page-break-after:auto;break-after:auto}
+  .teacherTitle{font-size:15px!important}
+  td.date{font-size:11px!important}
+  .markIcon{transform:scale(1.15)}
+}
+
 </style>
 </head>
 <body>
 <div class="header">
-  <h1>夏休み出勤管理 <small>Supabase Ver.1.2</small></h1>
+  <h1>夏休み出勤管理 <small>Supabase Ver.1.3</small></h1>
   <p>個別指導ステップ</p>
 </div>
 
@@ -124,7 +139,8 @@ td.actions{min-width:210px}
     <h2>先生別一覧</h2>
     <div class="row noPrint">
       <button id="reloadTeachers" class="gray" type="button">再読み込み</button>
-      <button id="printBtn" class="gray" type="button">印刷する</button>
+      <button id="selectDisplayBtn" class="blue" type="button">表示する先生を選択</button>
+      <button id="printBtn" class="gray" type="button">印刷する先生を選択</button>
     </div>
     <div id="teachersArea"></div>
     <div id="teachersMsg" class="msg"></div>
@@ -142,7 +158,24 @@ td.actions{min-width:210px}
     <div id="teacherMasterMsg" class="msg"></div>
   </section>
 
-  <div class="small noPrint">Build Supabase Ver.1.2</div>
+  <div class="small noPrint">Build Supabase Ver.1.3</div>
+</div>
+
+
+<div id="teacherSelectModal" class="modal noPrint">
+  <div class="modalBox">
+    <h3 id="teacherSelectTitle">先生を選択</h3>
+    <div class="row">
+      <button id="teacherAllOn" class="gray" type="button">全員選択</button>
+      <button id="teacherAllOff" class="gray" type="button">全員解除</button>
+    </div>
+    <div id="teacherSelectSummary" class="selectSummary"></div>
+    <div id="teacherChecks" class="teacherChecks"></div>
+    <div class="row" style="margin-top:14px">
+      <button id="teacherSelectRun" class="primary" type="button">実行</button>
+      <button id="teacherSelectClose" class="red" type="button">閉じる</button>
+    </div>
+  </div>
 </div>
 
 <div id="savePopup" class="popup noPrint"><div class="popupBox">保存しました</div></div>
@@ -156,6 +189,8 @@ let tab = 'slots';
 let slotConfig = [];
 let teachers = [];
 let availability = [];
+let selectedTeacherCodes = [];
+let selectMode = 'display';
 
 const timeLabels = ['13:00<br>14:15','14:20<br>15:35','15:45<br>17:00','17:10<br>18:25','18:35<br>19:50','20:00<br>21:15'];
 const timeShort = ['13:00','14:20','15:45','17:10','18:35','20:00'];
@@ -207,6 +242,7 @@ async function rest(path, options={}){
 
 function setSchool(s){
   school=s;
+  selectedTeacherCodes=[];
   $('schoolS').classList.toggle('active',s==='神領');
   $('schoolO').classList.toggle('active',s==='大手町');
   loadCurrent();
@@ -402,13 +438,17 @@ function markHtml(v){
 }
 
 function renderTeachers(){
-  if(!teachers.length){
+  const displayTeachers = selectedTeacherCodes.length
+    ? teachers.filter(t => selectedTeacherCodes.includes(t.code))
+    : teachers;
+
+  if(!displayTeachers.length){
     $('teachersArea').innerHTML='<p>まだ登録データがありません。</p>';
     return;
   }
 
   let h='';
-  teachers.forEach(t=>{
+  displayTeachers.forEach(t=>{
     h+='<div class="teacherCard"><div class="teacherTitle">'+t.code+'　'+t.name+'</div><div class="tableWrap">';
     h+='<table><thead><tr><th>日付</th>';
     timeShort.forEach(x=>h+='<th>'+x+'</th>');
@@ -433,7 +473,8 @@ function renderTeachers(){
     h+='</tbody></table></div></div>';
   });
 
-  $('teachersArea').innerHTML=h;
+  const prefix = selectedTeacherCodes.length ? '選択中：'+displayTeachers.length+'名' : '全員表示：'+displayTeachers.length+'名';
+  $('teachersArea').innerHTML='<div class="noPrint" style="font-weight:900;color:#1565c0;margin-bottom:10px">'+prefix+'</div>'+h;
 }
 
 async function loadTeacherMaster(){
@@ -470,6 +511,70 @@ async function addTeacher(){
   }
 }
 
+
+function openTeacherSelect(mode){
+  selectMode = mode;
+  if(!teachers || teachers.length === 0){
+    msg('teachersMsg','先生データがありません。再読み込みしてください。',false);
+    return;
+  }
+
+  $('teacherSelectTitle').textContent = mode === 'print' ? '印刷する先生を選択' : '表示する先生を選択';
+  const current = selectedTeacherCodes.length ? selectedTeacherCodes : teachers.map(t=>t.code);
+
+  let h='';
+  teachers.forEach(t=>{
+    const checked = current.includes(t.code) ? 'checked' : '';
+    h += '<label><input class="teacherCheck" type="checkbox" value="'+t.code+'" '+checked+'> '+t.code+'　'+t.name+'</label>';
+  });
+  $('teacherChecks').innerHTML = h;
+  updateTeacherSelectSummary();
+  $('teacherSelectModal').style.display='flex';
+}
+
+function closeTeacherSelect(){
+  $('teacherSelectModal').style.display='none';
+}
+
+function teacherSelectAll(v){
+  document.querySelectorAll('.teacherCheck').forEach(c=>c.checked=v);
+  updateTeacherSelectSummary();
+}
+
+function selectedCodesFromModal(){
+  return Array.from(document.querySelectorAll('.teacherCheck:checked')).map(c=>c.value);
+}
+
+function updateTeacherSelectSummary(){
+  const count = selectedCodesFromModal().length;
+  $('teacherSelectSummary').textContent = '選択中：' + count + '名';
+}
+
+function runTeacherSelect(){
+  const codes = selectedCodesFromModal();
+  if(codes.length === 0){
+    alert('先生を1人以上選択してください。');
+    return;
+  }
+
+  closeTeacherSelect();
+
+  if(selectMode === 'display'){
+    selectedTeacherCodes = (codes.length === teachers.length) ? [] : codes;
+    renderTeachers();
+  }else{
+    const before = selectedTeacherCodes.slice();
+    selectedTeacherCodes = (codes.length === teachers.length) ? [] : codes;
+    renderTeachers();
+    setTimeout(()=>{
+      window.print();
+      selectedTeacherCodes = before;
+      renderTeachers();
+    },200);
+  }
+}
+
+
 $('schoolS').onclick=()=>setSchool('神領');
 $('schoolO').onclick=()=>setSchool('大手町');
 $('tabSlots').onclick=()=>setTab('slots');
@@ -484,7 +589,13 @@ $('reloadDeadline').onclick=loadDeadline;
 $('saveDeadline').onclick=saveDeadline;
 $('deadlineDate').onchange=updateDeadlineLabel;
 $('reloadTeachers').onclick=loadTeachersView;
-$('printBtn').onclick=()=>window.print();
+$('selectDisplayBtn').onclick=()=>openTeacherSelect('display');
+$('printBtn').onclick=()=>openTeacherSelect('print');
+$('teacherSelectClose').onclick=closeTeacherSelect;
+$('teacherAllOn').onclick=()=>teacherSelectAll(true);
+$('teacherAllOff').onclick=()=>teacherSelectAll(false);
+$('teacherSelectRun').onclick=runTeacherSelect;
+$('teacherChecks').addEventListener('change',updateTeacherSelectSummary);
 $('addTeacher').onclick=addTeacher;
 $('reloadTeacherMaster').onclick=loadTeacherMaster;
 
