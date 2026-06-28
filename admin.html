@@ -15,7 +15,7 @@ body{margin:0;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Noto Sans 
 button{border:0;border-radius:10px;padding:10px 14px;font-weight:800;cursor:pointer}
 .tab{background:#e5e7eb;color:#374151}.tab.active{background:#1565c0;color:white}
 .school{background:white;border:2px solid #d1d5db;color:#374151}.school.active{border-color:#1565c0;background:#eff6ff;color:#1565c0}
-.primary{background:#2e7d32;color:white}.primary.bigSave{margin-left:auto;min-width:190px;font-size:17px;padding:14px 26px}.warn{background:#e65100;color:white}.gray{background:#607d8b;color:white}.danger{background:#e53935;color:white}.stateOn{box-shadow:0 0 0 3px rgba(46,125,50,.25);outline:2px solid #2e7d32}.stateOff{box-shadow:0 0 0 3px rgba(96,125,139,.25);outline:2px solid #607d8b}.blue{background:#1565c0;color:white}
+.primary{background:#2e7d32;color:white}.warn{background:#e65100;color:white}.gray{background:#607d8b;color:white}.danger{background:#e53935;color:white}.blue{background:#1565c0;color:white}
 .long{min-width:240px;font-size:16px;padding:13px 26px}
 .msg{display:none;margin-top:10px;padding:10px;border-radius:10px;font-weight:800;line-height:1.5;white-space:pre-wrap}
 .msg.ok{display:block;background:#ecfdf5;border:1px solid #a7f3d0;color:#166534}.msg.err{display:block;background:#fff7ed;border:1px solid #fed7aa;color:#8a3a1c}
@@ -46,7 +46,7 @@ input[type=date]{font-size:15px;padding:9px;border:1px solid #d1d5db;border-radi
 }
 </style></head>
 <body>
-<div class="hero"><h1>夏休み出勤管理 <span style="font-size:12px">Ver.2.3</span></h1><p>個別指導ステップ</p></div>
+<div class="hero"><h1>夏休み出勤管理 <span style="font-size:12px">Ver.2.4</span></h1><p>個別指導ステップ</p></div>
 <div class="wrap">
 <div class="schools no-print"><button id="schoolShinryo" class="school active">神領校</button><button id="schoolOtemachi" class="school">大手町校</button></div>
 <div class="tabs no-print"><button id="tabSlots" class="tab active">授業枠設定</button><button id="tabDeadline" class="tab">締切設定</button><button id="tabTeachers" class="tab">先生別一覧</button></div>
@@ -54,7 +54,7 @@ input[type=date]{font-size:15px;padding:9px;border:1px solid #d1d5db;border-radi
 <section id="viewSlots" class="card">
 <h2>授業枠設定</h2><p class="small">ここで作った日付・時間帯が、講師アプリ・先生別一覧・印刷の基準になります。</p>
 <div class="row no-print"><b>期間設定</b><input id="rangeStart" type="date"><span>〜</span><input id="rangeEnd" type="date"><button class="gray" id="makeRangeBtn">期間の枠を作成</button></div>
-<div class="row no-print"><b>授業日の追加</b><input id="singleDate" type="date"><button class="blue" id="addSingleDateBtn">授業日を追加</button><button class="primary bigSave" id="saveSlotsBtn">保存する</button><button class="gray" id="reloadSlotsBtn">再読み込み</button></div>
+<div class="row no-print"><b>授業日の追加</b><input id="singleDate" type="date"><button class="blue" id="addSingleDateBtn">授業日を追加</button><button class="primary" id="saveSlotsBtn">保存する</button><button class="gray" id="reloadSlotsBtn">再読み込み</button></div>
 <div id="slotsArea" class="table-wrap"></div><div id="slotsMsg" class="msg"></div>
 </section>
 
@@ -70,7 +70,7 @@ input[type=date]{font-size:15px;padding:9px;border:1px solid #d1d5db;border-radi
 <div class="row no-print"><button class="gray" id="reloadTeachersBtn">再読み込み</button><button class="warn long" id="bulkWriteBtn">時間割に一括登録</button><button class="gray" id="printSelectBtn">印刷する</button></div>
 <div id="teachersArea"></div><div id="teachersMsg" class="msg"></div>
 </section>
-<div class="small no-print" style="text-align:center;margin:18px">Build 2026-06-28 12:35</div>
+<div class="small no-print" style="text-align:center;margin:18px">Build 2026-06-28 12:43</div>
 </div>
 
 <div id="savePopup" class="popup no-print"><div class="popupBox">保存しました</div></div>
@@ -91,7 +91,7 @@ function setTab(t){activeTab=t;$('tabSlots').classList.toggle('active',t==='slot
 function loadActive(){if(activeTab==='slots')loadSlots();if(activeTab==='deadline')loadDeadlines();if(activeTab==='teachers')loadTeachers()}
 
 async function loadSlots(){showMsg('slotsMsg','読み込み中...',true);try{const r=await jsonp({action:'getSlotConfig',school});if(!r.ok)throw new Error(r.error||'取得できません');slotConfig=r.config||[];renderSlots();showMsg('slotsMsg','読み込みました。',true)}catch(e){showMsg('slotsMsg',e.message||String(e),false)}}
-function renderSlots(){const labels=['13:00-14:15','14:20-15:35','15:45-17:00','17:10-18:25','18:35-19:50','20:00-21:15'];let h='<table><thead><tr><th>日付</th>';labels.forEach(l=>h+='<th>'+l.replace('-','<br>')+'</th>');h+='<th class="no-print">操作</th></tr></thead><tbody>';slotConfig.forEach((row,idx)=>{const closed=(row.enabled||[]).every(v=>!v);h+='<tr class="'+(closed?'closed-row':'')+'"><td class="date">'+dateLabel(row.rawDate)+'</td>';for(let i=0;i<6;i++)h+='<td>'+(closed?'-':'<input type="checkbox" data-idx="'+idx+'" data-slot="'+i+'" '+(row.enabled[i]?'checked':'')+'>')+'</td>';h+='<td class="actions no-print"><button class="primary '+(!closed?'stateOn':'')+'" onclick="setClassDay('+idx+')">授業</button> <button class="gray '+(closed?'stateOff':'')+'" onclick="setClosed('+idx+')">休校</button> <button class="danger" onclick="deleteDay('+idx+')">削除</button></td></tr>'});h+='</tbody></table>';$('slotsArea').innerHTML=h}
+function renderSlots(){const labels=['13:00-14:15','14:20-15:35','15:45-17:00','17:10-18:25','18:35-19:50','20:00-21:15'];let h='<table><thead><tr><th>日付</th>';labels.forEach(l=>h+='<th>'+l.replace('-','<br>')+'</th>');h+='<th class="no-print">操作</th></tr></thead><tbody>';slotConfig.forEach((row,idx)=>{const closed=(row.enabled||[]).every(v=>!v);h+='<tr class="'+(closed?'closed-row':'')+'"><td class="date">'+dateLabel(row.rawDate)+'</td>';for(let i=0;i<6;i++)h+='<td>'+(closed?'-':'<input type="checkbox" data-idx="'+idx+'" data-slot="'+i+'" '+(row.enabled[i]?'checked':'')+'>')+'</td>';h+='<td class="actions no-print"><button class="blue" onclick="setClassDay('+idx+')">授業</button> <button class="gray" onclick="setClosed('+idx+')">休校</button> <button class="danger" onclick="deleteDay('+idx+')">削除</button></td></tr>'});h+='</tbody></table>';$('slotsArea').innerHTML=h}
 function setClassDay(idx){slotConfig[idx].enabled=[true,true,true,true,true,true];renderSlots()}
 function setClosed(idx){slotConfig[idx].enabled=[false,false,false,false,false,false];renderSlots()}
 function deleteDay(idx){if(confirm(dateLabel(slotConfig[idx].rawDate)+' を削除しますか？')){slotConfig.splice(idx,1);renderSlots()}}
@@ -113,12 +113,10 @@ async function saveSlots(){
     if(!r.ok) throw new Error(r.error||'保存を開始できません');
 
     const chunkSize=8;
-    let total=0;
     for(let i=0;i<slotConfig.length;i+=chunkSize){
       const chunk=slotConfig.slice(i,i+chunkSize);
       r=await jsonp({action:'appendSlotConfigChunk',school,chunk:JSON.stringify(chunk)});
       if(!r.ok) throw new Error(r.error||'保存中にエラーが出ました');
-      total += r.appended || chunk.length;
       showMsg('slotsMsg','保存中です... '+Math.min(i+chunkSize,slotConfig.length)+' / '+slotConfig.length,true);
     }
 
@@ -127,6 +125,7 @@ async function saveSlots(){
 
     showMsg('slotsMsg','保存しました。件数：'+r.saved,true);
     showSavePopup();
+    await loadSlots();
   }catch(e){
     showMsg('slotsMsg','保存中に通信エラーが出ました。再読み込みして、保存されているか確認してください。
 '+(e.message||String(e)),false);
