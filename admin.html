@@ -93,12 +93,16 @@ button:disabled{opacity:.55;cursor:not-allowed}
 .statusBadge.off{background:#fee2e2;color:#991b1b;border:1px solid #fecaca}
 .toggleBtn{min-width:92px;padding:7px 10px;border-radius:999px;font-size:12px}
 
+.backupBox{background:#f8fafc;border:1px solid #cbd5e1;border-radius:14px;padding:14px;margin:12px 0}
+.backupBox h3{margin:0 0 8px;color:#1565c0}
+.backupList{font-size:13px;line-height:1.7;color:#475569}
+input[type=file]{font-size:14px;padding:8px;border:1px solid #cbd5e1;border-radius:8px;background:#fff}
 
 </style>
 </head>
 <body>
 <div class="header">
-  <h1>夏休み出勤管理 <small>Supabase Ver.1.8</small></h1>
+  <h1>夏休み出勤管理 <small>Supabase Ver.1.9</small></h1>
   <p>個別指導ステップ</p>
 </div>
 
@@ -114,6 +118,7 @@ button:disabled{opacity:.55;cursor:not-allowed}
     <button id="tabTeachers" class="tab" type="button">先生別一覧</button>
     <button id="tabStatus" class="tab" type="button">提出状況一覧</button>
     <button id="tabTeacherMaster" class="tab" type="button">講師登録</button>
+    <button id="tabBackup" class="tab" type="button">バックアップ</button>
   </div>
 
   <section id="viewSlots" class="card">
@@ -204,7 +209,36 @@ button:disabled{opacity:.55;cursor:not-allowed}
     <div id="teacherMasterMsg" class="msg"></div>
   </section>
 
-  <div class="small noPrint">Build Supabase Ver.1.8</div>
+
+
+  <section id="viewBackup" class="card hidden">
+    <h2>バックアップ・復元</h2>
+    <div class="backupBox noPrint">
+      <h3>自動バックアップ</h3>
+      <div class="backupList">
+        ・画面を開いたときに現在のSupabase設定を自動保存します。<br>
+        ・授業枠保存、締切保存、講師同期、有効/無効切替の直前にも自動保存します。<br>
+        ・自動バックアップはこのブラウザ内に保存されます。別PCでも使う場合は「JSONとして保存」を押してください。
+      </div>
+      <div class="row">
+        <button id="makeManualBackup" class="blue" type="button">📥 現在の設定をJSONとして保存</button>
+        <button id="restoreLatestAuto" class="orange" type="button">📤 直近の自動バックアップから復元</button>
+        <button id="showBackupInfo" class="gray" type="button">直近バックアップ確認</button>
+      </div>
+    </div>
+
+    <div class="backupBox noPrint">
+      <h3>ファイルから復元</h3>
+      <div class="backupList">保存済みJSONファイルを選んで復元します。復元前にも自動バックアップを作成します。</div>
+      <div class="row">
+        <input id="restoreFile" type="file" accept="application/json,.json">
+        <button id="restoreFromFile" class="red" type="button">ファイルから復元する</button>
+      </div>
+    </div>
+    <div id="backupMsg" class="msg"></div>
+  </section>
+
+  <div class="small noPrint">Build Supabase Ver.1.9</div>
 </div>
 
 
@@ -301,12 +335,14 @@ function setTab(t){
   $('tabTeachers').classList.toggle('active',t==='teachers');
   $('tabStatus').classList.toggle('active',t==='status');
   $('tabTeacherMaster').classList.toggle('active',t==='master');
+  $('tabBackup').classList.toggle('active',t==='backup');
 
   $('viewSlots').classList.toggle('hidden',t!=='slots');
   $('viewDeadline').classList.toggle('hidden',t!=='deadline');
   $('viewTeachers').classList.toggle('hidden',t!=='teachers');
   $('viewStatus').classList.toggle('hidden',t!=='status');
   $('viewTeacherMaster').classList.toggle('hidden',t!=='master');
+  $('viewBackup').classList.toggle('hidden',t!=='backup');
 
   loadCurrent();
 }
@@ -317,6 +353,7 @@ function loadCurrent(){
   if(tab==='teachers') loadTeachersView();
   if(tab==='status') loadStatusView();
   if(tab==='master') loadTeacherMaster();
+  if(tab==='backup') loadBackupView();
 }
 
 async function loadSlots(){
@@ -405,6 +442,7 @@ async function saveSlots(){
     });
 
     msg('slotsMsg','保存中...',true);
+    await autoBackup('授業枠保存前');
 
     await rest('class_days?school=eq.'+encodeURIComponent(school),{method:'DELETE'});
 
@@ -450,6 +488,7 @@ async function saveDeadline(){
       return;
     }
     msg('deadlineMsg','保存中...',true);
+    await autoBackup('締切保存前');
     await rest('deadlines', {
       method:'POST',
       body: JSON.stringify({school:school, deadline:raw}),
@@ -578,6 +617,153 @@ async function loadStatusView(){
 }
 
 
+
+const BACKUP_KEY = 'step_teacher_schedule_auto_backup_v1';
+
+function timestampText(){
+  const d = new Date();
+  return d.getFullYear() + '/' + String(d.getMonth()+1).padStart(2,'0') + '/' + String(d.getDate()).padStart(2,'0') + ' ' + String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0') + ':' + String(d.getSeconds()).padStart(2,'0');
+}
+
+function filenameTimestamp(){
+  const d = new Date();
+  return d.getFullYear() + String(d.getMonth()+1).padStart(2,'0') + String(d.getDate()).padStart(2,'0') + '_' + String(d.getHours()).padStart(2,'0') + String(d.getMinutes()).padStart(2,'0') + String(d.getSeconds()).padStart(2,'0');
+}
+
+async function createBackup(reason='自動バックアップ'){
+  const data = {
+    app:'step_teacher_schedule_admin',
+    version:'1.9',
+    created_at: timestampText(),
+    reason: reason,
+    tables:{
+      class_days: await rest('class_days?select=*&order=school.asc,date.asc'),
+      deadlines: await rest('deadlines?select=*&order=school.asc'),
+      teachers: await rest('teachers?select=*&order=code.asc'),
+      availability: await rest('availability?select=*&order=school.asc,teacher_code.asc,date.asc,slot_index.asc')
+    }
+  };
+  localStorage.setItem(BACKUP_KEY, JSON.stringify(data));
+  return data;
+}
+
+async function autoBackup(reason){
+  try{
+    const data = await createBackup(reason || '自動バックアップ');
+    console.log('auto backup saved', data.created_at, data.reason);
+    return data;
+  }catch(e){
+    console.warn('auto backup failed', e);
+    return null;
+  }
+}
+
+function getLatestBackup(){
+  const text = localStorage.getItem(BACKUP_KEY);
+  if(!text) return null;
+  try{return JSON.parse(text)}catch(e){return null}
+}
+
+function backupSummary(data){
+  if(!data || !data.tables) return 'バックアップがありません。';
+  const t = data.tables;
+  return '作成日時：' + (data.created_at || '') + '\n' +
+    '理由：' + (data.reason || '') + '\n' +
+    '授業枠：' + ((t.class_days||[]).length) + '件\n' +
+    '締切：' + ((t.deadlines||[]).length) + '件\n' +
+    '講師：' + ((t.teachers||[]).length) + '件\n' +
+    '出勤登録：' + ((t.availability||[]).length) + '件';
+}
+
+function loadBackupView(){
+  const data = getLatestBackup();
+  msg('backupMsg', backupSummary(data), !!data);
+}
+
+async function downloadCurrentBackup(){
+  try{
+    msg('backupMsg','現在の設定をバックアップ中...',true);
+    const data = await createBackup('手動ダウンロード');
+    const blob = new Blob([JSON.stringify(data,null,2)], {type:'application/json'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'step_schedule_backup_' + filenameTimestamp() + '.json';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(a.href);
+    msg('backupMsg','バックアップを保存しました。\n\n' + backupSummary(data),true);
+  }catch(e){
+    msg('backupMsg','バックアップできません。\n'+(e.message||String(e)),false);
+  }
+}
+
+function cleanRows(rows){
+  return (rows||[]).map(r=>{
+    const x = {...r};
+    return x;
+  });
+}
+
+async function restoreTable(table, filter, rows){
+  await rest(table + '?' + filter, {method:'DELETE'});
+  const cleaned = cleanRows(rows);
+  const size = 500;
+  for(let i=0;i<cleaned.length;i+=size){
+    const chunk = cleaned.slice(i,i+size);
+    if(chunk.length){
+      await rest(table, {method:'POST', body:JSON.stringify(chunk)});
+    }
+  }
+}
+
+async function restoreBackupData(data){
+  if(!data || !data.tables) throw new Error('バックアップファイルの形式が違います。');
+  const summary = backupSummary(data);
+  if(!confirm('バックアップから復元します。\n\n' + summary + '\n\n現在のデータは復元内容で上書きされます。よろしいですか？')) return;
+  if(!confirm('念のためもう一度確認します。\n復元を実行してよろしいですか？')) return;
+
+  msg('backupMsg','復元前の自動バックアップを作成中...',true);
+  await autoBackup('復元前の自動バックアップ');
+
+  msg('backupMsg','復元中...',true);
+  const t = data.tables;
+  await restoreTable('availability','school=not.is.null',t.availability||[]);
+  await restoreTable('class_days','school=not.is.null',t.class_days||[]);
+  await restoreTable('deadlines','school=not.is.null',t.deadlines||[]);
+  await restoreTable('teachers','code=not.is.null',t.teachers||[]);
+  localStorage.setItem(BACKUP_KEY, JSON.stringify(data));
+  msg('backupMsg','復元しました。\n\n' + summary,true);
+  loadCurrent();
+}
+
+async function restoreLatestAutoBackup(){
+  try{
+    const data = getLatestBackup();
+    if(!data){msg('backupMsg','直近の自動バックアップがありません。',false);return;}
+    await restoreBackupData(data);
+  }catch(e){
+    msg('backupMsg','復元できません。\n'+(e.message||String(e)),false);
+  }
+}
+
+async function restoreFromFile(){
+  try{
+    const f = $('restoreFile').files && $('restoreFile').files[0];
+    if(!f){msg('backupMsg','復元するJSONファイルを選んでください。',false);return;}
+    const text = await f.text();
+    const data = JSON.parse(text);
+    await restoreBackupData(data);
+  }catch(e){
+    msg('backupMsg','ファイルから復元できません。\n'+(e.message||String(e)),false);
+  }
+}
+
+function showLatestBackupInfo(){
+  const data = getLatestBackup();
+  msg('backupMsg', backupSummary(data), !!data);
+}
+
 async function loadTeacherMaster(){
   msg('teacherMasterMsg','読み込み中...',true);
   try{
@@ -621,6 +807,7 @@ async function toggleTeacherActive(code, nextActive){
     const label = nextActive ? '有効に戻します' : '無効にします';
     if(!confirm(code + ' を' + label + '。よろしいですか？')) return;
     msg('teacherMasterMsg','変更中...',true);
+    await autoBackup('講師有効/無効変更前');
     const payload = {active: !!nextActive};
     if(nextActive){
       payload.retired_at = null;
@@ -646,6 +833,7 @@ async function addTeacher(){
     if(!code||!name){msg('teacherMasterMsg','コードと氏名を入力してください。',false);return}
 
     const row={code:code,name:name,school:school,active:true};
+    await autoBackup('講師追加/更新前');
     await rest('teachers',{method:'POST',body:JSON.stringify(row),headers:{Prefer:'resolution=merge-duplicates'}});
 
     $('newCode').value='';
@@ -830,6 +1018,7 @@ async function syncTeachersFromSheetUrl(){
     if(!confirm('Googleスプレッドシートから ' + school + '校 の講師マスターを同期します。よろしいですか？')) return;
 
     setImportBusy(true,'Googleスプレッドシートから取得中...');
+    await autoBackup('講師マスターURL同期前');
 
     const csvUrl = 'https://docs.google.com/spreadsheets/d/' + info.id + '/gviz/tq?tqx=out:csv&gid=' + info.gid + '&_=' + Date.now();
     const res = await fetch(csvUrl);
@@ -911,6 +1100,7 @@ async function importTeachersFromPaste(){
     if(!confirm(rows.length + '名を ' + school + '校 の講師として同期します。\n有効：' + activeCount + '名 / 無効：' + inactiveCount + '名\nよろしいですか？')) return;
 
     setImportBusy(true,'一括登録中...');
+    await autoBackup('講師マスター貼り付け同期前');
 
     await rest('teachers', {
       method:'POST',
@@ -935,6 +1125,7 @@ $('tabDeadline').onclick=()=>setTab('deadline');
 $('tabTeachers').onclick=()=>setTab('teachers');
 $('tabStatus').onclick=()=>setTab('status');
 $('tabTeacherMaster').onclick=()=>setTab('master');
+$('tabBackup').onclick=()=>setTab('backup');
 $('makeRange').onclick=makeRange;
 $('addDay').onclick=addDay;
 $('saveSlots').onclick=saveSlots;
@@ -959,8 +1150,13 @@ $('showInactiveTeachers').onchange=loadTeacherMaster;
 $('syncTeachersFromSheet').onclick=syncTeachersFromSheetUrl;
 $('importTeachers').onclick=importTeachersFromPaste;
 $('clearTeacherPaste').onclick=()=>{$('teacherPaste').value='';};
+$('makeManualBackup').onclick=downloadCurrentBackup;
+$('restoreLatestAuto').onclick=restoreLatestAutoBackup;
+$('restoreFromFile').onclick=restoreFromFile;
+$('showBackupInfo').onclick=showLatestBackupInfo;
 
 loadSlots();
+setTimeout(()=>autoBackup('画面起動時の自動バックアップ'),1800);
 </script>
 </body>
 </html>
