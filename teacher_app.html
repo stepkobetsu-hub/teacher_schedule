@@ -62,12 +62,31 @@ tr:nth-child(even) td{background:#f9fafb}
   @page{size:A4 portrait;margin:8mm}
 }
 
+
+/* Ver.2.2 header refinement */
+.logout-top{position:fixed;top:6px;right:8px;z-index:100}
+.logout-small{border:0;border-radius:999px;padding:5px 9px;font-size:11px;font-weight:800;cursor:pointer;background:rgba(198,40,40,.92);color:#fff;box-shadow:0 2px 8px rgba(0,0,0,.18)}
+.teacher-toolbar{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.teacher-name{font-size:26px;font-weight:950;line-height:1.2}
+.teacher-actions{display:flex;gap:8px;flex-shrink:0}
+.header-btn{border:0;border-radius:10px;padding:10px 15px;font-size:14px;font-weight:900;cursor:pointer;background:#fff;color:#2749b8}
+.header-btn.logout{display:none}
+.bar{padding-top:18px!important}
+@media(max-width:520px){
+  .teacher-name{font-size:24px}
+  .header-btn{padding:9px 12px;font-size:13px}
+}
+@media print{
+  .logout-top,.teacher-actions{display:none!important}
+}
+
 </style>
 </head>
 <body>
+<div class="logout-top no-print"><button id="logoutTopBtn" class="logout-small" type="button">ログアウト</button></div>
 <div class="hero">
   <h1>☀️ 夏休み出勤可能日登録</h1>
-  <div class="sub">個別指導ステップ<span class="ver">Ver.2.1</span></div>
+  <div class="sub">個別指導ステップ<span class="ver">Ver.2.2</span></div>
 </div>
 
 <div id="loginScreen" class="wrap">
@@ -94,7 +113,6 @@ tr:nth-child(even) td{background:#f9fafb}
       <div id="teacherNameHeader" class="teacher-name"></div>
       <div class="teacher-actions">
         <button id="printBtn" class="header-btn" type="button">🖨 印刷</button>
-        <button id="logoutBtn" class="header-btn logout" type="button">🚪 ログアウト</button>
       </div>
     </div>
   </div>
@@ -113,8 +131,8 @@ tr:nth-child(even) td{background:#f9fafb}
 </div>
 
 <script>
-const APP_VERSION = '2.1';
-const STORAGE_PREFIX = 'summer_teacher_app_v2_1_';
+const APP_VERSION = '2.2';
+const STORAGE_PREFIX = 'summer_teacher_app_v2_2_';
 const GAS_API = 'https://script.google.com/macros/s/AKfycbx8UeG5X_WSonK8StzuB8B_iC4BACDw3guGZgQvuSAWnxJCfUwnsycZLC5Wn19HBGO3pQ/exec';
 
 let school = '神領';
@@ -352,6 +370,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if($('printBtn')) $('printBtn').addEventListener('click', printMySchedule);
   if($('logoutBtn')) $('logoutBtn').addEventListener('click', logoutTeacher);
+  if($('logoutTopBtn')) $('logoutTopBtn').addEventListener('click', logoutTeacher);
   $('schoolShinryo').addEventListener('click', () => setSchool('神領'));
   $('schoolOtemachi').addEventListener('click', () => setSchool('大手町'));
   $('loginBtn').addEventListener('click', login);
@@ -364,6 +383,6 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 </script>
-<div class="small">Build 2026-06-28 12:26</div>
+<div class="small">Build 2026-06-28 12:31</div>
 </body>
 </html>
