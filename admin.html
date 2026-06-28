@@ -1,113 +1,647 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>夏休み出勤管理</title>
-<style>
-*{box-sizing:border-box}
-body{margin:0;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Noto Sans JP",sans-serif;background:#f3f6fb;color:#111827}
-.hero{background:linear-gradient(135deg,#1565c0,#42a5f5);color:white;padding:18px 16px}
-.hero h1{margin:0;font-size:22px}.hero p{margin:5px 0 0;font-size:12px;opacity:.9}
-.wrap{max-width:1180px;margin:0 auto;padding:14px}
-.card{background:white;border-radius:14px;padding:14px;margin-bottom:14px;box-shadow:0 8px 24px rgba(15,23,42,.08)}
-.tabs,.schools,.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
-button{border:0;border-radius:10px;padding:10px 14px;font-weight:800;cursor:pointer}
-.tab{background:#e5e7eb;color:#374151}.tab.active{background:#1565c0;color:white}
-.school{background:white;border:2px solid #d1d5db;color:#374151}.school.active{border-color:#1565c0;background:#eff6ff;color:#1565c0}
-.primary{background:#2e7d32;color:white}.warn{background:#e65100;color:white}.gray{background:#607d8b;color:white}.danger{background:#e53935;color:white}.blue{background:#1565c0;color:white}
-.long{min-width:240px;font-size:16px;padding:13px 26px}
-.msg{display:none;margin-top:10px;padding:10px;border-radius:10px;font-weight:800;line-height:1.5;white-space:pre-wrap}
-.msg.ok{display:block;background:#ecfdf5;border:1px solid #a7f3d0;color:#166534}.msg.err{display:block;background:#fff7ed;border:1px solid #fed7aa;color:#8a3a1c}
-.table-wrap{overflow-x:auto}table{border-collapse:collapse;width:100%;min-width:820px;background:white}
-th{background:#374151;color:white;padding:7px 5px;font-size:12px;white-space:nowrap}
-td{border:1px solid #e5e7eb;text-align:center;padding:4px 3px;font-size:12px;height:26px}
-td.date{font-weight:800;white-space:nowrap;text-align:left;min-width:145px}
-td.actions{min-width:190px}
-input[type=date]{font-size:15px;padding:9px;border:1px solid #d1d5db;border-radius:8px}input[type=checkbox]{width:18px;height:18px}
-.hidden{display:none}.teacher-card{break-inside:avoid;background:white;border-radius:12px;margin-bottom:14px;overflow:hidden;border:1px solid #e5e7eb}
-.teacher-title{background:#374151;color:white;padding:9px 12px;font-weight:900}.mark{font-weight:900;font-size:15px}.on{color:#2563eb}.tri{color:#f97316}
-.small{font-size:12px;color:#6b7280}.closed-row td:not(.date):not(.actions){color:#555;background:#f3f4f6}
-.deadlineLabel{font-size:22px;font-weight:900;color:#1565c0;background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:8px 12px;min-width:190px;text-align:center}
-.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:50;align-items:center;justify-content:center;padding:16px}
-.modal-box{background:white;border-radius:16px;max-width:520px;width:100%;max-height:80vh;overflow:auto;padding:18px;box-shadow:0 20px 50px rgba(0,0,0,.25)}
-.teacher-checks label{display:block;padding:7px 4px;border-bottom:1px solid #eee}
-@media print{
-  body{background:#fff!important;color:#000!important}.no-print,.tabs,.schools,.hero,.modal{display:none!important}
-  .wrap{max-width:none!important;padding:0!important}.card{box-shadow:none!important;border:0!important;padding:0!important;margin:0!important}
-  .teacher-card{page-break-inside:avoid;border:1px solid #000!important;border-radius:0!important;margin-bottom:12px!important}
-  .teacher-title{background:#fff!important;color:#000!important;border-bottom:1px solid #000!important}
-  .table-wrap{overflow:visible!important}table{min-width:0!important;width:100%!important;border-collapse:collapse!important}
-  th,td{border:1px solid #000!important;color:#000!important;background:#fff!important;padding:4px 3px!important;font-size:10px!important}
-  th{font-weight:900!important}td.date{color:#000!important;background:#fff!important;font-weight:900!important}
-  .mark,.on,.tri{color:#000!important;font-weight:900!important}.small{color:#000!important}
-  @page{size:A4 portrait;margin:8mm}
+// =====================================================
+// 夏休み出勤可能日登録 API専用 Code.gs
+// Ver.1.8 2026/06/28
+// 画面はGitHub Pages、GASはGoogle Sheet通信専用
+// =====================================================
+
+var VERSION = '1.8';
+
+// 既存のIDを使用
+var MASTER_SS_ID   = '1L5aFDXAmfUDkBg8d7X3WqJgMhdMq5tM5sfUZ2G-M58E';
+var DATA_SS_ID     = '1oxBIjl-D0yOaQMkzPaX9nsre6kHSUuFoQm34O_MdsUg';
+var SHINRYO_SCHEDULE_SS_ID  = '1vlCqsHYq837RyKfzTDk6gIwhChJvr1wxS0jDpN7xrJk';
+var OTEMACHI_SCHEDULE_SS_ID = '1LMbLBRwRXDt7hi8_mouk2GNs7425RIXsNv_diTfCAbg';
+var SLOT_COLS = [5, 9, 13, 17, 21, 25];
+var KASE_EMAIL     = 'mintcocoajasmine@gmail.com';
+var ONO_EMAIL      = 'chloeandnina1@gmail.com';
+
+var TIME_SLOTS = ['13:00-14:15','14:20-15:35','15:45-17:00','17:10-18:25','18:35-19:50','20:00-21:15'];
+var OBON_DATES = ['2026/08/10','2026/08/11','2026/08/12','2026/08/13','2026/08/14','2026/08/15','2026/08/16'];
+
+function doGet(e) {
+  var params = (e && e.parameter) ? e.parameter : {};
+  var action = params.action || '';
+  var callback = params.callback || '';
+
+  var result;
+  try {
+    ensureSheets_();
+
+    if (action === 'ping') {
+      result = { ok:true, version: VERSION, message:'API OK' };
+    } else if (action === 'login') {
+      result = login_(params.code);
+    } else if (action === 'checkDeadline') {
+      result = checkDeadline_(params.school);
+    } else if (action === 'getSlots') {
+      result = getSlots_(params.school);
+    } else if (action === 'getMyAvailability') {
+      result = getMyAvailability_(params.code, params.school);
+    } else if (action === 'saveAvailability') {
+      var entries = JSON.parse(params.entries || '[]');
+      result = saveAvailability_(params.code, params.school, entries);
+    } else if (action === 'getSlotConfig') {
+      result = getSlotConfig_(params.school);
+    } else if (action === 'saveSlotConfig') {
+      var config = JSON.parse(params.config || '[]');
+      result = saveSlotConfig_(params.school, config);
+    } else if (action === 'getDeadlines') {
+      result = getDeadlines_();
+    } else if (action === 'saveDeadline') {
+      result = saveDeadline_(params.school, params.dateStr || '');
+    } else if (action === 'getTeacherCalendar') {
+      result = getTeacherCalendar_(params.school);
+    } else if (action === 'previewBulkWrite') {
+      result = previewBulkWrite_(params.school, JSON.parse(params.codes || '[]'));
+    } else if (action === 'bulkWriteToSchedule') {
+      result = bulkWriteToSchedule_(params.school, JSON.parse(params.codes || '[]'));
+    } else {
+      result = { ok:false, error:'unknown action: ' + action };
+    }
+  } catch (err) {
+    result = { ok:false, error: String(err && err.message ? err.message : err) };
+  }
+
+  var json = JSON.stringify(result);
+  if (callback) {
+    return ContentService
+      .createTextOutput(callback + '(' + json + ');')
+      .setMimeType(ContentService.MimeType.JAVASCRIPT);
+  }
+  return ContentService
+    .createTextOutput(json)
+    .setMimeType(ContentService.MimeType.JSON);
 }
-</style></head>
-<body>
-<div class="hero"><h1>夏休み出勤管理 <span style="font-size:12px">Ver.1.7</span></h1><p>個別指導ステップ</p></div>
-<div class="wrap">
-<div class="schools no-print"><button id="schoolShinryo" class="school active">神領校</button><button id="schoolOtemachi" class="school">大手町校</button></div>
-<div class="tabs no-print"><button id="tabSlots" class="tab active">授業枠設定</button><button id="tabDeadline" class="tab">締切設定</button><button id="tabTeachers" class="tab">先生別一覧</button></div>
 
-<section id="viewSlots" class="card">
-<h2>授業枠設定</h2><p class="small">ここで作った日付・時間帯が、講師アプリ・先生別一覧・印刷の基準になります。</p>
-<div class="row no-print"><b>期間設定</b><input id="rangeStart" type="date"><span>〜</span><input id="rangeEnd" type="date"><button class="gray" id="makeRangeBtn">期間の枠を作成</button></div>
-<div class="row no-print"><b>授業日の追加</b><input id="singleDate" type="date"><button class="blue" id="addSingleDateBtn">授業日を追加</button><button class="primary" id="saveSlotsBtn">保存する</button><button class="gray" id="reloadSlotsBtn">再読み込み</button></div>
-<div id="slotsArea" class="table-wrap"></div><div id="slotsMsg" class="msg"></div>
-</section>
+// ---------- 共通 ----------
+function normalizeSchool_(school) {
+  return String(school || '').trim() === '大手町' ? '大手町' : '神領';
+}
 
-<section id="viewDeadline" class="card hidden">
-<h2>締切設定</h2>
-<div class="row"><label><b>神領校</b></label><input id="deadlineShinryo" type="date"><span id="deadlineShinryoLabel" class="deadlineLabel"></span><button class="primary" onclick="saveDeadline('神領')">神領を保存</button></div>
-<div class="row"><label><b>大手町校</b></label><input id="deadlineOtemachi" type="date"><span id="deadlineOtemachiLabel" class="deadlineLabel"></span><button class="primary" onclick="saveDeadline('大手町')">大手町を保存</button></div>
-<button class="gray" id="reloadDeadlineBtn">再読み込み</button><div id="deadlineMsg" class="msg"></div>
-</section>
+function dateKey_(v) {
+  if (v instanceof Date && !isNaN(v)) {
+    return Utilities.formatDate(v, 'Asia/Tokyo', 'yyyy/MM/dd');
+  }
+  var s = String(v || '').trim().replace(/-/g, '/');
+  if (!s) return '';
+  var d = new Date(s);
+  if (!isNaN(d)) return Utilities.formatDate(d, 'Asia/Tokyo', 'yyyy/MM/dd');
+  return s;
+}
 
-<section id="viewTeachers" class="card hidden">
-<h2>先生別一覧</h2>
-<div class="row no-print"><button class="gray" id="reloadTeachersBtn">再読み込み</button><button class="warn long" id="bulkWriteBtn">時間割に一括登録</button><button class="gray" id="printSelectBtn">印刷する</button></div>
-<div id="teachersArea"></div><div id="teachersMsg" class="msg"></div>
-</section>
-<div class="small no-print" style="text-align:center;margin:18px">Build 2026-06-28 11:15</div>
-</div>
+function formatDateLabel_(raw) {
+  var d = new Date(raw);
+  if (isNaN(d)) return String(raw || '');
+  return Utilities.formatDate(d, 'Asia/Tokyo', 'yyyy/MM/dd') + '（' + ['日','月','火','水','木','金','土'][d.getDay()] + '）';
+}
 
-<div id="selectModal" class="modal no-print"><div class="modal-box"><h3 id="modalTitle">対象の先生を選択</h3><div class="row"><button class="gray" onclick="selectAllTeachers(true)">全員選択</button><button class="gray" onclick="selectAllTeachers(false)">全員解除</button></div><div id="teacherChecks" class="teacher-checks"></div><div class="row" style="margin-top:14px"><button class="primary" id="modalRunBtn">実行</button><button class="danger" onclick="closeModal()">閉じる</button></div></div></div>
+function teacherSheetName_(school) {
+  school = normalizeSchool_(school);
+  return school === '大手町' ? '出勤可否_大手町' : '出勤可否';
+}
 
-<script>
-const GAS_API='https://script.google.com/macros/s/AKfycbx8UeG5X_WSonK8StzuB8B_iC4BACDw3guGZgQvuSAWnxJCfUwnsycZLC5Wn19HBGO3pQ/exec';
-let school='神領', activeTab='slots', slotConfig=[], teacherData=[], printFilterCodes=null, modalMode='print', lastTeacherResult=null;
-function $(id){return document.getElementById(id)}
-function showMsg(id,text,ok=true){const e=$(id);e.textContent=text||'';e.className='msg '+(ok?'ok':'err');e.style.display=text?'block':'none'}
-function ymdToInput(s){return s?String(s).replaceAll('/','-').slice(0,10):''}
-function inputToYmd(s){return s?String(s).replaceAll('-','/'):''}
-function dateLabel(raw){if(!raw)return '';const d=new Date(String(raw).replaceAll('/','-'));if(isNaN(d))return raw;return raw.replaceAll('-','/')+'（'+'日月火水木金土'[d.getDay()]+'）'}
-function jsonp(params){return new Promise((resolve,reject)=>{const cb='cb_'+Date.now()+'_'+Math.random().toString(36).slice(2);const url=new URL(GAS_API);Object.entries(params).forEach(([k,v])=>url.searchParams.set(k,v));url.searchParams.set('callback',cb);url.searchParams.set('_',Date.now());const script=document.createElement('script');const timer=setTimeout(()=>{cleanup();reject(new Error('通信タイムアウト'))},20000);function cleanup(){clearTimeout(timer);delete window[cb];if(script.parentNode)script.parentNode.removeChild(script)}window[cb]=data=>{cleanup();resolve(data)};script.onerror=()=>{cleanup();reject(new Error('GAS通信に失敗しました'))};script.src=url.toString();document.body.appendChild(script)})}
-function setSchool(s){school=s;$('schoolShinryo').classList.toggle('active',s==='神領');$('schoolOtemachi').classList.toggle('active',s==='大手町');loadActive()}
-function setTab(t){activeTab=t;$('tabSlots').classList.toggle('active',t==='slots');$('tabDeadline').classList.toggle('active',t==='deadline');$('tabTeachers').classList.toggle('active',t==='teachers');$('viewSlots').classList.toggle('hidden',t!=='slots');$('viewDeadline').classList.toggle('hidden',t!=='deadline');$('viewTeachers').classList.toggle('hidden',t!=='teachers');loadActive()}
-function loadActive(){if(activeTab==='slots')loadSlots();if(activeTab==='deadline')loadDeadlines();if(activeTab==='teachers')loadTeachers()}
+function slotSheetName_(school) {
+  school = normalizeSchool_(school);
+  return school === '大手町' ? '授業枠設定_大手町' : '授業枠設定';
+}
 
-async function loadSlots(){showMsg('slotsMsg','読み込み中...',true);try{const r=await jsonp({action:'getSlotConfig',school});if(!r.ok)throw new Error(r.error||'取得できません');slotConfig=r.config||[];renderSlots();showMsg('slotsMsg','読み込みました。',true)}catch(e){showMsg('slotsMsg',e.message||String(e),false)}}
-function renderSlots(){const labels=['13:00-14:15','14:20-15:35','15:45-17:00','17:10-18:25','18:35-19:50','20:00-21:15'];let h='<table><thead><tr><th>日付</th>';labels.forEach(l=>h+='<th>'+l.replace('-','<br>')+'</th>');h+='<th class="no-print">操作</th></tr></thead><tbody>';slotConfig.forEach((row,idx)=>{const closed=(row.enabled||[]).every(v=>!v);h+='<tr class="'+(closed?'closed-row':'')+'"><td class="date">'+dateLabel(row.rawDate)+'</td>';for(let i=0;i<6;i++)h+='<td>'+(closed?'-':'<input type="checkbox" data-idx="'+idx+'" data-slot="'+i+'" '+(row.enabled[i]?'checked':'')+'>')+'</td>';h+='<td class="actions no-print"><button class="blue" onclick="setClassDay('+idx+')">授業</button> <button class="gray" onclick="setClosed('+idx+')">休校</button> <button class="danger" onclick="deleteDay('+idx+')">削除</button></td></tr>'});h+='</tbody></table>';$('slotsArea').innerHTML=h}
-function setClassDay(idx){slotConfig[idx].enabled=[true,true,true,true,true,true];renderSlots()}
-function setClosed(idx){slotConfig[idx].enabled=[false,false,false,false,false,false];renderSlots()}
-function deleteDay(idx){if(confirm(dateLabel(slotConfig[idx].rawDate)+' を削除しますか？')){slotConfig.splice(idx,1);renderSlots()}}
-function addDateRaw(raw){if(!raw){showMsg('slotsMsg','日付を選んでください。',false);return false}if(slotConfig.some(r=>r.rawDate===raw)){showMsg('slotsMsg','同じ日付があります。',false);return false}slotConfig.push({rawDate:raw,date:dateLabel(raw),holiday:false,enabled:[true,true,true,true,true,true]});slotConfig.sort((a,b)=>a.rawDate<b.rawDate?-1:1);renderSlots();return true}
-function addSingleDate(){const ok=addDateRaw(inputToYmd($('singleDate').value));if(ok){$('singleDate').value='';showMsg('slotsMsg','授業日を追加しました。保存ボタンを押すと反映されます。',true)}}
-function makeRange(){const s=$('rangeStart').value,e=$('rangeEnd').value;if(!s||!e){showMsg('slotsMsg','開始日と終了日を選んでください。',false);return}const start=new Date(s),end=new Date(e);if(start>end){showMsg('slotsMsg','終了日は開始日より後にしてください。',false);return}const map={};slotConfig.forEach(r=>map[r.rawDate]=r);for(let d=new Date(start);d<=end;d.setDate(d.getDate()+1)){const raw=d.toISOString().slice(0,10).replaceAll('-','/');if(!map[raw])map[raw]={rawDate:raw,date:dateLabel(raw),holiday:false,enabled:[true,true,true,true,true,true]}}slotConfig=Object.values(map).sort((a,b)=>a.rawDate<b.rawDate?-1:1);renderSlots();showMsg('slotsMsg','期間の枠を作成しました。保存ボタンを押すと反映されます。',true)}
-async function saveSlots(){document.querySelectorAll('#slotsArea input[type=checkbox]').forEach(cb=>{const idx=Number(cb.dataset.idx),slot=Number(cb.dataset.slot);slotConfig[idx].enabled[slot]=cb.checked});showMsg('slotsMsg','保存中...',true);try{const r=await jsonp({action:'saveSlotConfig',school,config:JSON.stringify(slotConfig)});if(!r.ok)throw new Error(r.error||'保存できません');showMsg('slotsMsg','保存しました。件数：'+r.saved,true)}catch(e){showMsg('slotsMsg',e.message||String(e),false)}}
+// ---------- 初期化 ----------
+function ensureSheets_() {
+  var ss = SpreadsheetApp.openById(DATA_SS_ID);
 
-async function loadDeadlines(){showMsg('deadlineMsg','読み込み中...',true);try{const r=await jsonp({action:'getDeadlines'});if(!r.ok)throw new Error(r.error||'取得できません');$('deadlineShinryo').value=ymdToInput(r['神領']);$('deadlineOtemachi').value=ymdToInput(r['大手町']);updateDeadlineLabels();showMsg('deadlineMsg','読み込みました。',true)}catch(e){showMsg('deadlineMsg',e.message||String(e),false)}}
-function updateDeadlineLabels(){$('deadlineShinryoLabel').textContent=dateLabel(inputToYmd($('deadlineShinryo').value));$('deadlineOtemachiLabel').textContent=dateLabel(inputToYmd($('deadlineOtemachi').value))}
-async function saveDeadline(s){const v=s==='神領'?$('deadlineShinryo').value:$('deadlineOtemachi').value;showMsg('deadlineMsg','保存中...',true);try{const r=await jsonp({action:'saveDeadline',school:s,dateStr:inputToYmd(v)});if(!r.ok)throw new Error(r.error||'保存できません');showMsg('deadlineMsg',s+'校の締切を保存しました。 '+dateLabel(inputToYmd(v)),true)}catch(e){showMsg('deadlineMsg',e.message||String(e),false)}}
+  if (!ss.getSheetByName('授業枠設定')) {
+    var s = ss.insertSheet('授業枠設定');
+    s.appendRow(['日付'].concat(TIME_SLOTS));
+    initDefaultSlots_(s);
+  }
 
-async function loadTeachers(){showMsg('teachersMsg','読み込み中...',true);try{const r=await jsonp({action:'getTeacherCalendar',school});if(!r.ok)throw new Error(r.error||'取得できません');lastTeacherResult=r;teacherData=r.teachers||[];renderTeachers(r);showMsg('teachersMsg','読み込みました。',true)}catch(e){showMsg('teachersMsg',e.message||String(e),false)}}
-function renderTeachers(r){const teachers=(r.teachers||[]).filter(t=>!printFilterCodes||printFilterCodes.includes(t.code));const slots=r.slots||[];const labels=['13:00','14:20','15:45','17:10','18:35','20:00'];if(teachers.length===0){$('teachersArea').innerHTML='<p>まだ登録データがありません。</p>';return}let html='';teachers.forEach(t=>{html+='<div class="teacher-card" data-code="'+t.code+'"><div class="teacher-title">'+t.code+'　'+t.name+'</div><div class="table-wrap"><table><thead><tr><th>日付</th>';labels.forEach(l=>html+='<th>'+l+'</th>');html+='</tr></thead><tbody>';slots.forEach(sl=>{const closed=(sl.enabled||[]).every(v=>!v);html+='<tr class="'+(closed?'closed-row':'')+'"><td class="date">'+sl.date+'</td>';for(let i=0;i<6;i++){const v=closed?'-':(t.entries[sl.rawDate+'|'+i]||'');const cls=v==='○'?'on':(v==='△'?'tri':'');html+='<td><span class="mark '+cls+'">'+v+'</span></td>'}html+='</tr>'});html+='</tbody></table></div></div>'});$('teachersArea').innerHTML=html}
-function openSelectModal(mode){modalMode=mode;$('modalTitle').textContent=mode==='print'?'印刷する先生を選択':'一括登録する先生を選択';let h='';teacherData.forEach(t=>{h+='<label><input class="teacherCheck" type="checkbox" value="'+t.code+'" checked> '+t.code+'　'+t.name+'</label>'});$('teacherChecks').innerHTML=h;$('selectModal').style.display='flex'}
-function closeModal(){$('selectModal').style.display='none'}
-function selectAllTeachers(v){document.querySelectorAll('.teacherCheck').forEach(c=>c.checked=v)}
-function selectedCodesFromModal(){return Array.from(document.querySelectorAll('.teacherCheck:checked')).map(c=>c.value)}
-async function runModal(){const codes=selectedCodesFromModal();closeModal();if(modalMode==='print'){printFilterCodes=codes;renderTeachers(lastTeacherResult);setTimeout(()=>{window.print();printFilterCodes=null;renderTeachers(lastTeacherResult)},200)}else{await bulkWrite(codes)}}
-async function bulkWrite(codes){const count=codes&&codes.length?codes.length:teacherData.length;if(!confirm(school+'校の '+count+' 名を「全体時間割」へ一括登録します。よろしいですか？'))return;showMsg('teachersMsg','時間割へ書き込み中...',true);try{const r=await jsonp({action:'bulkWriteToSchedule',school,codes:JSON.stringify(codes||[])});if(!r.ok)throw new Error(r.error||'一括登録できません');let msg='時間割へ一括登録しました。書き込み：'+r.written+'件';if(r.addedRows)msg+='、追加行：'+r.addedRows+'行';if(r.notFound&&r.notFound.length)msg+='\n\n※日付が見つからない日：\n'+r.notFound.join('\n');showMsg('teachersMsg',msg,true)}catch(e){showMsg('teachersMsg',e.message||String(e),false)}}
-document.addEventListener('DOMContentLoaded',()=>{$('schoolShinryo').onclick=()=>setSchool('神領');$('schoolOtemachi').onclick=()=>setSchool('大手町');$('tabSlots').onclick=()=>setTab('slots');$('tabDeadline').onclick=()=>setTab('deadline');$('tabTeachers').onclick=()=>setTab('teachers');$('makeRangeBtn').onclick=makeRange;$('addSingleDateBtn').onclick=addSingleDate;$('saveSlotsBtn').onclick=saveSlots;$('reloadSlotsBtn').onclick=loadSlots;$('deadlineShinryo').onchange=updateDeadlineLabels;$('deadlineOtemachi').onchange=updateDeadlineLabels;$('reloadDeadlineBtn').onclick=loadDeadlines;$('reloadTeachersBtn').onclick=loadTeachers;$('bulkWriteBtn').onclick=()=>openSelectModal('bulk');$('printSelectBtn').onclick=()=>openSelectModal('print');$('modalRunBtn').onclick=runModal;loadSlots()});
-</script></body></html>
+  if (!ss.getSheetByName('授業枠設定_大手町')) {
+    var so = ss.insertSheet('授業枠設定_大手町');
+    so.appendRow(['日付'].concat(TIME_SLOTS));
+    initDefaultSlots_(so);
+  }
+
+  ['出勤可否','出勤可否_大手町'].forEach(function(name) {
+    if (!ss.getSheetByName(name)) {
+      var s2 = ss.insertSheet(name);
+      s2.appendRow(['コード','氏名','日付','枠インデックス','可否','更新日時']);
+    }
+  });
+
+  if (!ss.getSheetByName('締め切り設定')) {
+    var s3 = ss.insertSheet('締め切り設定');
+    s3.appendRow(['校舎','締め切り日']);
+  }
+}
+
+function initDefaultSlots_(sheet) {
+  var groups = [
+    { dates:['2026/07/21','2026/07/22','2026/07/23','2026/07/24'], en:[false,false,false,true,true,true] },
+    { dates:['2026/07/28','2026/07/29','2026/07/30'], en:[false,false,true,true,true,true] },
+    { dates:['2026/07/31','2026/08/03','2026/08/04','2026/08/05','2026/08/06','2026/08/07','2026/08/17','2026/08/18','2026/08/19','2026/08/20','2026/08/21','2026/08/24','2026/08/25','2026/08/26','2026/08/27','2026/08/28'], en:[true,true,true,true,true,true] },
+    { dates:OBON_DATES, en:[false,false,false,false,false,false] },
+    { dates:['2026/09/01','2026/09/02','2026/09/03','2026/09/04'], en:[false,false,false,true,true,true] }
+  ];
+  groups.forEach(function(g) {
+    g.dates.forEach(function(d) {
+      sheet.appendRow([new Date(d)].concat(g.en));
+    });
+  });
+}
+
+// ---------- 講師ログイン ----------
+function login_(code) {
+  code = String(code || '').trim();
+  if (!code) return { ok:false, error:'コード番号を入力してください' };
+
+  var sheet = SpreadsheetApp.openById(MASTER_SS_ID).getSheetByName('講師マスター');
+  if (!sheet) return { ok:false, error:'講師マスターが見つかりません' };
+
+  var data = sheet.getDataRange().getValues();
+  for (var i = 1; i < data.length; i++) {
+    if (String(data[i][0]).trim() === code) {
+      return {
+        ok:true,
+        code: code,
+        name: String(data[i][1] || ''),
+        email: String(data[i][15] || '')
+      };
+    }
+  }
+  return { ok:false, error:'コード番号が見つかりません' };
+}
+
+// ---------- 締切 ----------
+function getDeadline_(school) {
+  school = normalizeSchool_(school);
+  var ss = SpreadsheetApp.openById(DATA_SS_ID);
+  var sheet = ss.getSheetByName('締め切り設定');
+  if (!sheet) return null;
+
+  var data = sheet.getDataRange().getValues();
+  for (var i = 1; i < data.length; i++) {
+    if (String(data[i][0]).trim() === school) {
+      return dateKey_(data[i][1]) || null;
+    }
+  }
+  return null;
+}
+
+function checkDeadline_(school) {
+  school = normalizeSchool_(school);
+  var deadline = getDeadline_(school);
+  if (!deadline) return { ok:true, locked:false, deadline:null, daysLeft:null };
+
+  var dl = new Date(deadline);
+  var now = new Date();
+  var today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  var dlDay = new Date(dl.getFullYear(), dl.getMonth(), dl.getDate());
+  var daysLeft = Math.floor((dlDay - today) / 86400000);
+  return {
+    ok:true,
+    locked: daysLeft < 0,
+    deadline: deadline,
+    daysLeft: daysLeft < 0 ? 0 : daysLeft
+  };
+}
+
+// ---------- 授業枠取得 ----------
+function getSlots_(school) {
+  school = normalizeSchool_(school);
+  var ss = SpreadsheetApp.openById(DATA_SS_ID);
+  var sheet = ss.getSheetByName(slotSheetName_(school));
+
+  if (!sheet) sheet = ss.getSheetByName('授業枠設定');
+  if (!sheet) return { ok:false, error:'授業枠設定シートが見つかりません' };
+
+  var data = sheet.getDataRange().getValues();
+  var rows = [];
+
+  for (var i = 1; i < data.length; i++) {
+    var raw = dateKey_(data[i][0]);
+    if (!raw) continue;
+    var enabled = [1,2,3,4,5,6].map(function(col) {
+      var v = data[i][col];
+      return v === true || String(v).toUpperCase() === 'TRUE' || Number(v) === 1;
+    });
+    rows.push({
+      rawDate: raw,
+      date: formatDateLabel_(raw),
+      holiday: enabled.every(function(v){ return !v; }),
+      enabled: enabled
+    });
+  }
+
+  rows.sort(function(a,b) { return a.rawDate < b.rawDate ? -1 : 1; });
+  return { ok:true, school:school, slots:rows, timeSlots:TIME_SLOTS };
+}
+
+// ---------- 入力済み取得 ----------
+function getMyAvailability_(code, school) {
+  code = String(code || '').trim();
+  school = normalizeSchool_(school);
+
+  var ss = SpreadsheetApp.openById(DATA_SS_ID);
+  var sheet = ss.getSheetByName(teacherSheetName_(school));
+  if (!sheet) return { ok:true, entries:{} };
+
+  var data = sheet.getDataRange().getValues();
+  var entries = {};
+
+  for (var i = 1; i < data.length; i++) {
+    if (String(data[i][0]).trim() !== code) continue;
+    var raw = dateKey_(data[i][2]);
+    var slotIndex = String(data[i][3]);
+    var value = String(data[i][4] || '').trim();
+    if (!raw || !value) continue;
+    entries[raw + '|' + slotIndex] = value;
+  }
+
+  return { ok:true, entries:entries };
+}
+
+// ---------- 保存 ----------
+function saveAvailability_(code, school, entries) {
+  code = String(code || '').trim();
+  school = normalizeSchool_(school);
+
+  var dl = checkDeadline_(school);
+  if (dl.locked) return { ok:false, error:'締め切りを過ぎているため変更できません。' };
+
+  var teacher = login_(code);
+  if (!teacher.ok) return teacher;
+
+  var ss = SpreadsheetApp.openById(DATA_SS_ID);
+  var sheet = ss.getSheetByName(teacherSheetName_(school));
+  if (!sheet) {
+    sheet = ss.insertSheet(teacherSheetName_(school));
+    sheet.appendRow(['コード','氏名','日付','枠インデックス','可否','更新日時']);
+  }
+
+  // 既存のこの講師分を削除
+  var data = sheet.getDataRange().getValues();
+  var deleteRows = [];
+  for (var i = 1; i < data.length; i++) {
+    if (String(data[i][0]).trim() === code) deleteRows.push(i + 1);
+  }
+  for (var j = deleteRows.length - 1; j >= 0; j--) {
+    sheet.deleteRow(deleteRows[j]);
+  }
+
+  // ○△だけ保存
+  var now = new Date();
+  var rows = [];
+  (entries || []).forEach(function(e) {
+    var raw = String(e.rawDate || '').trim();
+    var value = String(e.value || '').trim();
+    var slotIndex = Number(e.slotIndex);
+    if (!raw || raw === 'HOLIDAY') return;
+    if (value !== '○' && value !== '△') return;
+    rows.push([code, teacher.name, raw, slotIndex, value, now]);
+  });
+
+  if (rows.length > 0) {
+    sheet.getRange(sheet.getLastRow() + 1, 1, rows.length, 6).setValues(rows);
+  }
+
+  sendMail_(school, teacher, rows);
+  return { ok:true, saved:rows.length };
+}
+
+function sendMail_(school, teacher, rows) {
+  var adminEmail = normalizeSchool_(school) === '大手町' ? ONO_EMAIL : KASE_EMAIL;
+  var lines = rows.map(function(r) {
+    var value = r[4];
+    var raw = r[2];
+    var slot = TIME_SLOTS[Number(r[3])] || '';
+    return value + ' ' + raw + ' ' + slot;
+  }).join('\n');
+
+  var subject = '【出勤登録】' + school + '校 ' + teacher.name + 'さん';
+  var bodyTeacher = teacher.name + 'さん、以下の内容で登録しました。\n\n' + (lines || '登録なし') + '\n\n個別指導ステップ';
+  var bodyAdmin = school + '校 ' + teacher.name + 'さんが登録しました。\n\n' + (lines || '登録なし') + '\n\n個別指導ステップ';
+
+  if (teacher.email) {
+    try { MailApp.sendEmail(teacher.email, subject, bodyTeacher); } catch(e) {}
+  }
+  try { MailApp.sendEmail(adminEmail, subject, bodyAdmin); } catch(e) {}
+}
+
+
+// ---------- 管理：授業枠設定取得 ----------
+function getSlotConfig_(school) {
+  school = normalizeSchool_(school);
+  var ss = SpreadsheetApp.openById(DATA_SS_ID);
+  var sheet = ss.getSheetByName(slotSheetName_(school));
+  if (!sheet) return { ok:false, error:'授業枠設定シートが見つかりません' };
+
+  var data = sheet.getDataRange().getValues();
+  var config = [];
+  for (var i = 1; i < data.length; i++) {
+    var raw = dateKey_(data[i][0]);
+    if (!raw) continue;
+    var enabled = [1,2,3,4,5,6].map(function(col) {
+      var v = data[i][col];
+      return v === true || String(v).toUpperCase() === 'TRUE' || Number(v) === 1;
+    });
+    config.push({
+      rawDate: raw,
+      date: formatDateLabel_(raw),
+      holiday: enabled.every(function(v){ return !v; }),
+      enabled: enabled
+    });
+  }
+  config.sort(function(a,b){ return a.rawDate < b.rawDate ? -1 : 1; });
+  return { ok:true, school:school, config:config, timeSlots:TIME_SLOTS };
+}
+
+// ---------- 管理：授業枠設定保存 ----------
+function saveSlotConfig_(school, config) {
+  school = normalizeSchool_(school);
+  var ss = SpreadsheetApp.openById(DATA_SS_ID);
+  var sheet = ss.getSheetByName(slotSheetName_(school));
+  if (!sheet) sheet = ss.insertSheet(slotSheetName_(school));
+
+  sheet.clearContents();
+  sheet.appendRow(['日付'].concat(TIME_SLOTS));
+
+  (config || []).forEach(function(row) {
+    var raw = String(row.rawDate || '').trim();
+    if (!raw) return;
+    var enabled = row.enabled || [false,false,false,false,false,false];
+    sheet.appendRow([new Date(raw)].concat(enabled.map(function(v){ return !!v; })));
+  });
+
+  return { ok:true, saved:(config || []).length };
+}
+
+// ---------- 管理：締切取得 ----------
+function getDeadlines_() {
+  return {
+    ok:true,
+    version:VERSION,
+    神領:getDeadline_('神領'),
+    大手町:getDeadline_('大手町')
+  };
+}
+
+// ---------- 管理：締切保存 ----------
+function saveDeadline_(school, dateStr) {
+  school = normalizeSchool_(school);
+  var ss = SpreadsheetApp.openById(DATA_SS_ID);
+  var sheet = ss.getSheetByName('締め切り設定');
+  if (!sheet) {
+    sheet = ss.insertSheet('締め切り設定');
+    sheet.appendRow(['校舎','締め切り日']);
+  }
+
+  var data = sheet.getDataRange().getValues();
+  for (var i = 1; i < data.length; i++) {
+    if (String(data[i][0]).trim() === school) {
+      sheet.getRange(i + 1, 2).setValue(dateStr ? new Date(dateStr) : '');
+      return { ok:true };
+    }
+  }
+
+  sheet.appendRow([school, dateStr ? new Date(dateStr) : '']);
+  return { ok:true };
+}
+
+// ---------- 管理：先生別一覧 ----------
+function getTeacherCalendar_(school) {
+  school = normalizeSchool_(school);
+  var slotsResult = getSlots_(school);
+  if (!slotsResult.ok) return slotsResult;
+
+  var ss = SpreadsheetApp.openById(DATA_SS_ID);
+  var sheet = ss.getSheetByName(teacherSheetName_(school));
+  var teachers = {};
+
+  if (sheet) {
+    var rows = sheet.getDataRange().getValues();
+    for (var i = 1; i < rows.length; i++) {
+      var code = String(rows[i][0] || '').trim();
+      var name = String(rows[i][1] || '').trim();
+      if (!code || !name) continue;
+      var raw = dateKey_(rows[i][2]);
+      var slotIndex = String(rows[i][3]);
+      var value = String(rows[i][4] || '').trim();
+      if (!raw || !value) continue;
+
+      if (!teachers[code]) teachers[code] = { code:code, name:name, entries:{} };
+      teachers[code].entries[raw + '|' + slotIndex] = value;
+    }
+  }
+
+  var list = Object.keys(teachers).map(function(k){ return teachers[k]; });
+  list.sort(function(a,b){ return a.code < b.code ? -1 : 1; });
+
+  return { ok:true, school:school, slots:slotsResult.slots, teachers:list, timeSlots:TIME_SLOTS };
+}
+
+
+
+
+
+// ---------- 管理：一括登録プレビュー ----------
+function previewBulkWrite_(school, selectedCodes) {
+  school = normalizeSchool_(school);
+
+  var targetSsId = school === '大手町' ? OTEMACHI_SCHEDULE_SS_ID : SHINRYO_SCHEDULE_SS_ID;
+  var scheduleSheet = SpreadsheetApp.openById(targetSsId).getSheetByName('全体時間割');
+  if (!scheduleSheet) return { ok:false, error:'反映先に「全体時間割」シートが見つかりません。' };
+
+  var availSheet = SpreadsheetApp.openById(DATA_SS_ID).getSheetByName(teacherSheetName_(school));
+  if (!availSheet) return { ok:false, error:'出勤可否シートが見つかりません。' };
+
+  var slotMap = buildSlotMap_(availSheet, selectedCodes);
+  var scheduleValues = scheduleSheet.getDataRange().getValues();
+
+  var candidates = 0;
+  var writable = 0;
+  var already = 0;
+  var needRows = 0;
+  var notFound = [];
+
+  Object.keys(slotMap).sort().forEach(function(key) {
+    var p = key.split('|');
+    var raw = p[0];
+    var slotIndex = Number(p[1]);
+    var names = slotMap[key];
+    candidates += names.length;
+
+    var matchRows = findScheduleRows_(scheduleValues, raw);
+    if (matchRows.length === 0) {
+      notFound.push(raw);
+      return;
+    }
+
+    var colIndex0 = SLOT_COLS[slotIndex] - 1;
+    var blanks = 0;
+    var alreadyHere = 0;
+
+    var existing = [];
+    matchRows.forEach(function(rowNo) {
+      var v = String(scheduleValues[rowNo - 1][colIndex0] || '').trim();
+      existing.push(v);
+      if (v === '') blanks++;
+    });
+
+    names.forEach(function(n) {
+      if (existing.indexOf(n) !== -1) alreadyHere++;
+    });
+
+    var need = names.length - alreadyHere;
+    already += alreadyHere;
+    writable += Math.min(need, blanks);
+    needRows += Math.max(0, need - blanks);
+  });
+
+  return {
+    ok:true,
+    school:school,
+    candidates:candidates,
+    writable:writable,
+    already:already,
+    needRows:needRows,
+    notFound:Array.from(new Set(notFound))
+  };
+}
+
+// ---------- 管理：全体時間割へ一括登録 ----------
+function bulkWriteToSchedule_(school, selectedCodes) {
+  school = normalizeSchool_(school);
+
+  var targetSsId = school === '大手町' ? OTEMACHI_SCHEDULE_SS_ID : SHINRYO_SCHEDULE_SS_ID;
+  var scheduleSheet = SpreadsheetApp.openById(targetSsId).getSheetByName('全体時間割');
+  if (!scheduleSheet) return { ok:false, error:'反映先に「全体時間割」シートが見つかりません。' };
+
+  var availSheet = SpreadsheetApp.openById(DATA_SS_ID).getSheetByName(teacherSheetName_(school));
+  if (!availSheet) return { ok:false, error:'出勤可否シートが見つかりません。' };
+
+  var slotMap = buildSlotMap_(availSheet, selectedCodes);
+
+  var written = 0;
+  var addedRows = 0;
+  var notFound = [];
+
+  Object.keys(slotMap).sort().forEach(function(key) {
+    var parts = key.split('|');
+    var raw = parts[0];
+    var slotIndex = Number(parts[1]);
+    var col = SLOT_COLS[slotIndex];
+    var names = slotMap[key];
+
+    // 行追加で行番号が変わるため、日付ごとに毎回最新の値を読む
+    var scheduleValues = scheduleSheet.getDataRange().getValues();
+    var matchRows = findScheduleRows_(scheduleValues, raw);
+
+    if (matchRows.length === 0) {
+      notFound.push(raw);
+      return;
+    }
+
+    names.forEach(function(name) {
+      // 同じ名前が既に入っていればスキップ
+      var exists = false;
+      for (var i = 0; i < matchRows.length; i++) {
+        var cur0 = String(scheduleSheet.getRange(matchRows[i], col).getValue() || '').trim();
+        if (cur0 === name) {
+          exists = true;
+          break;
+        }
+      }
+      if (exists) return;
+
+      // 空欄を探す
+      for (var j = 0; j < matchRows.length; j++) {
+        var cur = String(scheduleSheet.getRange(matchRows[j], col).getValue() || '').trim();
+        if (cur === '') {
+          scheduleSheet.getRange(matchRows[j], col).setValue(name);
+          written++;
+          return;
+        }
+      }
+
+      // 空欄がなければ最終行の下に追加
+      var baseRow = matchRows[matchRows.length - 1];
+      scheduleSheet.insertRowAfter(baseRow);
+      addedRows++;
+
+      // A・B列だけコピー（日付・曜日想定）
+      scheduleSheet.getRange(baseRow + 1, 1).setValue(scheduleSheet.getRange(matchRows[0], 1).getValue());
+      scheduleSheet.getRange(baseRow + 1, 2).setValue(scheduleSheet.getRange(matchRows[0], 2).getValue());
+      scheduleSheet.getRange(baseRow + 1, col).setValue(name);
+      written++;
+
+      matchRows.push(baseRow + 1);
+    });
+  });
+
+  return {
+    ok:true,
+    school:school,
+    written:written,
+    addedRows:addedRows,
+    notFound:Array.from(new Set(notFound))
+  };
+}
+
+function buildSlotMap_(availSheet, selectedCodes) {
+  var rows = availSheet.getDataRange().getValues();
+  var slotMap = {};
+  selectedCodes = selectedCodes || [];
+  var selectedMap = {};
+  selectedCodes.forEach(function(c){ selectedMap[String(c).trim()] = true; });
+
+  for (var i = 1; i < rows.length; i++) {
+    var name = String(rows[i][1] || '').trim();
+    var raw = dateKey_(rows[i][2]);
+    var slotIndex = Number(rows[i][3]);
+    var value = String(rows[i][4] || '').trim();
+
+    if (!name || !raw) continue;
+    if (selectedCodes.length > 0 && !selectedMap[String(rows[i][0] || '').trim()]) continue;
+    if (value !== '○' && value !== '△') continue;
+    if (slotIndex < 0 || slotIndex > 5) continue;
+
+    var key = raw + '|' + slotIndex;
+    if (!slotMap[key]) slotMap[key] = [];
+
+    var displayName = value === '△' ? '△' + name : name;
+    if (slotMap[key].indexOf(displayName) === -1) {
+      slotMap[key].push(displayName);
+    }
+  }
+
+  return slotMap;
+}
+
+function findScheduleRows_(scheduleValues, raw) {
+  var rows = [];
+  var d = new Date(raw);
+  var md1 = Utilities.formatDate(d, 'Asia/Tokyo', 'M/d');
+  var md2 = Utilities.formatDate(d, 'Asia/Tokyo', 'MM/dd');
+  var ymd = Utilities.formatDate(d, 'Asia/Tokyo', 'yyyy/MM/dd');
+
+  for (var r = 1; r < scheduleValues.length; r++) {
+    var cell = scheduleValues[r][0];
+    var matched = false;
+
+    if (cell instanceof Date && !isNaN(cell)) {
+      matched = Utilities.formatDate(cell, 'Asia/Tokyo', 'yyyy/MM/dd') === ymd;
+    } else {
+      var s = String(cell || '').trim();
+      matched =
+        s.indexOf(md1 + '（') !== -1 ||
+        s.indexOf(md1 + '(') !== -1 ||
+        s.indexOf(md1) === 0 ||
+        s.indexOf(md2) === 0 ||
+        s.indexOf(ymd) === 0;
+    }
+
+    if (matched) rows.push(r + 1);
+  }
+
+  return rows;
+}
