@@ -78,11 +78,20 @@ td.actions{min-width:210px}
   .markIcon{transform:scale(1.15)}
 }
 
+
+.statusCards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:12px 0}
+.statusCard{background:#eff6ff;border:1px solid #bfdbfe;border-radius:14px;padding:16px;text-align:center;font-weight:900}
+.statusNum{font-size:34px;color:#1565c0;margin-top:6px}
+.statusTable{margin-top:12px}
+.loadingInline{display:inline-block;margin-left:10px;font-weight:900;color:#1565c0}
+button:disabled{opacity:.55;cursor:not-allowed}
+@media(max-width:700px){.statusCards{grid-template-columns:1fr}}
+
 </style>
 </head>
 <body>
 <div class="header">
-  <h1>夏休み出勤管理 <small>Supabase Ver.1.5</small></h1>
+  <h1>夏休み出勤管理 <small>Supabase Ver.1.6</small></h1>
   <p>個別指導ステップ</p>
 </div>
 
@@ -96,6 +105,7 @@ td.actions{min-width:210px}
     <button id="tabSlots" class="tab active" type="button">授業枠設定</button>
     <button id="tabDeadline" class="tab" type="button">締切設定</button>
     <button id="tabTeachers" class="tab" type="button">先生別一覧</button>
+    <button id="tabStatus" class="tab" type="button">提出状況一覧</button>
     <button id="tabTeacherMaster" class="tab" type="button">講師登録</button>
   </div>
 
@@ -146,6 +156,17 @@ td.actions{min-width:210px}
     <div id="teachersMsg" class="msg"></div>
   </section>
 
+
+  <section id="viewStatus" class="card hidden">
+    <h2>提出状況一覧</h2>
+    <div class="row noPrint">
+      <button id="reloadStatus" class="gray" type="button">再読み込み</button>
+      <button id="printStatus" class="gray" type="button">印刷する</button>
+    </div>
+    <div id="statusArea"></div>
+    <div id="statusMsg" class="msg"></div>
+  </section>
+
   <section id="viewTeacherMaster" class="card hidden">
     <h2>講師登録</h2>
     <p class="noPrint">Googleスプレッドシートの講師マスターから、A列コード・B列氏名・D列在籍・P列メールをコピーして貼り付けます。D列が「1」の人だけ登録します。</p>
@@ -173,7 +194,7 @@ td.actions{min-width:210px}
     <div id="teacherMasterMsg" class="msg"></div>
   </section>
 
-  <div class="small noPrint">Build Supabase Ver.1.5</div>
+  <div class="small noPrint">Build Supabase Ver.1.6</div>
 </div>
 
 
@@ -268,11 +289,13 @@ function setTab(t){
   $('tabSlots').classList.toggle('active',t==='slots');
   $('tabDeadline').classList.toggle('active',t==='deadline');
   $('tabTeachers').classList.toggle('active',t==='teachers');
+  $('tabStatus').classList.toggle('active',t==='status');
   $('tabTeacherMaster').classList.toggle('active',t==='master');
 
   $('viewSlots').classList.toggle('hidden',t!=='slots');
   $('viewDeadline').classList.toggle('hidden',t!=='deadline');
   $('viewTeachers').classList.toggle('hidden',t!=='teachers');
+  $('viewStatus').classList.toggle('hidden',t!=='status');
   $('viewTeacherMaster').classList.toggle('hidden',t!=='master');
 
   loadCurrent();
@@ -282,6 +305,7 @@ function loadCurrent(){
   if(tab==='slots') loadSlots();
   if(tab==='deadline') loadDeadline();
   if(tab==='teachers') loadTeachersView();
+  if(tab==='status') loadStatusView();
   if(tab==='master') loadTeacherMaster();
 }
 
@@ -492,6 +516,58 @@ function renderTeachers(){
   $('teachersArea').innerHTML='<div class="noPrint" style="font-weight:900;color:#1565c0;margin-bottom:10px">'+prefix+'</div>'+h;
 }
 
+
+async function loadStatusView(){
+  msg('statusMsg','読み込み中...',true);
+  try{
+    const t = await rest('teachers?select=code,name,school,email,active&school=eq.'+encodeURIComponent(school)+'&active=eq.true&order=code.asc');
+    const a = await rest('availability?select=teacher_code,teacher_name,date,slot_index,value,school&school=eq.'+encodeURIComponent(school));
+
+    const teacherRows = t || [];
+    const availRows = a || [];
+    const submittedCodes = new Set(availRows.map(r => String(r.teacher_code)));
+
+    const submitted = teacherRows.filter(x => submittedCodes.has(String(x.code)));
+    const notSubmitted = teacherRows.filter(x => !submittedCodes.has(String(x.code)));
+
+    let h = '';
+    h += '<div class="statusCards">';
+    h += '<div class="statusCard">登録対象<div class="statusNum">'+teacherRows.length+'</div>名</div>';
+    h += '<div class="statusCard">提出済<div class="statusNum">'+submitted.length+'</div>名</div>';
+    h += '<div class="statusCard">未提出<div class="statusNum">'+notSubmitted.length+'</div>名</div>';
+    h += '</div>';
+
+    h += '<h3>未提出者一覧</h3>';
+    if(notSubmitted.length === 0){
+      h += '<p style="font-weight:900;color:#166534">未提出者はいません。</p>';
+    }else{
+      h += '<table class="statusTable"><thead><tr><th>コード</th><th>氏名</th><th>メール</th></tr></thead><tbody>';
+      notSubmitted.forEach(x=>{
+        h += '<tr><td>'+x.code+'</td><td>'+x.name+'</td><td>'+(x.email||'')+'</td></tr>';
+      });
+      h += '</tbody></table>';
+    }
+
+    h += '<h3>提出済一覧</h3>';
+    if(submitted.length === 0){
+      h += '<p>提出済の講師はいません。</p>';
+    }else{
+      h += '<table class="statusTable"><thead><tr><th>コード</th><th>氏名</th><th>登録件数</th><th>メール</th></tr></thead><tbody>';
+      submitted.forEach(x=>{
+        const count = availRows.filter(r => String(r.teacher_code) === String(x.code)).length;
+        h += '<tr><td>'+x.code+'</td><td>'+x.name+'</td><td>'+count+'</td><td>'+(x.email||'')+'</td></tr>';
+      });
+      h += '</tbody></table>';
+    }
+
+    $('statusArea').innerHTML = h;
+    msg('statusMsg','読み込みました。',true);
+  }catch(e){
+    msg('statusMsg','読み込みできません。\n'+(e.message||String(e)),false);
+  }
+}
+
+
 async function loadTeacherMaster(){
   msg('teacherMasterMsg','読み込み中...',true);
   try{
@@ -592,6 +668,15 @@ function runTeacherSelect(){
 
 
 
+
+function setImportBusy(isBusy, text){
+  const b1 = $('syncTeachersFromSheet');
+  const b2 = $('importTeachers');
+  if(b1) b1.disabled = isBusy;
+  if(b2) b2.disabled = isBusy;
+  if(text) msg('teacherMasterMsg', text, true);
+}
+
 function extractSheetIdAndGid(url){
   const s = String(url || '');
   const idMatch = s.match(/\/d\/([^/]+)/);
@@ -682,7 +767,7 @@ async function syncTeachersFromSheetUrl(){
 
     if(!confirm('Googleスプレッドシートから ' + school + '校 の講師マスターを同期します。よろしいですか？')) return;
 
-    msg('teacherMasterMsg','Googleスプレッドシートから取得中...',true);
+    setImportBusy(true,'Googleスプレッドシートから取得中...');
 
     const csvUrl = 'https://docs.google.com/spreadsheets/d/' + info.id + '/gviz/tq?tqx=out:csv&gid=' + info.gid + '&_=' + Date.now();
     const res = await fetch(csvUrl);
@@ -705,7 +790,9 @@ async function syncTeachersFromSheetUrl(){
 
     msg('teacherMasterMsg','講師マスターを同期しました。人数：'+teachers.length+'名',true);
     await loadTeacherMaster();
+    setImportBusy(false);
   }catch(e){
+    setImportBusy(false);
     msg('teacherMasterMsg','URL同期できませんでした。\n'+(e.message||String(e))+'\n\n下の貼り付け方式を使ってください。',false);
   }
 }
@@ -749,7 +836,7 @@ async function importTeachersFromPaste(){
 
     if(!confirm(rows.length + '名を ' + school + '校 の講師として登録・更新します。よろしいですか？')) return;
 
-    msg('teacherMasterMsg','一括登録中...',true);
+    setImportBusy(true,'一括登録中...');
 
     await rest('teachers', {
       method:'POST',
@@ -759,7 +846,9 @@ async function importTeachersFromPaste(){
 
     msg('teacherMasterMsg','一括登録しました。人数：'+rows.length+'名',true);
     await loadTeacherMaster();
+    setImportBusy(false);
   }catch(e){
+    setImportBusy(false);
     msg('teacherMasterMsg','一括登録できません。\n'+(e.message||String(e)),false);
   }
 }
@@ -770,6 +859,7 @@ $('schoolO').onclick=()=>setSchool('大手町');
 $('tabSlots').onclick=()=>setTab('slots');
 $('tabDeadline').onclick=()=>setTab('deadline');
 $('tabTeachers').onclick=()=>setTab('teachers');
+$('tabStatus').onclick=()=>setTab('status');
 $('tabTeacherMaster').onclick=()=>setTab('master');
 $('makeRange').onclick=makeRange;
 $('addDay').onclick=addDay;
@@ -787,6 +877,8 @@ $('teacherAllOff').onclick=()=>teacherSelectAll(false);
 $('teacherSelectRun').onclick=runTeacherSelect;
 $('teacherChecks').addEventListener('change',updateTeacherSelectSummary);
 $('addTeacher').onclick=addTeacher;
+$('reloadStatus').onclick=loadStatusView;
+$('printStatus').onclick=()=>window.print();
 $('reloadTeacherMaster').onclick=loadTeacherMaster;
 $('syncTeachersFromSheet').onclick=syncTeachersFromSheetUrl;
 $('importTeachers').onclick=importTeachersFromPaste;
