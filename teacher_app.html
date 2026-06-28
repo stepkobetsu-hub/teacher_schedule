@@ -63,7 +63,7 @@ tr:nth-child(even) td{background:#f9fafb}
 }
 
 
-/* Ver.2.4 header refinement */
+/* Ver.2.5 header refinement */
 .logout-top{position:fixed;top:6px;right:8px;z-index:100}
 .logout-small{border:0;border-radius:999px;padding:5px 9px;font-size:11px;font-weight:800;cursor:pointer;background:rgba(198,40,40,.92);color:#fff;box-shadow:0 2px 8px rgba(0,0,0,.18)}
 .teacher-toolbar{display:flex;justify-content:space-between;align-items:center;gap:10px}
@@ -81,7 +81,7 @@ tr:nth-child(even) td{background:#f9fafb}
 }
 
 
-/* Ver.2.4 print fix */
+/* Ver.2.5 print fix */
 @media print{
   .hero,.legend,.save-area,.msg,.info,.teacher-actions,.logout-top,.small{display:none!important}
   body{background:#fff!important;color:#000!important;margin:0!important}
@@ -100,7 +100,7 @@ tr:nth-child(even) td{background:#f9fafb}
 }
 
 
-/* Ver.2.4 normal table fix */
+/* Ver.2.5 normal table fix */
 #tableArea{max-height:70vh;overflow:auto;background:#fff;border-radius:14px}
 #tableArea table{border-collapse:collapse;width:100%;min-width:650px;table-layout:fixed}
 #tableArea thead th{position:sticky!important;top:0!important;z-index:30!important;background:#374151!important;color:#fff!important}
@@ -110,7 +110,7 @@ tr:nth-child(even) td{background:#f9fafb}
 #tableArea th,#tableArea td{height:auto!important;vertical-align:middle}
 #tableArea .slot{width:44px;height:44px}
 
-/* Ver.2.4 print fix */
+/* Ver.2.5 print fix */
 @media print{
   #tableArea{max-height:none!important;overflow:visible!important;border-radius:0!important}
   #tableArea table{min-width:0!important;width:100%!important;table-layout:fixed!important}
@@ -126,13 +126,74 @@ tr:nth-child(even) td{background:#f9fafb}
   #tableArea td.date{background:#fff!important;color:#000!important;width:23mm!important;min-width:23mm!important}
 }
 
+
+/* Ver.2.5 clean header */
+.logout-top{
+  position:fixed!important;
+  top:6px!important;
+  left:8px!important;
+  right:auto!important;
+  z-index:120!important;
+}
+.logout-small{
+  border:0!important;
+  border-radius:999px!important;
+  padding:5px 9px!important;
+  font-size:11px!important;
+  font-weight:800!important;
+  cursor:pointer!important;
+  background:rgba(198,40,40,.92)!important;
+  color:#fff!important;
+  box-shadow:0 2px 8px rgba(0,0,0,.18)!important;
+}
+.teacher-toolbar{
+  display:flex!important;
+  justify-content:space-between!important;
+  align-items:center!important;
+  gap:10px!important;
+}
+.teacher-name{
+  font-size:26px!important;
+  font-weight:950!important;
+  line-height:1.2!important;
+}
+.teacher-actions{
+  display:flex!important;
+  gap:8px!important;
+  flex-shrink:0!important;
+}
+.header-btn{
+  border:0!important;
+  border-radius:10px!important;
+  padding:10px 15px!important;
+  font-size:14px!important;
+  font-weight:900!important;
+  cursor:pointer!important;
+  background:#fff!important;
+  color:#2749b8!important;
+}
+.header-btn.logout{display:none!important}
+.bar{padding-top:18px!important}
+body:not(.debug) > .small,
+body:not(.debug) .build,
+body:not(.debug) div.small:last-of-type{
+  display:none!important;
+}
+@media(max-width:520px){
+  .teacher-name{font-size:24px!important}
+  .header-btn{padding:9px 12px!important;font-size:13px!important}
+}
+@media print{
+  .logout-top,.teacher-actions{display:none!important}
+}
+
 </style>
 </head>
 <body>
 <div class="logout-top no-print"><button id="logoutTopBtn" class="logout-small" type="button">ログアウト</button></div>
 <div class="hero">
   <h1>☀️ 夏休み出勤可能日登録</h1>
-  <div class="sub">個別指導ステップ<span class="ver">Ver.2.4</span></div>
+  <div class="sub">個別指導ステップ<span class="ver">Ver.2.5</span></div>
 </div>
 
 <div id="loginScreen" class="wrap">
@@ -177,8 +238,8 @@ tr:nth-child(even) td{background:#f9fafb}
 </div>
 
 <script>
-const APP_VERSION = '2.4';
-const STORAGE_PREFIX = 'summer_teacher_app_v2_4_';
+const APP_VERSION = '2.5';
+const STORAGE_PREFIX = 'summer_teacher_app_v2_5_';
 const GAS_API = 'https://script.google.com/macros/s/AKfycbx8UeG5X_WSonK8StzuB8B_iC4BACDw3guGZgQvuSAWnxJCfUwnsycZLC5Wn19HBGO3pQ/exec';
 
 let school = '神領';
@@ -205,6 +266,13 @@ function showMsg(id, text, ok=false){
   el.textContent = text || '';
   el.className = 'msg ' + (ok ? 'ok' : 'err');
   el.style.display = text ? 'block' : 'none';
+  if(id === 'saveMsg' && ok && text){
+    clearTimeout(window.__saveMsgTimer);
+    window.__saveMsgTimer = setTimeout(() => {
+      el.style.display = 'none';
+      el.textContent = '';
+    }, 3000);
+  }
 }
 
 function jsonp(params){
@@ -409,6 +477,7 @@ function logoutTeacher(){
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+  if($('logoutTopBtn')) $('logoutTopBtn').addEventListener('click', logoutTeacher);
   clearOldStorageOnce();
 
   const oldCode = localStorage.getItem(STORAGE_PREFIX + 'code');
@@ -416,6 +485,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if($('printBtn')) $('printBtn').addEventListener('click', printMySchedule);
   if($('logoutBtn')) $('logoutBtn').addEventListener('click', logoutTeacher);
+  if($('logoutTopBtn')) $('logoutTopBtn').addEventListener('click', logoutTeacher);
   if($('logoutTopBtn')) $('logoutTopBtn').addEventListener('click', logoutTeacher);
   $('schoolShinryo').addEventListener('click', () => setSchool('神領'));
   $('schoolOtemachi').addEventListener('click', () => setSchool('大手町'));
@@ -429,6 +499,6 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 </script>
-<div class="small">Build 2026-06-28 12:56</div>
+<div class="small build">Build 2026-06-28 13:02</div>
 </body>
 </html>
