@@ -88,13 +88,26 @@ th.dateHead{position:sticky;left:0;top:0;z-index:35;min-width:96px}
   padding:12px 20px;font-size:17px;font-weight:900;width:100%;
 }
 
+
+/* Ver.2.4 date size */
+td.date{
+  font-size:14px!important;
+  line-height:1.25!important;
+}
+@media(max-width:640px){
+  td.date{
+    font-size:12px!important;
+    line-height:1.25!important;
+  }
+}
+
 </style>
 </head>
 <body>
 <div id="pageTop"></div>
 <button id="topBackBtn" class="topBack hidden" type="button">←トップへ</button>
 <button id="logoutTop" class="logout hidden" type="button">ログアウト</button>
-<div class="hero"><h1>夏休み出勤可能日登録</h1><div>個別指導ステップ <small>Supabase Ver.2.3</small></div></div>
+<div class="hero"><h1>夏休み出勤可能日登録</h1><div>個別指導ステップ <small>Supabase Ver.2.4</small></div></div>
 
 <div id="login" class="wrap"><div class="card">
 <h2>ログイン</h2>
@@ -179,7 +192,8 @@ async function loadDeadlineNotice(){
     const raw = String(rows[0].deadline).replaceAll('-', '/').slice(0, 10);
     const text =
       dateLabel(raw) + '締め切りです。\n' +
-      'それ以降はこのアプリからは連絡できなくなります。';
+      '締切日までは何度でも変更可能です。\n' +
+      '締切日以降は、このアプリからは連絡できなくなりますので、変更内容は教室担当者に直接連絡をしてください。';
 
     $('deadlineText').textContent = text;
     $('deadlinePopup').classList.remove('hidden');
