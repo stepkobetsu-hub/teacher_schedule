@@ -6,282 +6,59 @@
 <title>夏休み出勤可能日登録 - 個別指導ステップ</title>
 <style>
 *{box-sizing:border-box}
-body{
-  margin:0;
-  font-family:Arial,"Hiragino Sans","Yu Gothic",sans-serif;
-  background:#edf4ff;
-  color:#1f2937;
-}
-.app{
-  max-width:560px;
-  min-height:100vh;
-  margin:0 auto;
-  background:#f4f7ff;
-}
-.hero{
-  background:linear-gradient(135deg,#38bdf8,#2563eb);
-  color:#fff;
-  padding:28px 20px 34px;
-  text-align:center;
-}
-.hero h1{
-  margin:0;
-  font-size:30px;
-  font-weight:900;
-  line-height:1.25;
-}
-.hero p{
-  margin:10px 0 0;
-  font-size:16px;
-  font-weight:800;
-  opacity:.95;
-}
-.card{
-  background:#fff;
-  border-radius:22px;
-  padding:22px;
-  margin:18px;
-  box-shadow:0 10px 28px rgba(15,23,42,.10);
-}
-h2{
-  color:#2563eb;
-  text-align:center;
-  margin:4px 0 18px;
-  font-size:24px;
-}
-.label{
-  font-weight:900;
-  margin:18px 0 8px;
-  display:block;
-}
-.schoolBtns{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:12px;
-}
-.schoolBtn{
-  min-height:76px;
-  border:3px solid #d1d5db;
-  background:#fff;
-  color:#374151;
-  border-radius:18px;
-  font-size:22px;
-  font-weight:900;
-}
-.schoolBtn.active{
-  border-color:#2563eb;
-  background:#eff6ff;
-  color:#1d4ed8;
-}
-input{
-  width:100%;
-  border:2px solid #d1d5db;
-  border-radius:14px;
-  padding:16px;
-  font-size:22px;
-  text-align:center;
-}
-button{
-  width:100%;
-  border:0;
-  border-radius:16px;
-  padding:16px;
-  margin-top:18px;
-  font-size:20px;
-  font-weight:900;
-  color:#fff;
-  background:#2563eb;
-}
-button:disabled{
-  background:#9ca3af;
-}
-.subBtn{
-  background:#eef2ff;
-  color:#1e3a8a;
-  border:1px solid #c7d2fe;
-}
-.notice{
-  background:#fff7ed;
-  border:1px solid #fed7aa;
-  color:#9a3412;
-  border-radius:14px;
-  padding:13px;
-  margin-top:14px;
-  font-weight:800;
-  line-height:1.6;
-}
-.okNotice{
-  background:#ecfdf5;
-  border-color:#bbf7d0;
-  color:#166534;
-}
-.hidden{display:none!important}
-.teacherName{
-  text-align:center;
-  font-size:28px;
-  font-weight:900;
-  color:#111827;
-  background:#f8fbff;
-  border:1px solid #e5edf7;
-  border-radius:18px;
-  padding:14px;
-  margin-bottom:12px;
-}
-.deadlineBox{
-  text-align:center;
-  background:#eff6ff;
-  border:1px solid #bfdbfe;
-  color:#1d4ed8;
-  border-radius:14px;
-  padding:12px;
-  margin:12px 0;
-  font-weight:900;
-}
-.legend{
-  display:grid;
-  grid-template-columns:1fr 1fr 1fr;
-  gap:8px;
-  margin:14px 0;
-}
-.legend div{
-  background:#fff;
-  border:1px solid #e5e7eb;
-  border-radius:12px;
-  padding:9px;
-  text-align:center;
-  font-size:13px;
-  font-weight:900;
-}
-.dayCard{
-  background:#fff;
-  border:1px solid #e5e7eb;
-  border-radius:18px;
-  margin:14px 0;
-  overflow:hidden;
-}
-.dayTitle{
-  background:#f8fafc;
-  font-size:18px;
-  font-weight:900;
-  color:#111827;
-  padding:13px 14px;
-  border-bottom:1px solid #e5e7eb;
-}
-.holiday{
-  background:#fef3c7;
-  color:#92400e;
-  text-align:center;
-  font-weight:900;
-  padding:18px;
-}
-.slotRow{
-  display:grid;
-  grid-template-columns:112px 1fr 1fr 1fr;
-  gap:6px;
-  align-items:center;
-  padding:10px 10px;
-  border-bottom:1px solid #f1f5f9;
-}
-.slotRow:last-child{border-bottom:0}
-.slotTime{
-  font-size:14px;
-  font-weight:900;
-  color:#374151;
-}
-.choice{
-  border:2px solid #e5e7eb;
-  background:#fff;
-  color:#334155;
-  border-radius:12px;
-  padding:10px 4px;
-  font-size:15px;
-  font-weight:900;
-  margin:0;
-}
-.choice.selected.ok{
-  background:#dcfce7;
-  border-color:#22c55e;
-  color:#166534;
-}
-.choice.selected.maybe{
-  background:#fef3c7;
-  border-color:#f59e0b;
-  color:#92400e;
-}
-.choice.selected.none{
-  background:#fee2e2;
-  border-color:#ef4444;
-  color:#991b1b;
-}
-.loading{
-  text-align:center;
-  color:#2563eb;
-  font-weight:900;
-  padding:20px;
-}
-.footerSpace{height:28px}
-@media(max-width:430px){
-  .slotRow{grid-template-columns:96px 1fr 1fr 1fr}
-  .choice{font-size:14px;padding:9px 2px}
-  .hero h1{font-size:27px}
-}
+body{margin:0;font-family:Arial,"Hiragino Sans","Yu Gothic",sans-serif;background:#edf4ff;color:#1f2937}
+.app{max-width:560px;min-height:100vh;margin:0 auto;background:#f4f7ff}
+.hero{background:linear-gradient(135deg,#38bdf8,#2563eb);color:#fff;padding:28px 20px 34px;text-align:center}
+.hero h1{margin:0;font-size:30px;font-weight:900;line-height:1.25}.hero p{margin:10px 0 0;font-size:16px;font-weight:800;opacity:.95}
+.card{background:#fff;border-radius:22px;padding:22px;margin:18px;box-shadow:0 10px 28px rgba(15,23,42,.10)}
+h2{color:#2563eb;text-align:center;margin:4px 0 18px;font-size:24px}.label{font-weight:900;margin:18px 0 8px;display:block}
+.schoolBtns{display:grid;grid-template-columns:1fr 1fr;gap:12px}.schoolBtn{min-height:76px;border:3px solid #d1d5db;background:#fff;color:#374151;border-radius:18px;font-size:22px;font-weight:900}
+.schoolBtn.active{border-color:#2563eb;background:#eff6ff;color:#1d4ed8}input{width:100%;border:2px solid #d1d5db;border-radius:14px;padding:16px;font-size:22px;text-align:center}
+button{width:100%;border:0;border-radius:16px;padding:16px;margin-top:18px;font-size:20px;font-weight:900;color:#fff;background:#2563eb}button:disabled{background:#9ca3af}.subBtn{background:#eef2ff;color:#1e3a8a;border:1px solid #c7d2fe}
+.notice{background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;border-radius:14px;padding:13px;margin-top:14px;font-weight:800;line-height:1.6}.okNotice{background:#ecfdf5;border-color:#bbf7d0;color:#166534}.hidden{display:none!important}
+.teacherName{text-align:center;font-size:28px;font-weight:900;color:#111827;background:#f8fbff;border:1px solid #e5edf7;border-radius:18px;padding:14px;margin-bottom:12px}.deadlineBox{text-align:center;background:#eff6ff;border:1px solid #bfdbfe;color:#1d4ed8;border-radius:14px;padding:12px;margin:12px 0;font-weight:900}
+.legend{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin:14px 0}.legend div{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:9px;text-align:center;font-size:13px;font-weight:900}
+.dayCard{background:#fff;border:1px solid #e5e7eb;border-radius:18px;margin:14px 0;overflow:hidden}.dayTitle{background:#f8fafc;font-size:18px;font-weight:900;color:#111827;padding:13px 14px;border-bottom:1px solid #e5e7eb}.holiday{background:#fef3c7;color:#92400e;text-align:center;font-weight:900;padding:18px}
+.slotRow{display:grid;grid-template-columns:112px 1fr 1fr 1fr;gap:6px;align-items:center;padding:10px;border-bottom:1px solid #f1f5f9}.slotRow:last-child{border-bottom:0}.slotTime{font-size:14px;font-weight:900;color:#374151}.choice{border:2px solid #e5e7eb;background:#fff;color:#334155;border-radius:12px;padding:10px 4px;font-size:15px;font-weight:900;margin:0}.choice.selected.ok{background:#dcfce7;border-color:#22c55e;color:#166534}.choice.selected.maybe{background:#fef3c7;border-color:#f59e0b;color:#92400e}.choice.selected.none{background:#fee2e2;border-color:#ef4444;color:#991b1b}
+.loading{text-align:center;color:#2563eb;font-weight:900;padding:20px}.footerSpace{height:28px}@media(max-width:430px){.slotRow{grid-template-columns:96px 1fr 1fr 1fr}.choice{font-size:14px;padding:9px 2px}.hero h1{font-size:27px}}
 </style>
 </head>
 <body>
 <div class="app">
-  <section class="hero">
-    <h1>☀️ 夏休み出勤可能日登録</h1>
-    <p>個別指導ステップ</p>
-  </section>
-
+  <section class="hero"><h1>☀️ 夏休み出勤可能日登録</h1><p>個別指導ステップ</p></section>
   <section id="loginCard" class="card">
     <h2>ログイン</h2>
     <label class="label">校舎を選んでください</label>
     <div class="schoolBtns">
-      <button type="button" class="schoolBtn" id="btnShinryo" onclick="selectSchool('神領')">🏫 神領校</button>
-      <button type="button" class="schoolBtn" id="btnOtemachi" onclick="selectSchool('大手町')">🏫 大手町校</button>
+      <button type="button" class="schoolBtn" id="btnShinryo" onclick="selectSchool('神領')">神領校</button>
+      <button type="button" class="schoolBtn" id="btnOtemachi" onclick="selectSchool('大手町')">大手町校</button>
     </div>
-
     <label class="label">コード番号（半角数字）</label>
-    <input id="code" type="text" inputmode="numeric" placeholder="例：7002">
-
+    <input id="code" type="text" inputmode="numeric" placeholder="例：7002" autocomplete="off">
     <button id="loginBtn" onclick="login()">ログイン</button>
     <div id="loginMsg" class="notice hidden"></div>
   </section>
-
   <section id="appCard" class="card hidden">
     <button class="subBtn" onclick="logout()">← 別のコードでログイン</button>
     <div class="teacherName" id="teacherName">----</div>
     <div class="deadlineBox" id="deadlineBox">締切確認中...</div>
-
-    <div class="legend">
-      <div>○ 出勤できる</div>
-      <div>△ 無理すれば可</div>
-      <div>空欄 出勤不可</div>
-    </div>
-
-    <div id="slotsArea">
-      <div class="loading">読み込み中...</div>
-    </div>
-
+    <div class="legend"><div>○ 出勤できる</div><div>△ 無理すれば可</div><div>空欄 出勤不可</div></div>
+    <div id="slotsArea"><div class="loading">読み込み中...</div></div>
     <button id="saveBtn" onclick="save()">登録する</button>
     <div id="saveMsg" class="notice hidden"></div>
   </section>
-
   <section id="completeCard" class="card hidden">
     <h2>登録完了</h2>
-    <div class="notice okNotice">
-      登録が完了しました。<br>
-      締切前であれば、もう一度ログインして修正できます。
-    </div>
+    <div class="notice okNotice">登録が完了しました。<br>締切前であれば、もう一度ログインして修正できます。</div>
     <button onclick="showApp()">登録内容を確認・修正する</button>
   </section>
-
   <div class="footerSpace"></div>
 </div>
-
 <script>
-const GAS_API = "https://script.google.com/macros/s/AKfycbz8WuWu7rGAx96_7Bz5YLaN5lW2fAZg_NY4JwjJwlX2cabLv603ey5mCMGpCfHoEil1cw/exec";
+'use strict';
+
+// GASは裏側のJSONP通信だけに使います。画面遷移には絶対に使いません。
+const GAS_API = 'https://script.google.com/macros/s/AKfycbz8WuWu7rGAx96_7Bz5YLaN5lW2fAZg_NY4JwjJwlX2cabLv603ey5mCMGpCfHoEil1cw/exec';
 const TIMES = ['13:00〜14:15','14:20〜15:35','15:45〜17:00','17:10〜18:25','18:35〜19:50','20:00〜21:15'];
 
 let state = {
@@ -307,28 +84,34 @@ function selectSchool(school) {
 
 function jsonp(params) {
   return new Promise((resolve, reject) => {
-    const cb = 'cb_' + Date.now() + '_' + Math.floor(Math.random() * 999999);
-    params.callback = cb;
-    const q = Object.keys(params).map(k => encodeURIComponent(k) + '=' + encodeURIComponent(params[k] ?? '')).join('&');
+    const cb = 'summer_jsonp_' + Date.now() + '_' + Math.floor(Math.random() * 999999);
+    const payload = Object.assign({}, params, { callback: cb, _t: Date.now() });
+    const q = Object.keys(payload).map(k => encodeURIComponent(k) + '=' + encodeURIComponent(payload[k] ?? '')).join('&');
     const s = document.createElement('script');
+    s.async = true;
     s.src = GAS_API + '?' + q;
+
     const timer = setTimeout(() => {
       cleanup();
-      reject(new Error('通信がタイムアウトしました。'));
+      reject(new Error('通信がタイムアウトしました。時間をおいて再度お試しください。'));
     }, 25000);
+
     function cleanup() {
       clearTimeout(timer);
-      delete window[cb];
+      try { delete window[cb]; } catch(e) { window[cb] = undefined; }
       if (s.parentNode) s.parentNode.removeChild(s);
     }
+
     window[cb] = res => {
       cleanup();
-      resolve(res);
+      resolve(res || {});
     };
+
     s.onerror = () => {
       cleanup();
-      reject(new Error('通信に失敗しました。'));
+      reject(new Error('通信に失敗しました。Google Apps Script側の公開設定も確認してください。'));
     };
+
     document.body.appendChild(s);
   });
 }
@@ -343,14 +126,8 @@ function showMsg(id, text, ok=false) {
 async function login() {
   const code = document.getElementById('code').value.trim();
   document.getElementById('loginMsg').classList.add('hidden');
-  if (!state.school) {
-    showMsg('loginMsg', '校舎を選んでください。');
-    return;
-  }
-  if (!code) {
-    showMsg('loginMsg', 'コード番号を入力してください。');
-    return;
-  }
+  if (!state.school) return showMsg('loginMsg', '校舎を選んでください。');
+  if (!code) return showMsg('loginMsg', 'コード番号を入力してください。');
 
   const btn = document.getElementById('loginBtn');
   btn.disabled = true;
@@ -358,17 +135,14 @@ async function login() {
 
   try {
     const res = await jsonp({ action: 'login', code });
-    if (!res.ok) throw new Error(res.error || 'コード番号が見つかりません。');
-
+    if (!res.ok) throw new Error(res.error || res.message || 'コード番号が見つかりません。');
     state.code = code;
     state.teacherName = res.name || '';
     localStorage.setItem('summerCode', code);
-
-    document.getElementById('teacherName').textContent = state.teacherName + ' さん';
+    document.getElementById('teacherName').textContent = (state.teacherName || code) + ' さん';
     document.getElementById('loginCard').classList.add('hidden');
     document.getElementById('completeCard').classList.add('hidden');
     document.getElementById('appCard').classList.remove('hidden');
-
     await loadAll();
   } catch (e) {
     showMsg('loginMsg', e.message || 'ログインできませんでした。');
@@ -381,29 +155,37 @@ async function login() {
 async function loadAll() {
   document.getElementById('slotsArea').innerHTML = '<div class="loading">読み込み中...</div>';
   document.getElementById('saveMsg').classList.add('hidden');
-  const [deadline, slots, mine] = await Promise.all([
-    jsonp({ action: 'checkDeadline', school: state.school }),
-    jsonp({ action: 'getSlots', school: state.school }),
-    jsonp({ action: 'getMyAvailability', school: state.school, code: state.code })
-  ]);
+  try {
+    const [deadline, slots, mine] = await Promise.all([
+      jsonp({ action: 'checkDeadline', school: state.school }),
+      jsonp({ action: 'getSlots', school: state.school }),
+      jsonp({ action: 'getMyAvailability', school: state.school, code: state.code })
+    ]);
 
-  state.locked = !!deadline.locked;
-  if (deadline.deadline) {
-    document.getElementById('deadlineBox').textContent =
-      state.locked ? '締切を過ぎています：' + deadline.deadline : '締切：' + deadline.deadline;
-  } else {
-    document.getElementById('deadlineBox').textContent = '締切日は未設定です';
+    state.locked = !!deadline.locked;
+    document.getElementById('deadlineBox').textContent = deadline.deadline
+      ? (state.locked ? '締切を過ぎています：' + deadline.deadline : '締切：' + deadline.deadline)
+      : '締切日は未設定です';
+
+    if (!slots.ok) throw new Error(slots.error || slots.message || '授業枠を取得できませんでした。');
+    state.slots = slots.slots || [];
+    state.entries = mine.entries || {};
+    renderSlots();
+  } catch (e) {
+    document.getElementById('slotsArea').innerHTML = '';
+    showMsg('saveMsg', e.message || '読み込みできませんでした。');
   }
-
-  if (!slots.ok) throw new Error(slots.error || '授業枠を取得できませんでした。');
-  state.slots = slots.slots || [];
-  state.entries = mine.entries || {};
-  renderSlots();
 }
 
 function renderSlots() {
   const area = document.getElementById('slotsArea');
   area.innerHTML = '';
+
+  if (!state.slots.length) {
+    area.innerHTML = '<div class="loading">登録対象の日程がありません。</div>';
+    document.getElementById('saveBtn').disabled = state.locked;
+    return;
+  }
 
   state.slots.forEach(day => {
     const card = document.createElement('div');
@@ -424,7 +206,6 @@ function renderSlots() {
       if (!enabled) return;
       const key = day.rawDate + '|' + idx;
       const val = state.entries[key] || '';
-
       const row = document.createElement('div');
       row.className = 'slotRow';
       row.innerHTML =
@@ -444,7 +225,7 @@ function renderSlots() {
 function buttonHtml(key, value, cls, current, label) {
   const selected = current === value ? ' selected ' + cls : '';
   const text = label || value;
-  return '<button type="button" class="choice ' + selected + '" onclick="setEntry(\'' + key + '\',\'' + value + '\')">' + text + '</button>';
+  return '<button type="button" class="choice ' + selected + '" onclick="setEntry(' + JSON.stringify(key) + ',' + JSON.stringify(value) + ')">' + escapeHtml(text) + '</button>';
 }
 
 function setEntry(key, value) {
@@ -455,15 +236,11 @@ function setEntry(key, value) {
 }
 
 async function save() {
-  if (state.locked) {
-    showMsg('saveMsg', '締切を過ぎているため変更できません。');
-    return;
-  }
+  if (state.locked) return showMsg('saveMsg', '締切を過ぎているため変更できません。');
 
-  const entries = [];
-  Object.keys(state.entries).forEach(key => {
+  const entries = Object.keys(state.entries).map(key => {
     const [rawDate, slotIndex] = key.split('|');
-    entries.push({ rawDate, slotIndex: Number(slotIndex), value: state.entries[key] });
+    return { rawDate, slotIndex: Number(slotIndex), value: state.entries[key] };
   });
 
   const btn = document.getElementById('saveBtn');
@@ -472,14 +249,8 @@ async function save() {
   document.getElementById('saveMsg').classList.add('hidden');
 
   try {
-    const res = await jsonp({
-      action: 'saveAvailability',
-      code: state.code,
-      school: state.school,
-      entries: JSON.stringify(entries)
-    });
-    if (!res.ok) throw new Error(res.error || '保存できませんでした。');
-
+    const res = await jsonp({ action: 'saveAvailability', code: state.code, school: state.school, entries: JSON.stringify(entries) });
+    if (!res.ok) throw new Error(res.error || res.message || '保存できませんでした。');
     document.getElementById('appCard').classList.add('hidden');
     document.getElementById('completeCard').classList.remove('hidden');
     window.scrollTo({ top: 0, behavior: 'smooth' });
