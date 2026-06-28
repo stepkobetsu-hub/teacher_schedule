@@ -87,6 +87,15 @@ td.actions{min-width:210px}
 button:disabled{opacity:.55;cursor:not-allowed}
 @media(max-width:700px){.statusCards{grid-template-columns:1fr}}
 
+.deadlinePanel{margin-left:auto;background:linear-gradient(135deg,#fff7ed,#eff6ff);border:2px solid #f97316;border-radius:16px;padding:12px 14px;box-shadow:0 8px 20px rgba(249,115,22,.18);min-width:330px}
+.deadlinePanelTitle{font-weight:950;color:#9a3412;margin-bottom:7px;font-size:15px}
+.deadlineDisplay{display:block;width:100%;border:2px solid #1565c0;background:#fff;color:#1565c0;border-radius:12px;font-size:23px;font-weight:950;padding:12px 14px;text-align:center}
+.deadlinePanel .deadlineActions{display:flex;gap:8px;margin-top:8px;align-items:center}
+.deadlinePanel input[type=date]{position:absolute;opacity:0;pointer-events:none;width:1px;height:1px}
+.deadlineNote{font-size:12px;color:#8a3a1c;font-weight:800;margin-top:6px}
+@media(max-width:760px){.deadlinePanel{min-width:100%;margin-left:0}.deadlineDisplay{font-size:20px}}
+
+
 .inactiveRow{background:#f8fafc;color:#94a3b8}
 .statusBadge{display:inline-block;border-radius:999px;padding:4px 10px;font-weight:900;font-size:12px}
 .statusBadge.on{background:#dcfce7;color:#166534;border:1px solid #86efac}
@@ -102,7 +111,7 @@ input[type=file]{font-size:14px;padding:8px;border:1px solid #cbd5e1;border-radi
 </head>
 <body>
 <div class="header">
-  <h1>夏休み出勤管理 <small>Supabase Ver.1.9</small></h1>
+  <h1>夏休み出勤管理 <small>Supabase Ver.1.11</small></h1>
   <p>個別指導ステップ</p>
 </div>
 
@@ -114,7 +123,6 @@ input[type=file]{font-size:14px;padding:8px;border:1px solid #cbd5e1;border-radi
 
   <div class="row tabs noPrint">
     <button id="tabSlots" class="tab active" type="button">授業枠設定</button>
-    <button id="tabDeadline" class="tab" type="button">締切設定</button>
     <button id="tabTeachers" class="tab" type="button">先生別一覧</button>
     <button id="tabStatus" class="tab" type="button">提出状況一覧</button>
     <button id="tabTeacherMaster" class="tab" type="button">講師登録</button>
@@ -122,8 +130,23 @@ input[type=file]{font-size:14px;padding:8px;border:1px solid #cbd5e1;border-radi
   </div>
 
   <section id="viewSlots" class="card">
-    <h2>授業枠設定</h2>
-    <p>ここで作った日付・時間帯が、講師アプリ・先生別一覧・印刷の基準になります。</p>
+    <div class="row" style="align-items:flex-start">
+      <div>
+        <h2 style="text-align:left;margin:0 0 6px">授業枠設定</h2>
+        <p style="margin:0 0 8px">ここで作った日付・時間帯が、講師アプリ・先生別一覧・印刷の基準になります。</p>
+      </div>
+      <div class="deadlinePanel noPrint">
+        <div id="deadlineSchoolLabel" class="deadlinePanelTitle">神領校 締切日</div>
+        <button id="deadlineDisplayBtn" class="deadlineDisplay" type="button">締切日を選択</button>
+        <input id="deadlineDate" type="date">
+        <div class="deadlineActions">
+          <button id="saveDeadline" class="primary" type="button" style="flex:1">締切日を保存</button>
+          <button id="reloadDeadline" class="gray" type="button">再読込</button>
+        </div>
+        <div class="deadlineNote">※日付部分をクリックすると変更できます。</div>
+      </div>
+    </div>
+    <div id="deadlineMsg" class="msg"></div>
 
     <div class="row noPrint">
       <b>期間設定</b>
@@ -154,19 +177,6 @@ input[type=file]{font-size:14px;padding:8px;border:1px solid #cbd5e1;border-radi
     <div id="slotsMsg" class="msg"></div>
   </section>
 
-
-  <section id="viewDeadline" class="card hidden">
-    <h2>締切設定</h2>
-    <p>講師アプリの登録締切日です。</p>
-    <div class="row noPrint">
-      <b id="deadlineSchoolLabel">神領校</b>
-      <input id="deadlineDate" type="date">
-      <span id="deadlineLabel" style="font-size:22px;font-weight:900;color:#1565c0;background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:8px 12px;min-width:190px;text-align:center"></span>
-      <button id="saveDeadline" class="primary" type="button">保存する</button>
-      <button id="reloadDeadline" class="gray" type="button">再読み込み</button>
-    </div>
-    <div id="deadlineMsg" class="msg"></div>
-  </section>
 
   <section id="viewTeachers" class="card hidden">
     <h2>先生別一覧</h2>
@@ -249,7 +259,7 @@ input[type=file]{font-size:14px;padding:8px;border:1px solid #cbd5e1;border-radi
     <div id="backupMsg" class="msg"></div>
   </section>
 
-  <div class="small noPrint">Build Supabase Ver.1.9</div>
+  <div class="small noPrint">Build Supabase Ver.1.11</div>
 </div>
 
 
@@ -343,14 +353,12 @@ function setSchool(s){
 function setTab(t){
   tab=t;
   $('tabSlots').classList.toggle('active',t==='slots');
-  $('tabDeadline').classList.toggle('active',t==='deadline');
   $('tabTeachers').classList.toggle('active',t==='teachers');
   $('tabStatus').classList.toggle('active',t==='status');
   $('tabTeacherMaster').classList.toggle('active',t==='master');
   $('tabBackup').classList.toggle('active',t==='backup');
 
   $('viewSlots').classList.toggle('hidden',t!=='slots');
-  $('viewDeadline').classList.toggle('hidden',t!=='deadline');
   $('viewTeachers').classList.toggle('hidden',t!=='teachers');
   $('viewStatus').classList.toggle('hidden',t!=='status');
   $('viewTeacherMaster').classList.toggle('hidden',t!=='master');
@@ -361,7 +369,6 @@ function setTab(t){
 
 function loadCurrent(){
   if(tab==='slots') loadSlots();
-  if(tab==='deadline') loadDeadline();
   if(tab==='teachers') loadTeachersView();
   if(tab==='status') loadStatusView();
   if(tab==='master') loadTeacherMaster();
@@ -374,6 +381,7 @@ async function loadSlots(){
     const rows = await rest('class_days?select=school,date,slots&school=eq.'+encodeURIComponent(school)+'&order=date.asc');
     slotConfig = (rows||[]).map(r=>({date:r.date,slots:Array.isArray(r.slots)?r.slots:[true,true,true,true,true,true]}));
     renderSlots();
+    await loadDeadline();
     msg('slotsMsg','読み込みました。',true);
   }catch(e){
     msg('slotsMsg','読み込みできません。\n'+(e.message||String(e)),false);
@@ -526,7 +534,7 @@ async function saveSlots(){
 async function loadDeadline(){
   msg('deadlineMsg','読み込み中...',true);
   try{
-    $('deadlineSchoolLabel').textContent = school + '校';
+    if($('deadlineSchoolLabel')) $('deadlineSchoolLabel').textContent = school + '校 締切日';
     const rows = await rest('deadlines?select=school,deadline&school=eq.'+encodeURIComponent(school));
     const d = rows && rows.length ? rows[0].deadline : '';
     $('deadlineDate').value = d ? String(d).replaceAll('/','-').slice(0,10) : '';
@@ -539,7 +547,15 @@ async function loadDeadline(){
 
 function updateDeadlineLabel(){
   const raw = rawFromInput('deadlineDate');
-  $('deadlineLabel').textContent = raw ? label(raw) : '';
+  if($('deadlineDisplayBtn')) $('deadlineDisplayBtn').textContent = raw ? label(raw) : '締切日を選択';
+}
+
+function openDeadlinePicker(){
+  const input = $('deadlineDate');
+  if(!input) return;
+  if(input.showPicker) input.showPicker();
+  else input.click();
+  input.focus();
 }
 
 async function saveDeadline(){
@@ -1183,7 +1199,6 @@ async function importTeachersFromPaste(){
 $('schoolS').onclick=()=>setSchool('神領');
 $('schoolO').onclick=()=>setSchool('大手町');
 $('tabSlots').onclick=()=>setTab('slots');
-$('tabDeadline').onclick=()=>setTab('deadline');
 $('tabTeachers').onclick=()=>setTab('teachers');
 $('tabStatus').onclick=()=>setTab('status');
 $('tabTeacherMaster').onclick=()=>setTab('master');
@@ -1196,6 +1211,7 @@ $('copySlotsFromSchool').onclick=copySlotsFromOtherSchool;
 $('reloadDeadline').onclick=loadDeadline;
 $('saveDeadline').onclick=saveDeadline;
 $('deadlineDate').onchange=updateDeadlineLabel;
+$('deadlineDisplayBtn').onclick=openDeadlinePicker;
 $('reloadTeachers').onclick=loadTeachersView;
 $('selectDisplayBtn').onclick=()=>openTeacherSelect('display');
 $('printBtn').onclick=()=>openTeacherSelect('print');
