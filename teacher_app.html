@@ -13,6 +13,7 @@ body{margin:0;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Noto Sans 
 h2{text-align:center;color:#3158d6}label{display:block;font-weight:900;margin:14px 0 7px}
 .schoolRow{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 button{border:0;border-radius:12px;padding:14px;font-weight:900;font-size:16px;cursor:pointer}
+button:disabled{opacity:.55;cursor:not-allowed}
 .schoolBtn{background:#fff;border:2px solid #d1d5db;color:#111827}.schoolBtn.on{border-color:#3158d6;background:#eff6ff;color:#3158d6}
 input{width:100%;font-size:24px;text-align:center;padding:13px;border:2px solid #d1d5db;border-radius:12px}
 .primary{width:100%;background:#3158d6;color:#fff;margin-top:18px;font-size:22px}
@@ -107,7 +108,7 @@ td.date{
 <div id="pageTop"></div>
 <button id="topBackBtn" class="topBack hidden" type="button">←トップへ</button>
 <button id="logoutTop" class="logout hidden" type="button">ログアウト</button>
-<div class="hero"><h1>夏休み出勤可能日登録</h1><div>個別指導ステップ <small>Supabase Ver.2.5a</small></div></div>
+<div class="hero"><h1>夏休み出勤可能日登録</h1><div>個別指導ステップ <small>Supabase Ver.2.6</small></div></div>
 
 <div id="login" class="wrap"><div class="card">
 <h2>ログイン</h2>
@@ -143,11 +144,46 @@ let school = '神領';
 let teacher = null;
 let days = [];
 let avail = {};
+let currentDeadline = null;
+const inactiveMessage = 'この講師は現在利用できません。\n教室担当者へお問い合わせください。';
 const timeHeaders = ['13:00<br>14:15','14:20<br>15:35','15:45<br>17:00','17:10<br>18:25','18:35<br>19:50','20:00<br>21:15'];
 
 function $(id){return document.getElementById(id)}
 function showMsg(id,text,ok=true){const el=$(id);el.textContent=text||'';el.className='msg '+(ok?'ok':'err')}
 function dateLabel(raw){const p=String(raw).replaceAll('-','/').split('/').map(Number);const d=new Date(p[0],p[1]-1,p[2]);return String(raw).replaceAll('-','/')+'（'+'日月火水木金土'[d.getDay()]+'）'}
+
+function isActiveTeacher(t){
+  return t && (t.active === true || String(t.active).toLowerCase() === 'true');
+}
+
+function rawDateToDate(raw){
+  if(!raw) return null;
+  const p = String(raw).replaceAll('-', '/').split('/').map(Number);
+  return new Date(p[0], p[1]-1, p[2]);
+}
+
+function isDeadlinePassed(){
+  if(!currentDeadline) return false;
+  const d = rawDateToDate(currentDeadline);
+  if(!d) return false;
+  const today = new Date();
+  today.setHours(0,0,0,0);
+  d.setHours(0,0,0,0);
+  return today > d;
+}
+
+function applyDeadlineState(){
+  const btn = $('saveBtn');
+  if(!btn) return;
+  if(isDeadlinePassed()){
+    btn.disabled = true;
+    btn.textContent = '締切後のため保存できません';
+    showMsg('saveMsg','締切を過ぎています。変更は教室担当者へ直接連絡してください。',false);
+  }else{
+    btn.disabled = false;
+    btn.textContent = '保存して送信';
+  }
+}
 
 async function rest(path, options={}){
   const res = await fetch(SUPABASE_URL + '/rest/v1/' + path, {
@@ -173,23 +209,42 @@ function setSchool(s){
 }
 
 async function findTeacher(code){
-  const exact = await rest('teachers?select=code,name,school,email,active&code=eq.' + encodeURIComponent(code));
-  if(Array.isArray(exact) && exact.length > 0){
-    return exact.find(t => t.active === true || String(t.active).toLowerCase()==='true') || exact[0];
+  const rows = await rest('teachers?select=code,name,school,email,active&code=eq.' + encodeURIComponent(code) + '&school=eq.' + encodeURIComponent(school));
+  if(!Array.isArray(rows) || rows.length === 0) return null;
+  const t = rows[0];
+  if(!isActiveTeacher(t)){
+    throw new Error(inactiveMessage);
   }
+  return t;
+}
 
-  const all = await rest('teachers?select=code,name,school,email,active');
-  if(!Array.isArray(all)) return null;
-  return all.find(t => String(t.code).trim() === String(code).trim() && (t.active === true || String(t.active).toLowerCase()==='true')) || null;
+async function checkTeacherStillActive(){
+  if(!teacher || !teacher.code) return false;
+  const rows = await rest('teachers?select=code,name,school,email,active&code=eq.' + encodeURIComponent(teacher.code) + '&school=eq.' + encodeURIComponent(school));
+  const t = Array.isArray(rows) && rows.length ? rows[0] : null;
+  if(!isActiveTeacher(t)){
+    localStorage.removeItem('step_teacher_code');
+    localStorage.removeItem('step_teacher_school');
+    teacher = null;
+    showMsg('loginMsg', inactiveMessage, false);
+    return false;
+  }
+  teacher = t;
+  return true;
 }
 
 
 async function loadDeadlineNotice(){
   try{
     const rows = await rest('deadlines?select=school,deadline&school=eq.' + encodeURIComponent(school));
-    if(!Array.isArray(rows) || rows.length === 0 || !rows[0].deadline) return;
+    if(!Array.isArray(rows) || rows.length === 0 || !rows[0].deadline){
+      currentDeadline = null;
+      applyDeadlineState();
+      return;
+    }
 
     const raw = String(rows[0].deadline).replaceAll('-', '/').slice(0, 10);
+    currentDeadline = raw;
     const text =
       dateLabel(raw) + '締め切りです。\n' +
       '締切日までは何度でも変更可能です。\n' +
@@ -197,6 +252,7 @@ async function loadDeadlineNotice(){
 
     $('deadlineText').textContent = text;
     $('deadlinePopup').classList.remove('hidden');
+    applyDeadlineState();
   }catch(e){
     // 締切表示が失敗しても、出勤登録自体は止めない
     console.warn('deadline notice error', e);
@@ -229,7 +285,14 @@ async function login(){
     $('teacherName').textContent=school+'校　'+teacher.name+'さん';
     await loadDeadlineNotice();
   }catch(e){
-    showMsg('loginMsg','ログインできません。\n'+(e.message||String(e)),false);
+    const m = e.message || String(e);
+    if(m.includes('現在利用できません')){
+      localStorage.removeItem('step_teacher_code');
+      localStorage.removeItem('step_teacher_school');
+      showMsg('loginMsg', m, false);
+    }else{
+      showMsg('loginMsg','ログインできません。\n'+m,false);
+    }
   }
 }
 
@@ -274,6 +337,18 @@ function toggle(key){
 
 async function save(){
   try{
+    if(!(await checkTeacherStillActive())){
+      showMsg('saveMsg', inactiveMessage, false);
+      $('login').classList.remove('hidden');
+      $('main').classList.add('hidden');
+      $('logoutTop').classList.add('hidden');
+      if($('topBackBtn')) $('topBackBtn').classList.add('hidden');
+      return;
+    }
+    if(isDeadlinePassed()){
+      applyDeadlineState();
+      return;
+    }
     showPopup('保存と送信しています。');
     showMsg('saveMsg','保存と送信しています。',true);
     await rest('availability?school=eq.'+encodeURIComponent(school)+'&teacher_code=eq.'+encodeURIComponent(teacher.code),{method:'DELETE'});
