@@ -82,7 +82,7 @@ td.actions{min-width:210px}
 </head>
 <body>
 <div class="header">
-  <h1>夏休み出勤管理 <small>Supabase Ver.1.3</small></h1>
+  <h1>夏休み出勤管理 <small>Supabase Ver.1.4</small></h1>
   <p>個別指導ステップ</p>
 </div>
 
@@ -148,6 +148,15 @@ td.actions{min-width:210px}
 
   <section id="viewTeacherMaster" class="card hidden">
     <h2>講師登録</h2>
+    <p class="noPrint">Googleスプレッドシートの講師マスターから、A列コード・B列氏名・D列在籍・P列メールをコピーして貼り付けます。D列が「1」の人だけ登録します。</p>
+    <div class="noPrint" style="margin:12px 0">
+      <textarea id="teacherPaste" placeholder="A列〜P列を範囲コピーして貼り付け&#10;例：7002	加瀬智子	...	1	...	mail@example.com" style="width:100%;min-height:130px;border:1px solid #cbd5e1;border-radius:10px;padding:10px;font-size:14px"></textarea>
+      <div class="row">
+        <button id="importTeachers" class="orange" type="button">講師マスターを一括登録</button>
+        <button id="clearTeacherPaste" class="gray" type="button">貼り付け欄をクリア</button>
+      </div>
+    </div>
+    <hr class="noPrint">
     <div class="row noPrint">
       <input id="newCode" type="text" placeholder="コード 例:7002">
       <input id="newName" type="text" placeholder="氏名">
@@ -158,7 +167,7 @@ td.actions{min-width:210px}
     <div id="teacherMasterMsg" class="msg"></div>
   </section>
 
-  <div class="small noPrint">Build Supabase Ver.1.3</div>
+  <div class="small noPrint">Build Supabase Ver.1.4</div>
 </div>
 
 
@@ -480,10 +489,10 @@ function renderTeachers(){
 async function loadTeacherMaster(){
   msg('teacherMasterMsg','読み込み中...',true);
   try{
-    const rows = await rest('teachers?select=code,name,school,active&order=code.asc');
-    let h='<table><thead><tr><th>コード</th><th>氏名</th><th>校舎</th><th>有効</th></tr></thead><tbody>';
+    const rows = await rest('teachers?select=code,name,school,email,active&order=code.asc');
+    let h='<table><thead><tr><th>コード</th><th>氏名</th><th>校舎</th><th>メール</th><th>有効</th></tr></thead><tbody>';
     (rows||[]).forEach(t=>{
-      h+='<tr><td>'+t.code+'</td><td>'+t.name+'</td><td>'+t.school+'</td><td>'+(t.active?'○':'')+'</td></tr>';
+      h+='<tr><td>'+t.code+'</td><td>'+t.name+'</td><td>'+t.school+'</td><td>'+(t.email||'')+'</td><td>'+(t.active?'○':'')+'</td></tr>';
     });
     h+='</tbody></table>';
     $('teacherMasterArea').innerHTML=h;
@@ -575,6 +584,61 @@ function runTeacherSelect(){
 }
 
 
+
+function parseTeacherPaste(text){
+  const lines = String(text || '').split(/\r?\n/).map(l=>l.trim()).filter(Boolean);
+  const rows = [];
+
+  lines.forEach(line=>{
+    const cols = line.split('\t');
+    const code = String(cols[0] || '').trim();
+    const name = String(cols[1] || '').trim();
+    const active = String(cols[3] || '').trim();
+    const email = String(cols[15] || '').trim();
+
+    if(!code || !name) return;
+    if(active !== '1') return;
+
+    rows.push({
+      code: code,
+      name: name,
+      school: school,
+      email: email || null,
+      active: true
+    });
+  });
+
+  return rows;
+}
+
+async function importTeachersFromPaste(){
+  try{
+    const text = $('teacherPaste').value;
+    const rows = parseTeacherPaste(text);
+
+    if(rows.length === 0){
+      msg('teacherMasterMsg','登録対象がありません。D列が1の行を含めて、A〜P列を貼り付けてください。',false);
+      return;
+    }
+
+    if(!confirm(rows.length + '名を ' + school + '校 の講師として登録・更新します。よろしいですか？')) return;
+
+    msg('teacherMasterMsg','一括登録中...',true);
+
+    await rest('teachers', {
+      method:'POST',
+      body: JSON.stringify(rows),
+      headers:{Prefer:'resolution=merge-duplicates'}
+    });
+
+    msg('teacherMasterMsg','一括登録しました。人数：'+rows.length+'名',true);
+    await loadTeacherMaster();
+  }catch(e){
+    msg('teacherMasterMsg','一括登録できません。\n'+(e.message||String(e)),false);
+  }
+}
+
+
 $('schoolS').onclick=()=>setSchool('神領');
 $('schoolO').onclick=()=>setSchool('大手町');
 $('tabSlots').onclick=()=>setTab('slots');
@@ -598,6 +662,8 @@ $('teacherSelectRun').onclick=runTeacherSelect;
 $('teacherChecks').addEventListener('change',updateTeacherSelectSummary);
 $('addTeacher').onclick=addTeacher;
 $('reloadTeacherMaster').onclick=loadTeacherMaster;
+$('importTeachers').onclick=importTeachersFromPaste;
+$('clearTeacherPaste').onclick=()=>{$('teacherPaste').value='';};
 
 loadSlots();
 </script>
