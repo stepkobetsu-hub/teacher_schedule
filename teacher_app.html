@@ -58,7 +58,7 @@ button{width:100%;border:0;border-radius:16px;padding:16px;margin-top:18px;font-
 'use strict';
 
 // GASは裏側のJSONP通信だけに使います。画面遷移には絶対に使いません。
-const GAS_API = 'https://script.google.com/macros/s/AKfycbz8WuWu7rGAx96_7Bz5YLaN5lW2fAZg_NY4JwjJwlX2cabLv603ey5mCMGpCfHoEil1cw/exec';
+const GAS_API = 'https://script.google.com/macros/s/AKfycbys7A1hwDTvpJms24uUJQLiD-oN8trVFMBfUEaU-99RePefcemkkA754rxBW0cnnY6o/exec';
 const TIMES = ['13:00〜14:15','14:20〜15:35','15:45〜17:00','17:10〜18:25','18:35〜19:50','20:00〜21:15'];
 
 let state = {
@@ -184,6 +184,7 @@ function renderSlots() {
   if (!state.slots.length) {
     area.innerHTML = '<div class="loading">登録対象の日程がありません。</div>';
     document.getElementById('saveBtn').disabled = state.locked;
+  if (state.locked) showMsg('saveMsg', '締切を過ぎているため、この画面からは変更できません。管理画面の締切日を変更すると押せるようになります。');
     return;
   }
 
@@ -225,7 +226,7 @@ function renderSlots() {
 function buttonHtml(key, value, cls, current, label) {
   const selected = current === value ? ' selected ' + cls : '';
   const text = label || value;
-  return '<button type="button" class="choice ' + selected + '" onclick="setEntry(' + JSON.stringify(key) + ',' + JSON.stringify(value) + ')">' + escapeHtml(text) + '</button>';
+  return '<button type="button" class="choice ' + selected + '" ' + (state.locked ? 'disabled ' : '') + 'onclick="setEntry(' + JSON.stringify(key) + ',' + JSON.stringify(value) + ')">' + escapeHtml(text) + '</button>';
 }
 
 function setEntry(key, value) {
