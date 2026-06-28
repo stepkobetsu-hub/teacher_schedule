@@ -6,7 +6,7 @@
 <title>夏休み出勤可能日登録</title>
 <style>
 *{box-sizing:border-box}
-body{margin:0;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Noto Sans JP",sans-serif;background:#eef3fb;color:#111827}
+body{margin:0;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Noto Sans JP",sans-serif;background:#eef3fb;color:#111827;overflow-x:hidden}
 .hero{background:linear-gradient(135deg,#4aa9f5,#3158d6);color:#fff;text-align:center;padding:24px 16px}
 .hero h1{font-size:22px;margin:0 0 6px;font-weight:900}.hero small{font-size:12px}
 .wrap{max-width:820px;margin:0 auto;padding:16px}.card{background:#fff;border-radius:18px;padding:22px;box-shadow:0 12px 30px rgba(15,23,42,.08)}
@@ -21,8 +21,8 @@ input{width:100%;font-size:24px;text-align:center;padding:13px;border:2px solid 
 .logout{position:fixed;left:8px;top:6px;z-index:100;background:#c62828;color:#fff;border-radius:999px;padding:5px 9px;font-size:11px}
 .top{position:sticky;top:0;z-index:20;background:#2749b8;color:#fff;padding:10px 12px}.topLine{display:flex;justify-content:space-between;align-items:center;gap:10px}
 .name{font-size:25px;font-weight:950;text-align:center;flex:1}.actions{display:flex;gap:8px}.mini{background:#fff;color:#2749b8;padding:8px 12px;font-size:13px}
-.legend{background:#fff;border-radius:12px;padding:10px;margin-bottom:10px;line-height:1.7;font-weight:700}.tableWrap{overflow:auto;background:#fff;border-radius:12px;box-shadow:0 4px 12px rgba(15,23,42,.05)}
-table{border-collapse:collapse;width:100%;min-width:540px}th{background:#374151;color:#fff;position:sticky;top:52px;z-index:10;font-size:12px;padding:8px 4px}
+.legend{background:#fff;border-radius:12px;padding:10px;margin-bottom:10px;line-height:1.7;font-weight:700}.tableWrap{overflow-x:auto;overflow-y:visible;background:#fff;border-radius:12px;box-shadow:0 4px 12px rgba(15,23,42,.05);max-width:100%;-webkit-overflow-scrolling:touch}
+table{border-collapse:collapse;width:100%;min-width:540px}th{background:#374151;color:#fff;position:sticky;top:58px;z-index:15;font-size:12px;padding:8px 4px}
 td{border:1px solid #e5e7eb;text-align:center;padding:5px}td.date{position:sticky;left:0;background:#fff;font-size:11px;font-weight:900;min-width:96px;z-index:2}
 .slot{
 width:42px;height:42px;border:2px solid #d1d5db;background:#fff;border-radius:9px;
@@ -52,11 +52,26 @@ top:12px;
   .slot.tri::after{content:"△"!important;display:inline!important;position:static!important;color:#000!important;border:0!important}
 }
 
+
+th.dateHead{left:0;z-index:18;min-width:96px}
+.save{position:sticky;bottom:0;z-index:30;background:#eef3fb;padding:12px 0 14px;width:100%;left:0;right:0}
+.save .primary{display:block;width:100%;margin:0;font-size:22px;padding:14px 16px;border-radius:14px}
+@media(max-width:640px){
+  .hero{padding:20px 16px}
+  .hero h1{font-size:22px}
+  .name{font-size:24px}
+  table{min-width:520px}
+  th{top:58px;font-size:11px}
+  td.date{min-width:88px;font-size:10px}
+  .slot{width:39px;height:39px}
+  .save .primary{font-size:22px;padding:13px 16px}
+}
+
 </style>
 </head>
 <body>
 <button id="logoutTop" class="logout hidden">ログアウト</button>
-<div class="hero"><h1>夏休み出勤可能日登録</h1><div>個別指導ステップ <small>Supabase Ver.1.3</small></div></div>
+<div class="hero"><h1>夏休み出勤可能日登録</h1><div>個別指導ステップ <small>Supabase Ver.1.4</small></div></div>
 
 <div id="login" class="wrap"><div class="card">
 <h2>ログイン</h2>
@@ -155,7 +170,7 @@ async function loadData(){
 }
 
 function render(){
-  let h='<table><thead><tr><th>日付</th>';
+  let h='<table><thead><tr><th class="dateHead">日付</th>';
   timeHeaders.forEach(t=>h+='<th>'+t+'</th>');
   h+='</tr></thead><tbody>';
   (days||[]).forEach(d=>{
