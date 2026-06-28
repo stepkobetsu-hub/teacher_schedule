@@ -87,11 +87,51 @@ td.actions{min-width:210px}
 button:disabled{opacity:.55;cursor:not-allowed}
 @media(max-width:700px){.statusCards{grid-template-columns:1fr}}
 
+.deadlinePanel{margin-left:auto;background:linear-gradient(135deg,#fff7ed,#ffffff);border:2px solid #f97316;border-radius:16px;padding:10px 12px;box-shadow:0 8px 20px rgba(249,115,22,.14);min-width:620px;max-width:720px}
+.deadlinePanelTop{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.deadlinePanelTitle{display:inline-flex;align-items:center;justify-content:center;
+min-width:140px;padding:10px 18px;border-radius:12px;
+font-weight:950;font-size:28px;color:#fff;white-space:nowrap}
+.deadlinePanelTitle.shinryo{background:#1565c0}
+.deadlinePanelTitle.otemachi{background:#e65100}
+.deadlineCaption{font-weight:900;color:#9a3412;font-size:22px;white-space:nowrap}
+.deadlinePanelBody{display:flex;gap:10px;align-items:center;flex:1;min-width:380px}
+.deadlineDisplay{display:block;flex:1;border:2px solid #1565c0;background:#fff;color:#1565c0;border-radius:12px;font-size:24px;font-weight:950;padding:9px 16px;text-align:center;min-height:48px;letter-spacing:.02em}
+.deadlineDisplay:hover{background:#eff6ff}
+.deadlinePanel .deadlineActions{display:flex;gap:8px;align-items:center;white-space:nowrap}
+.deadlinePanel .deadlineActions button{padding:10px 14px;white-space:nowrap}
+.deadlinePanel input[type=date]{position:absolute;opacity:0;pointer-events:none;width:1px;height:1px}
+.deadlineNote{font-size:11px;color:#8a3a1c;font-weight:800;margin-top:6px;text-align:right}
+.compactMsg{font-size:13px!important;padding:8px 10px!important;margin:8px 0 0!important;border-radius:10px!important;line-height:1.35!important;text-align:left!important;min-height:0}
+.slotControls{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:14px;align-items:center;margin:10px 0 8px}
+.slotControlsLeft{min-width:0}
+.slotControlRow{align-items:center;margin:8px 0}
+.slotControlRow b{min-width:94px}
+.slotSaveBox{min-width:220px;max-width:270px;display:flex;flex-direction:column;align-items:stretch;justify-content:center;gap:4px}
+.slotSaveButtons{display:flex;gap:8px;justify-content:flex-end;align-items:center}
+.slotSaveButtons .primary{width:112px;height:54px;padding:0;font-size:18px;border-radius:13px}
+.slotSaveButtons .gray{width:92px;height:54px;padding:0;font-size:15px;border-radius:13px}
+@media(max-width:1000px){.deadlinePanel{min-width:100%;max-width:none;margin-left:0}.deadlinePanelTop{display:block}.deadlinePanelTitle{margin-bottom:6px}.deadlinePanelBody{min-width:0}.slotControls{grid-template-columns:1fr}.slotSaveBox{width:100%;max-width:none}.slotSaveButtons{justify-content:flex-start}.slotSaveButtons .primary{width:140px}.slotSaveButtons .gray{width:110px}}
+@media(max-width:760px){.deadlinePanelBody{flex-direction:column;align-items:stretch}.deadlinePanel .deadlineActions{justify-content:stretch}.deadlinePanel .deadlineActions button{flex:1}.deadlineDisplay{font-size:20px}}
+
+
+
+.inactiveRow{background:#f8fafc;color:#94a3b8}
+.statusBadge{display:inline-block;border-radius:999px;padding:4px 10px;font-weight:900;font-size:12px}
+.statusBadge.on{background:#dcfce7;color:#166534;border:1px solid #86efac}
+.statusBadge.off{background:#fee2e2;color:#991b1b;border:1px solid #fecaca}
+.toggleBtn{min-width:92px;padding:7px 10px;border-radius:999px;font-size:12px}
+
+.backupBox{background:#f8fafc;border:1px solid #cbd5e1;border-radius:14px;padding:14px;margin:12px 0}
+.backupBox h3{margin:0 0 8px;color:#1565c0}
+.backupList{font-size:13px;line-height:1.7;color:#475569}
+input[type=file]{font-size:14px;padding:8px;border:1px solid #cbd5e1;border-radius:8px;background:#fff}
+
 </style>
 </head>
 <body>
 <div class="header">
-  <h1>夏休み出勤管理 <small>Supabase Ver.1.6</small></h1>
+  <h1>夏休み出勤管理 <small>Supabase Ver.1.13</small></h1>
   <p>個別指導ステップ</p>
 </div>
 
@@ -103,47 +143,73 @@ button:disabled{opacity:.55;cursor:not-allowed}
 
   <div class="row tabs noPrint">
     <button id="tabSlots" class="tab active" type="button">授業枠設定</button>
-    <button id="tabDeadline" class="tab" type="button">締切設定</button>
     <button id="tabTeachers" class="tab" type="button">先生別一覧</button>
     <button id="tabStatus" class="tab" type="button">提出状況一覧</button>
     <button id="tabTeacherMaster" class="tab" type="button">講師登録</button>
+    <button id="tabBackup" class="tab" type="button">バックアップ</button>
   </div>
 
   <section id="viewSlots" class="card">
-    <h2>授業枠設定</h2>
-    <p>ここで作った日付・時間帯が、講師アプリ・先生別一覧・印刷の基準になります。</p>
-
-    <div class="row noPrint">
-      <b>期間設定</b>
-      <input id="rangeStart" type="date"> <span>〜</span> <input id="rangeEnd" type="date">
-      <button id="makeRange" class="gray" type="button">期間の枠を作成</button>
+    <div class="row" style="align-items:flex-start">
+      <div>
+        <h2 style="text-align:left;margin:0 0 6px">授業枠設定</h2>
+        <p style="margin:0 0 8px">ここで作った日付・時間帯が、講師アプリ・先生別一覧・印刷の基準になります。</p>
+      </div>
+      <div class="deadlinePanel noPrint">
+        <div class="deadlinePanelTop">
+          <div id="deadlineSchoolLabel" class="deadlinePanelTitle shinryo">神領校</div>
+          <div class="deadlineCaption">講師出勤日提出：締切日</div>
+          <div class="deadlinePanelBody">
+            <button id="deadlineDisplayBtn" class="deadlineDisplay" type="button">締切日を選択</button>
+            <input id="deadlineDate" type="date">
+            <div class="deadlineActions">
+              <button id="saveDeadline" class="primary" type="button">締切日を保存</button>
+              <button id="reloadDeadline" class="gray" type="button">再読込</button>
+            </div>
+          </div>
+        </div>
+        <div class="deadlineNote">日付部分をクリックすると変更できます。</div>
+      </div>
     </div>
 
-    <div class="row noPrint">
-      <b>授業日の追加</b>
-      <input id="singleDate" type="date">
-      <button id="addDay" class="blue" type="button">授業日を追加</button>
-      <button id="saveSlots" class="primary big" style="margin-left:auto" type="button">保存する</button>
-      <button id="reloadSlots" class="gray" type="button">再読み込み</button>
+    <div class="slotControls noPrint">
+      <div class="slotControlsLeft">
+        <div class="row slotControlRow">
+          <b>期間設定</b>
+          <input id="rangeStart" type="date"> <span>〜</span> <input id="rangeEnd" type="date">
+          <button id="makeRange" class="blue" type="button">期間の枠を作成</button>
+        </div>
+
+        <div class="row slotControlRow">
+          <b>授業日の追加</b>
+          <input id="singleDate" type="date">
+          <button id="addDay" class="blue" type="button">授業日を追加</button>
+        </div>
+      </div>
+
+      <div class="slotSaveBox">
+        <div class="slotSaveButtons">
+          <button id="saveSlots" class="primary" type="button">保存</button>
+          <button id="reloadSlots" class="gray" type="button">再読込</button>
+        </div>
+        <div id="slotsMsg" class="msg compactMsg"></div>
+      </div>
+    </div>
+
+    <div class="row noPrint" style="background:#fff7ed;border:1px solid #fed7aa;border-radius:12px;padding:10px">
+      <b>他校の授業枠をコピー</b>
+      <span>コピー元</span>
+      <select id="copySlotsSource" style="font-size:16px;padding:9px;border:1px solid #cbd5e1;border-radius:8px">
+        <option value="神領">神領校</option>
+        <option value="大手町">大手町校</option>
+      </select>
+      <button id="copySlotsFromSchool" class="orange" type="button">他校の内容をコピーして上書き</button>
+      <span style="font-size:13px;color:#8a3a1c;font-weight:800">※現在表示中の校舎の授業枠は全て上書きされます。</span>
     </div>
 
     <div id="slotsArea" class="tableWrap"></div>
-    <div id="slotsMsg" class="msg"></div>
   </section>
 
-
-  <section id="viewDeadline" class="card hidden">
-    <h2>締切設定</h2>
-    <p>講師アプリの登録締切日です。</p>
-    <div class="row noPrint">
-      <b id="deadlineSchoolLabel">神領校</b>
-      <input id="deadlineDate" type="date">
-      <span id="deadlineLabel" style="font-size:22px;font-weight:900;color:#1565c0;background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:8px 12px;min-width:190px;text-align:center"></span>
-      <button id="saveDeadline" class="primary" type="button">保存する</button>
-      <button id="reloadDeadline" class="gray" type="button">再読み込み</button>
-    </div>
-    <div id="deadlineMsg" class="msg"></div>
-  </section>
 
   <section id="viewTeachers" class="card hidden">
     <h2>先生別一覧</h2>
@@ -169,7 +235,7 @@ button:disabled{opacity:.55;cursor:not-allowed}
 
   <section id="viewTeacherMaster" class="card hidden">
     <h2>講師登録</h2>
-    <p class="noPrint">Googleスプレッドシートの講師マスターから、A列コード・B列氏名・D列在籍・P列メールをコピーして貼り付けます。D列が「1」の人だけ登録します。</p>
+    <p class="noPrint">Googleスプレッドシートの講師マスターから、A列コード・B列氏名・D列在籍・P列メールをコピーして貼り付けます。D列が「1」の人は有効、空白の人は無効として同期します。</p>
     <div class="noPrint" style="margin:12px 0">
       <div class="row" style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:12px;padding:10px">
         <b>講師マスターURL同期</b>
@@ -189,12 +255,44 @@ button:disabled{opacity:.55;cursor:not-allowed}
       <input id="newName" type="text" placeholder="氏名">
       <button id="addTeacher" class="primary" type="button">追加/更新</button>
       <button id="reloadTeacherMaster" class="gray" type="button">再読み込み</button>
+      <span style="font-weight:900;margin-left:8px">表示対象</span>
+      <label style="font-weight:900"><input id="showActiveTeachers" type="checkbox" checked> 有効</label>
+      <label style="font-weight:900"><input id="showInactiveTeachers" type="checkbox"> 無効</label>
     </div>
     <div id="teacherMasterArea"></div>
     <div id="teacherMasterMsg" class="msg"></div>
   </section>
 
-  <div class="small noPrint">Build Supabase Ver.1.6</div>
+
+
+  <section id="viewBackup" class="card hidden">
+    <h2>バックアップ・復元</h2>
+    <div class="backupBox noPrint">
+      <h3>自動バックアップ</h3>
+      <div class="backupList">
+        ・画面を開いたときに現在のSupabase設定を自動保存します。<br>
+        ・授業枠保存、締切保存、講師同期、有効/無効切替の直前にも自動保存します。<br>
+        ・自動バックアップはこのブラウザ内に保存されます。別PCでも使う場合は「JSONとして保存」を押してください。
+      </div>
+      <div class="row">
+        <button id="makeManualBackup" class="blue" type="button">📥 現在の設定をJSONとして保存</button>
+        <button id="restoreLatestAuto" class="orange" type="button">📤 直近の自動バックアップから復元</button>
+        <button id="showBackupInfo" class="gray" type="button">直近バックアップ確認</button>
+      </div>
+    </div>
+
+    <div class="backupBox noPrint">
+      <h3>ファイルから復元</h3>
+      <div class="backupList">保存済みJSONファイルを選んで復元します。復元前にも自動バックアップを作成します。</div>
+      <div class="row">
+        <input id="restoreFile" type="file" accept="application/json,.json">
+        <button id="restoreFromFile" class="red" type="button">ファイルから復元する</button>
+      </div>
+    </div>
+    <div id="backupMsg" class="msg"></div>
+  </section>
+
+  <div class="small noPrint">Build Supabase Ver.1.13</div>
 </div>
 
 
@@ -233,11 +331,21 @@ const timeShort = ['13:00','14:20','15:45','17:10','18:35','20:00'];
 
 function $(id){return document.getElementById(id)}
 
+let msgTimers = {};
 function msg(id,t,ok=true){
   const e=$(id);
+  if(!e) return;
+  if(msgTimers[id]){ clearTimeout(msgTimers[id]); msgTimers[id]=null; }
   e.textContent=t||'';
   e.className='msg '+(ok?'ok':'err');
   e.style.display=t?'block':'none';
+  // 成功メッセージは画面を圧迫しないように自動で消します。エラーは残します。
+  if(t && ok && !String(t).includes('中')){
+    msgTimers[id]=setTimeout(()=>{
+      e.textContent='';
+      e.style.display='none';
+    },3000);
+  }
 }
 
 function rawFromInput(id){
@@ -281,32 +389,33 @@ function setSchool(s){
   selectedTeacherCodes=[];
   $('schoolS').classList.toggle('active',s==='神領');
   $('schoolO').classList.toggle('active',s==='大手町');
+  if($('copySlotsSource')) $('copySlotsSource').value = (s === '神領' ? '大手町' : '神領');
   loadCurrent();
 }
 
 function setTab(t){
   tab=t;
   $('tabSlots').classList.toggle('active',t==='slots');
-  $('tabDeadline').classList.toggle('active',t==='deadline');
   $('tabTeachers').classList.toggle('active',t==='teachers');
   $('tabStatus').classList.toggle('active',t==='status');
   $('tabTeacherMaster').classList.toggle('active',t==='master');
+  $('tabBackup').classList.toggle('active',t==='backup');
 
   $('viewSlots').classList.toggle('hidden',t!=='slots');
-  $('viewDeadline').classList.toggle('hidden',t!=='deadline');
   $('viewTeachers').classList.toggle('hidden',t!=='teachers');
   $('viewStatus').classList.toggle('hidden',t!=='status');
   $('viewTeacherMaster').classList.toggle('hidden',t!=='master');
+  $('viewBackup').classList.toggle('hidden',t!=='backup');
 
   loadCurrent();
 }
 
 function loadCurrent(){
   if(tab==='slots') loadSlots();
-  if(tab==='deadline') loadDeadline();
   if(tab==='teachers') loadTeachersView();
   if(tab==='status') loadStatusView();
   if(tab==='master') loadTeacherMaster();
+  if(tab==='backup') loadBackupView();
 }
 
 async function loadSlots(){
@@ -315,6 +424,7 @@ async function loadSlots(){
     const rows = await rest('class_days?select=school,date,slots&school=eq.'+encodeURIComponent(school)+'&order=date.asc');
     slotConfig = (rows||[]).map(r=>({date:r.date,slots:Array.isArray(r.slots)?r.slots:[true,true,true,true,true,true]}));
     renderSlots();
+    await loadDeadline();
     msg('slotsMsg','読み込みました。',true);
   }catch(e){
     msg('slotsMsg','読み込みできません。\n'+(e.message||String(e)),false);
@@ -388,6 +498,56 @@ function makeRange(){
   msg('slotsMsg','期間の枠を作成しました。保存してください。',true);
 }
 
+
+async function copySlotsFromOtherSchool(){
+  try{
+    const source = $('copySlotsSource').value;
+    const target = school;
+
+    if(source === target){
+      msg('slotsMsg','コピー元とコピー先が同じです。別の校舎を選んでください。',false);
+      return;
+    }
+
+    const warning =
+      '【重要】' + '\n\n' +
+      source + '校の授業枠を、現在表示中の ' + target + '校へコピーします。' + '\n\n' +
+      'この操作を行うと、' + target + '校の現在の授業枠設定はすべて削除され、' + source + '校の内容で完全に上書きされます。' + '\n\n' +
+      '元に戻したい場合は、自動バックアップから復元してください。' + '\n\n' +
+      '続けますか？';
+
+    if(!confirm(warning)) return;
+    if(!confirm('本当に上書きしますか？\n\n' + target + '校の現在の授業枠は全て消えて、' + source + '校と同じ内容になります。')) return;
+
+    msg('slotsMsg','コピー前に自動バックアップ中...',true);
+    await autoBackup('他校授業枠コピー前（' + source + '校 → ' + target + '校）');
+
+    msg('slotsMsg',source + '校の授業枠を読み込み中...',true);
+    const srcRows = await rest('class_days?select=school,date,slots&school=eq.' + encodeURIComponent(source) + '&order=date.asc');
+
+    if(!Array.isArray(srcRows) || srcRows.length === 0){
+      msg('slotsMsg',source + '校にコピーできる授業枠がありません。',false);
+      return;
+    }
+
+    msg('slotsMsg',target + '校の授業枠を上書き中...',true);
+    await rest('class_days?school=eq.' + encodeURIComponent(target), {method:'DELETE'});
+
+    const rows = srcRows.map(r => ({
+      school: target,
+      date: r.date,
+      slots: Array.isArray(r.slots) ? r.slots : [true,true,true,true,true,true]
+    }));
+
+    await rest('class_days', {method:'POST', body: JSON.stringify(rows)});
+
+    msg('slotsMsg',source + '校の授業枠を ' + target + '校へコピーしました。件数：' + rows.length + '日分',true);
+    await loadSlots();
+  }catch(e){
+    msg('slotsMsg','他校の授業枠をコピーできません。\n' + (e.message || String(e)),false);
+  }
+}
+
 async function saveSlots(){
   try{
     document.querySelectorAll('#slotsArea input[type=checkbox]').forEach(c=>{
@@ -395,6 +555,7 @@ async function saveSlots(){
     });
 
     msg('slotsMsg','保存中...',true);
+    await autoBackup('授業枠保存前');
 
     await rest('class_days?school=eq.'+encodeURIComponent(school),{method:'DELETE'});
 
@@ -413,41 +574,55 @@ async function saveSlots(){
 }
 
 
-async function loadDeadline(){
-  msg('deadlineMsg','読み込み中...',true);
+async function loadDeadline(showNotice=false){
   try{
-    $('deadlineSchoolLabel').textContent = school + '校';
+    if($('deadlineSchoolLabel')){
+ const el=$('deadlineSchoolLabel');
+ el.textContent=school+'校';
+ el.classList.toggle('shinryo',school==='神領');
+ el.classList.toggle('otemachi',school==='大手町');
+}
     const rows = await rest('deadlines?select=school,deadline&school=eq.'+encodeURIComponent(school));
     const d = rows && rows.length ? rows[0].deadline : '';
     $('deadlineDate').value = d ? String(d).replaceAll('/','-').slice(0,10) : '';
     updateDeadlineLabel();
-    msg('deadlineMsg','読み込みました。',true);
+    if(showNotice) msg('slotsMsg','締切日を再読み込みしました。',true);
   }catch(e){
-    msg('deadlineMsg','読み込みできません。\n'+(e.message||String(e)),false);
+    msg('slotsMsg','締切日を読み込みできません。\n'+(e.message||String(e)),false);
   }
 }
 
+
 function updateDeadlineLabel(){
   const raw = rawFromInput('deadlineDate');
-  $('deadlineLabel').textContent = raw ? label(raw) : '';
+  if($('deadlineDisplayBtn')) $('deadlineDisplayBtn').textContent = raw ? label(raw) : '締切日を選択';
+}
+
+function openDeadlinePicker(){
+  const input = $('deadlineDate');
+  if(!input) return;
+  if(input.showPicker) input.showPicker();
+  else input.click();
+  input.focus();
 }
 
 async function saveDeadline(){
   try{
     const raw = rawFromInput('deadlineDate');
     if(!raw){
-      msg('deadlineMsg','締切日を選んでください。',false);
+      msg('slotsMsg','締切日を選んでください。',false);
       return;
     }
-    msg('deadlineMsg','保存中...',true);
+    msg('slotsMsg','締切日を保存中...',true);
+    await autoBackup('締切保存前');
     await rest('deadlines', {
       method:'POST',
       body: JSON.stringify({school:school, deadline:raw}),
       headers:{Prefer:'resolution=merge-duplicates'}
     });
-    msg('deadlineMsg','保存しました。 '+label(raw),true);
+    msg('slotsMsg','締切日を保存しました。 '+label(raw),true);
   }catch(e){
-    msg('deadlineMsg','保存できません。\n'+(e.message||String(e)),false);
+    msg('slotsMsg','締切日を保存できません。\n'+(e.message||String(e)),false);
   }
 }
 
@@ -568,19 +743,212 @@ async function loadStatusView(){
 }
 
 
+
+const BACKUP_KEY = 'step_teacher_schedule_auto_backup_v1';
+
+function timestampText(){
+  const d = new Date();
+  return d.getFullYear() + '/' + String(d.getMonth()+1).padStart(2,'0') + '/' + String(d.getDate()).padStart(2,'0') + ' ' + String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0') + ':' + String(d.getSeconds()).padStart(2,'0');
+}
+
+function filenameTimestamp(){
+  const d = new Date();
+  return d.getFullYear() + String(d.getMonth()+1).padStart(2,'0') + String(d.getDate()).padStart(2,'0') + '_' + String(d.getHours()).padStart(2,'0') + String(d.getMinutes()).padStart(2,'0') + String(d.getSeconds()).padStart(2,'0');
+}
+
+async function createBackup(reason='自動バックアップ'){
+  const data = {
+    app:'step_teacher_schedule_admin',
+    version:'1.9',
+    created_at: timestampText(),
+    reason: reason,
+    tables:{
+      class_days: await rest('class_days?select=*&order=school.asc,date.asc'),
+      deadlines: await rest('deadlines?select=*&order=school.asc'),
+      teachers: await rest('teachers?select=*&order=code.asc'),
+      availability: await rest('availability?select=*&order=school.asc,teacher_code.asc,date.asc,slot_index.asc')
+    }
+  };
+  localStorage.setItem(BACKUP_KEY, JSON.stringify(data));
+  return data;
+}
+
+async function autoBackup(reason){
+  try{
+    const data = await createBackup(reason || '自動バックアップ');
+    console.log('auto backup saved', data.created_at, data.reason);
+    return data;
+  }catch(e){
+    console.warn('auto backup failed', e);
+    return null;
+  }
+}
+
+function getLatestBackup(){
+  const text = localStorage.getItem(BACKUP_KEY);
+  if(!text) return null;
+  try{return JSON.parse(text)}catch(e){return null}
+}
+
+function backupSummary(data){
+  if(!data || !data.tables) return 'バックアップがありません。';
+  const t = data.tables;
+  return '作成日時：' + (data.created_at || '') + '\n' +
+    '理由：' + (data.reason || '') + '\n' +
+    '授業枠：' + ((t.class_days||[]).length) + '件\n' +
+    '締切：' + ((t.deadlines||[]).length) + '件\n' +
+    '講師：' + ((t.teachers||[]).length) + '件\n' +
+    '出勤登録：' + ((t.availability||[]).length) + '件';
+}
+
+function loadBackupView(){
+  const data = getLatestBackup();
+  msg('backupMsg', backupSummary(data), !!data);
+}
+
+async function downloadCurrentBackup(){
+  try{
+    msg('backupMsg','現在の設定をバックアップ中...',true);
+    const data = await createBackup('手動ダウンロード');
+    const blob = new Blob([JSON.stringify(data,null,2)], {type:'application/json'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'step_schedule_backup_' + filenameTimestamp() + '.json';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(a.href);
+    msg('backupMsg','バックアップを保存しました。\n\n' + backupSummary(data),true);
+  }catch(e){
+    msg('backupMsg','バックアップできません。\n'+(e.message||String(e)),false);
+  }
+}
+
+function cleanRows(rows){
+  return (rows||[]).map(r=>{
+    const x = {...r};
+    return x;
+  });
+}
+
+async function restoreTable(table, filter, rows){
+  await rest(table + '?' + filter, {method:'DELETE'});
+  const cleaned = cleanRows(rows);
+  const size = 500;
+  for(let i=0;i<cleaned.length;i+=size){
+    const chunk = cleaned.slice(i,i+size);
+    if(chunk.length){
+      await rest(table, {method:'POST', body:JSON.stringify(chunk)});
+    }
+  }
+}
+
+async function restoreBackupData(data){
+  if(!data || !data.tables) throw new Error('バックアップファイルの形式が違います。');
+  const summary = backupSummary(data);
+  if(!confirm('バックアップから復元します。\n\n' + summary + '\n\n現在のデータは復元内容で上書きされます。よろしいですか？')) return;
+  if(!confirm('念のためもう一度確認します。\n復元を実行してよろしいですか？')) return;
+
+  msg('backupMsg','復元前の自動バックアップを作成中...',true);
+  await autoBackup('復元前の自動バックアップ');
+
+  msg('backupMsg','復元中...',true);
+  const t = data.tables;
+  await restoreTable('availability','school=not.is.null',t.availability||[]);
+  await restoreTable('class_days','school=not.is.null',t.class_days||[]);
+  await restoreTable('deadlines','school=not.is.null',t.deadlines||[]);
+  await restoreTable('teachers','code=not.is.null',t.teachers||[]);
+  localStorage.setItem(BACKUP_KEY, JSON.stringify(data));
+  msg('backupMsg','復元しました。\n\n' + summary,true);
+  loadCurrent();
+}
+
+async function restoreLatestAutoBackup(){
+  try{
+    const data = getLatestBackup();
+    if(!data){msg('backupMsg','直近の自動バックアップがありません。',false);return;}
+    await restoreBackupData(data);
+  }catch(e){
+    msg('backupMsg','復元できません。\n'+(e.message||String(e)),false);
+  }
+}
+
+async function restoreFromFile(){
+  try{
+    const f = $('restoreFile').files && $('restoreFile').files[0];
+    if(!f){msg('backupMsg','復元するJSONファイルを選んでください。',false);return;}
+    const text = await f.text();
+    const data = JSON.parse(text);
+    await restoreBackupData(data);
+  }catch(e){
+    msg('backupMsg','ファイルから復元できません。\n'+(e.message||String(e)),false);
+  }
+}
+
+function showLatestBackupInfo(){
+  const data = getLatestBackup();
+  msg('backupMsg', backupSummary(data), !!data);
+}
+
 async function loadTeacherMaster(){
   msg('teacherMasterMsg','読み込み中...',true);
   try{
-    const rows = await rest('teachers?select=code,name,school,email,active&order=code.asc');
-    let h='<table><thead><tr><th>コード</th><th>氏名</th><th>校舎</th><th>メール</th><th>有効</th></tr></thead><tbody>';
-    (rows||[]).forEach(t=>{
-      h+='<tr><td>'+t.code+'</td><td>'+t.name+'</td><td>'+t.school+'</td><td>'+(t.email||'')+'</td><td>'+(t.active?'○':'')+'</td></tr>';
+    const showActive = $('showActiveTeachers') ? $('showActiveTeachers').checked : true;
+    const showInactive = $('showInactiveTeachers') ? $('showInactiveTeachers').checked : false;
+    const rows = await rest('teachers?select=code,name,school,email,active,retired_at&order=code.asc');
+    const filtered = (rows||[]).filter(t => (t.active && showActive) || (!t.active && showInactive));
+    let h='<table><thead><tr><th>コード</th><th>氏名</th><th>校舎</th><th>メール</th><th>状態</th><th>無効化日</th><th class="noPrint">操作</th></tr></thead><tbody>';
+    filtered.forEach(t=>{
+      const active = !!t.active;
+      h+='<tr class="'+(active?'':'inactiveRow')+'">';
+      h+='<td>'+escapeHtml(t.code)+'</td>';
+      h+='<td>'+escapeHtml(t.name)+'</td>';
+      h+='<td>'+escapeHtml(t.school||'')+'</td>';
+      h+='<td>'+escapeHtml(t.email||'')+'</td>';
+      h+='<td><span class="statusBadge '+(active?'on':'off')+'">'+(active?'有効':'無効')+'</span></td>';
+      h+='<td>'+(t.retired_at ? escapeHtml(String(t.retired_at)) : '')+'</td>';
+      h+='<td class="noPrint"><button class="'+(active?'red':'primary')+' toggleBtn" type="button" onclick="toggleTeacherActive(\''+jsQuote(t.code)+'\','+(active?'false':'true')+')">'+(active?'無効にする':'有効に戻す')+'</button></td>';
+      h+='</tr>';
     });
     h+='</tbody></table>';
     $('teacherMasterArea').innerHTML=h;
-    msg('teacherMasterMsg','読み込みました。',true);
+    const activeCount=(rows||[]).filter(t=>t.active).length;
+    const inactiveCount=(rows||[]).filter(t=>!t.active).length;
+    msg('teacherMasterMsg','読み込みました。表示：'+filtered.length+'名 / 有効：'+activeCount+'名 / 無効：'+inactiveCount+'名',true);
   }catch(e){
     msg('teacherMasterMsg','読み込みできません。\n'+(e.message||String(e)),false);
+  }
+}
+
+function escapeHtml(v){
+  return String(v ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+}
+
+function jsQuote(v){
+  return String(v ?? '').replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+}
+
+async function toggleTeacherActive(code, nextActive){
+  try{
+    const label = nextActive ? '有効に戻します' : '無効にします';
+    if(!confirm(code + ' を' + label + '。よろしいですか？')) return;
+    msg('teacherMasterMsg','変更中...',true);
+    await autoBackup('講師有効/無効変更前');
+    const payload = {active: !!nextActive};
+    if(nextActive){
+      payload.retired_at = null;
+    }else{
+      const d = new Date();
+      payload.retired_at = d.getFullYear() + '/' + String(d.getMonth()+1).padStart(2,'0') + '/' + String(d.getDate()).padStart(2,'0');
+    }
+    await rest('teachers?code=eq.'+encodeURIComponent(code), {
+      method:'PATCH',
+      body: JSON.stringify(payload)
+    });
+    msg('teacherMasterMsg','変更しました。',true);
+    await loadTeacherMaster();
+  }catch(e){
+    msg('teacherMasterMsg','変更できません。\n'+(e.message||String(e))+'\n\n※retired_at列が未作成の場合は、下のSQLをSupabaseで実行してください。',false);
   }
 }
 
@@ -591,6 +959,7 @@ async function addTeacher(){
     if(!code||!name){msg('teacherMasterMsg','コードと氏名を入力してください。',false);return}
 
     const row={code:code,name:name,school:school,active:true};
+    await autoBackup('講師追加/更新前');
     await rest('teachers',{method:'POST',body:JSON.stringify(row),headers:{Prefer:'resolution=merge-duplicates'}});
 
     $('newCode').value='';
@@ -739,20 +1108,27 @@ function rowsToTeachers(rows){
   rows.forEach(cols=>{
     const code = String(cols[0] || '').trim();
     const name = String(cols[1] || '').trim();
-    const active = String(cols[3] || '').trim();
+    const activeFlag = String(cols[3] || '').trim();
     const email = String(cols[15] || '').trim();
 
     if(!code || !name) return;
     if(code === 'コード' || name === '氏名') return;
-    if(active !== '1') return;
 
-    result.push({
+    const isActive = activeFlag === '1';
+    const row = {
       code: code,
       name: name,
       school: school,
       email: email || null,
-      active: true
-    });
+      active: isActive
+    };
+    if(!isActive){
+      const d = new Date();
+      row.retired_at = d.getFullYear() + '/' + String(d.getMonth()+1).padStart(2,'0') + '/' + String(d.getDate()).padStart(2,'0');
+    }else{
+      row.retired_at = null;
+    }
+    result.push(row);
   });
   return result;
 }
@@ -768,6 +1144,7 @@ async function syncTeachersFromSheetUrl(){
     if(!confirm('Googleスプレッドシートから ' + school + '校 の講師マスターを同期します。よろしいですか？')) return;
 
     setImportBusy(true,'Googleスプレッドシートから取得中...');
+    await autoBackup('講師マスターURL同期前');
 
     const csvUrl = 'https://docs.google.com/spreadsheets/d/' + info.id + '/gviz/tq?tqx=out:csv&gid=' + info.gid + '&_=' + Date.now();
     const res = await fetch(csvUrl);
@@ -778,7 +1155,7 @@ async function syncTeachersFromSheetUrl(){
     const teachers = rowsToTeachers(rows);
 
     if(teachers.length === 0){
-      msg('teacherMasterMsg','同期対象がありません。A列コード・B列氏名・D列=1・P列メールを確認してください。',false);
+      msg('teacherMasterMsg','同期対象がありません。A列コード・B列氏名・P列メールを確認してください。',false);
       return;
     }
 
@@ -788,7 +1165,9 @@ async function syncTeachersFromSheetUrl(){
       headers:{Prefer:'resolution=merge-duplicates'}
     });
 
-    msg('teacherMasterMsg','講師マスターを同期しました。人数：'+teachers.length+'名',true);
+    const activeCount = teachers.filter(t=>t.active).length;
+    const inactiveCount = teachers.length - activeCount;
+    msg('teacherMasterMsg','講師マスターを同期しました。合計：'+teachers.length+'名 / 有効：'+activeCount+'名 / 無効：'+inactiveCount+'名',true);
     await loadTeacherMaster();
     setImportBusy(false);
   }catch(e){
@@ -806,19 +1185,27 @@ function parseTeacherPaste(text){
     const cols = line.split('\t');
     const code = String(cols[0] || '').trim();
     const name = String(cols[1] || '').trim();
-    const active = String(cols[3] || '').trim();
+    const activeFlag = String(cols[3] || '').trim();
     const email = String(cols[15] || '').trim();
 
     if(!code || !name) return;
-    if(active !== '1') return;
+    if(code === 'コード' || name === '氏名') return;
 
-    rows.push({
+    const isActive = activeFlag === '1';
+    const row = {
       code: code,
       name: name,
       school: school,
       email: email || null,
-      active: true
-    });
+      active: isActive
+    };
+    if(!isActive){
+      const d = new Date();
+      row.retired_at = d.getFullYear() + '/' + String(d.getMonth()+1).padStart(2,'0') + '/' + String(d.getDate()).padStart(2,'0');
+    }else{
+      row.retired_at = null;
+    }
+    rows.push(row);
   });
 
   return rows;
@@ -830,13 +1217,16 @@ async function importTeachersFromPaste(){
     const rows = parseTeacherPaste(text);
 
     if(rows.length === 0){
-      msg('teacherMasterMsg','登録対象がありません。D列が1の行を含めて、A〜P列を貼り付けてください。',false);
+      msg('teacherMasterMsg','登録対象がありません。A列コード・B列氏名を含めて、A〜P列を貼り付けてください。',false);
       return;
     }
 
-    if(!confirm(rows.length + '名を ' + school + '校 の講師として登録・更新します。よろしいですか？')) return;
+    const activeCount = rows.filter(t=>t.active).length;
+    const inactiveCount = rows.length - activeCount;
+    if(!confirm(rows.length + '名を ' + school + '校 の講師として同期します。\n有効：' + activeCount + '名 / 無効：' + inactiveCount + '名\nよろしいですか？')) return;
 
     setImportBusy(true,'一括登録中...');
+    await autoBackup('講師マスター貼り付け同期前');
 
     await rest('teachers', {
       method:'POST',
@@ -844,7 +1234,7 @@ async function importTeachersFromPaste(){
       headers:{Prefer:'resolution=merge-duplicates'}
     });
 
-    msg('teacherMasterMsg','一括登録しました。人数：'+rows.length+'名',true);
+    msg('teacherMasterMsg','一括同期しました。合計：'+rows.length+'名 / 有効：'+activeCount+'名 / 無効：'+inactiveCount+'名',true);
     await loadTeacherMaster();
     setImportBusy(false);
   }catch(e){
@@ -857,17 +1247,19 @@ async function importTeachersFromPaste(){
 $('schoolS').onclick=()=>setSchool('神領');
 $('schoolO').onclick=()=>setSchool('大手町');
 $('tabSlots').onclick=()=>setTab('slots');
-$('tabDeadline').onclick=()=>setTab('deadline');
 $('tabTeachers').onclick=()=>setTab('teachers');
 $('tabStatus').onclick=()=>setTab('status');
 $('tabTeacherMaster').onclick=()=>setTab('master');
+$('tabBackup').onclick=()=>setTab('backup');
 $('makeRange').onclick=makeRange;
 $('addDay').onclick=addDay;
 $('saveSlots').onclick=saveSlots;
 $('reloadSlots').onclick=loadSlots;
-$('reloadDeadline').onclick=loadDeadline;
+$('copySlotsFromSchool').onclick=copySlotsFromOtherSchool;
+$('reloadDeadline').onclick=()=>loadDeadline(true);
 $('saveDeadline').onclick=saveDeadline;
 $('deadlineDate').onchange=updateDeadlineLabel;
+$('deadlineDisplayBtn').onclick=openDeadlinePicker;
 $('reloadTeachers').onclick=loadTeachersView;
 $('selectDisplayBtn').onclick=()=>openTeacherSelect('display');
 $('printBtn').onclick=()=>openTeacherSelect('print');
@@ -880,11 +1272,18 @@ $('addTeacher').onclick=addTeacher;
 $('reloadStatus').onclick=loadStatusView;
 $('printStatus').onclick=()=>window.print();
 $('reloadTeacherMaster').onclick=loadTeacherMaster;
+$('showActiveTeachers').onchange=loadTeacherMaster;
+$('showInactiveTeachers').onchange=loadTeacherMaster;
 $('syncTeachersFromSheet').onclick=syncTeachersFromSheetUrl;
 $('importTeachers').onclick=importTeachersFromPaste;
 $('clearTeacherPaste').onclick=()=>{$('teacherPaste').value='';};
+$('makeManualBackup').onclick=downloadCurrentBackup;
+$('restoreLatestAuto').onclick=restoreLatestAutoBackup;
+$('restoreFromFile').onclick=restoreFromFile;
+$('showBackupInfo').onclick=showLatestBackupInfo;
 
 loadSlots();
+setTimeout(()=>autoBackup('画面起動時の自動バックアップ'),1800);
 </script>
 </body>
 </html>
