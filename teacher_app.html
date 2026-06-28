@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>出勤登録 - 個別指導ステップ</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:sans-serif;font-size:14px;background:#f0f4f8;min-height:100vh}
+.hdr{background:linear-gradient(135deg,#1565C0,#42A5F5);color:#fff;padding:14px 16px}
+.hdr h1{font-size:17px;font-weight:bold}
+.hdr p{font-size:11px;opacity:.85;margin-top:2px}
+/* ログイン画面 */
+#ls{padding:24px 16px}
+.card{background:#fff;border-radius:12px;padding:24px;box-shadow:0 2px 8px rgba(0,0,0,.1);margin-bottom:16px}
+.card h2{font-size:15px;font-weight:bold;margin-bottom:14px;color:#1565C0}
+.school-btns{display:flex;gap:10px;margin-bottom:16px}
+.sbtn{flex:1;padding:14px;border:2px solid #ccc;border-radius:10px;font-size:14px;font-weight:bold;cursor:pointer;background:#fff;color:#666}
+.sbtn.active{border-color:#1565C0;background:#1565C0;color:#fff}
+.inp{width:100%;padding:12px;border:1px solid #ccc;border-radius:8px;font-size:16px;margin-bottom:12px}
+.btn-main{width:100%;padding:14px;border:none;border-radius:10px;font-size:16px;font-weight:bold;cursor:pointer;background:#1565C0;color:#fff}
+.btn-main:active{opacity:.8}
+.err{color:#c62828;font-size:13px;margin-top:8px;display:none}
+/* メイン画面 */
+#main{display:none}
+.gbar{background:linear-gradient(90deg,#1565C0,#42A5F5);color:#fff;padding:11px 16px;font-size:15px;font-weight:bold;position:sticky;top:0;z-index:10}
+.dl-banner{padding:10px 16px;font-size:12px;font-weight:bold;text-align:center}
+.dl-ok{background:#e8f5e9;color:#2e7d32}
+.dl-warn{background:#fff3e0;color:#e65100}
+.dl-lock{background:#ffebee;color:#c62828}
+.legend{display:flex;gap:12px;align-items:center;padding:8px 16px;font-size:11px;background:#fff;border-bottom:1px solid #eee;flex-wrap:wrap}
+.lb{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:4px;font-weight:bold;font-size:12px;margin-right:2px}
+.tbl-wrap{overflow-x:auto;padding:12px 16px}
+table{border-collapse:collapse;font-size:12px;width:100%;min-width:420px;background:#fff;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.08)}
+th{background:#37474f;color:#fff;padding:8px 3px;text-align:center;font-size:10px;white-space:nowrap}
+th.th-d{text-align:left;padding:8px 8px;min-width:90px}
+td{border:1px solid #eee;padding:3px 2px;text-align:center}
+td.dc{text-align:left;padding:5px 8px;font-weight:bold;font-size:11px;white-space:nowrap}
+td.obon{background:#E3F2FD;color:#0D47A1;font-weight:bold;font-size:11px;text-align:center}
+.cb{width:40px;height:40px;border-radius:7px;border:2px solid #ddd;background:#fff;font-size:15px;font-weight:bold;cursor:pointer;display:flex;align-items:center;justify-content:center;margin:auto;transition:.1s}
+.cb:active{opacity:.7}
+.cb.ci{background:#1976D2;border-color:#1976D2;color:#fff}
+.cb.tr{background:#F57C00;border-color:#F57C00;color:#fff}
+.cb.nd{color:#ccc;border-color:#eee;background:#f9f9f9;cursor:default}
+@media(min-width:768px){.cb{width:52px;height:52px;font-size:20px}}
+.btn-save{display:block;width:calc(100% - 32px);margin:12px 16px;padding:15px;border:none;border-radius:10px;font-size:16px;font-weight:bold;cursor:pointer;background:#4CAF50;color:#fff;box-shadow:0 3px 10px rgba(76,175,80,.4)}
+.btn-logout{display:block;width:calc(100% - 32px);margin:0 16px 24px;padding:12px;border:1px solid #ccc;border-radius:8px;font-size:14px;cursor:pointer;background:#fff;color:#666}
+/* ポップアップ */
+.popup{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:999;align-items:center;justify-content:center}
+.popup-box{background:#fff;border-radius:16px;padding:28px 24px;max-width:340px;width:90%;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,.3)}
+.popup-icon{font-size:40px;margin-bottom:10px}
+.popup-title{font-size:15px;font-weight:bold;color:#1565C0;margin-bottom:10px}
+.popup-msg{font-size:13px;color:#555;margin-bottom:18px;line-height:1.6}
+.popup-close{padding:10px 32px;border:none;border-radius:8px;background:#1565C0;color:#fff;font-size:14px;font-weight:bold;cursor:pointer}
+/* 完了ポップアップ */
+#done-pop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:999;align-items:center;justify-content:center}
+#done-box{background:#fff;border-radius:16px;padding:32px 28px;max-width:320px;width:90%;text-align:center;animation:pop .3s ease}
+@keyframes pop{from{transform:scale(.5);opacity:0}to{transform:scale(1);opacity:1}}
+</style>
+</head>
+<body>
+<div class="hdr">
+  <h1>出勤登録</h1>
+  <p>個別指導ステップ 2026年 夏期講習</p>
+</div>
+
+<!-- 締切案内ポップアップ -->
+<div class="popup" id="dl-popup">
+  <div class="popup-box">
+    <div class="popup-icon" id="dl-icon">📅</div>
+    <div class="popup-title">登録期限のご案内</div>
+    <div class="popup-msg">登録締切日を過ぎると、このアプリからの登録・変更はできなくなります。</div>
+    <div class="popup-msg" id="dl-status" style="font-weight:bold;color:#1565C0"></div>
+    <button class="popup-close" onclick="document.getElementById('dl-popup').style.display='none'">閉じる</button>
+  </div>
+</div>
+
+<!-- 完了ポップアップ -->
+<div id="done-pop">
+  <div id="done-box">
+    <div style="font-size:48px;margin-bottom:10px">✅</div>
+    <div style="font-size:20px;font-weight:bold;color:#2E7D32">送信しました！</div>
+  </div>
+</div>
+
+<!-- ログイン画面 -->
+<div id="ls">
+  <div class="card">
+    <h2>校舎を選択</h2>
+    <div class="school-btns">
+      <button class="sbtn active" id="btn-shinryo" onclick="selSchool('神領')">神領校</button>
+      <button class="sbtn" id="btn-otemachi" onclick="selSchool('大手町')">大手町校</button>
+    </div>
+    <h2>講師コードを入力</h2>
+    <input class="inp" type="tel" id="code-inp" placeholder="コードを入力" maxlength="6">
+    <button class="btn-main" onclick="doLogin()">ログイン</button>
+    <div class="err" id="err-msg"></div>
+  </div>
+</div>
+
+<!-- メイン画面 -->
+<div id="main">
+  <div class="gbar" id="gbar"></div>
+  <div class="dl-banner" id="dl-banner"></div>
+  <div class="legend" id="legend-area">
+    <span>凡例：</span>
+    <span><span class="lb" style="background:#1976D2;color:#fff">○</span>出勤できる</span>
+    <span><span class="lb" style="background:#F57C00;color:#fff">△</span>無理すれば可</span>
+    <span><span class="lb" style="border:2px solid #ddd">　</span>未入力</span>
+  </div>
+  <div class="tbl-wrap">
+    <table id="main-tbl">
+      <thead>
+        <tr>
+          <th class="th-d">日付</th>
+          <th>13:00<br>14:15</th>
+          <th>14:20<br>15:35</th>
+          <th>15:45<br>17:00</th>
+          <th>17:10<br>18:25</th>
+          <th>18:35<br>19:50</th>
+          <th>20:00<br>21:15</th>
+        </tr>
+      </thead>
+      <tbody id="tbl-body"></tbody>
+    </table>
+  </div>
+  <button class="btn-save" id="btn-save" onclick="saveData()">📨 保存＆送信する</button>
+  <button class="btn-logout" onclick="doLogout()">← ログアウト</button>
+</div>
+
+<script>
+// ========== GAS API URL ==========
+var GAS_URL = 'https://script.google.com/macros/s/AKfycbys7A1hwDTvpJms24uUJQLiD-oN8trVFMBfUEaU-99RePefcemkkA754rxBW0cnnY6o/exec';
+
+var school = '神領';
+var code = '';
+var teacherName = '';
+var avail = {};
+var slots = [];
+var isLocked = false;
+var OBON = ['2026/08/10','2026/08/11','2026/08/12','2026/08/13','2026/08/14','2026/08/15','2026/08/16'];
+
+// GAS API呼び出し
+function callGAS(action, params, cb) {
+  var url = GAS_URL + '?action=' + action;
+  Object.keys(params).forEach(function(k){ url += '&' + k + '=' + encodeURIComponent(params[k]); });
+  fetch(url)
+    .then(function(r){ return r.json(); })
+    .then(function(d){ cb(null, d); })
+    .catch(function(e){ cb(e, null); });
+}
+
+function selSchool(s) {
+  school = s;
+  document.getElementById('btn-shinryo').className = 'sbtn' + (s==='神領'?' active':'');
+  document.getElementById('btn-otemachi').className = 'sbtn' + (s==='大手町'?' active':'');
+}
+
+function doLogin() {
+  var c = document.getElementById('code-inp').value.trim();
+  if (!c) { showErr('コードを入力してください'); return; }
+  callGAS('login', {code: c, school: school}, function(err, r) {
+    if (err || !r || !r.ok) { showErr('コードが正しくありません'); return; }
+    code = c;
+    teacherName = r.name;
+    document.getElementById('ls').style.display = 'none';
+    document.getElementById('main').style.display = 'block';
+    document.getElementById('gbar').textContent = school + '校 ' + teacherName + 'さん';
+    loadDeadline();
+    loadData();
+  });
+}
+
+function loadDeadline() {
+  callGAS('checkDeadline', {school: school}, function(err, dl) {
+    if (err || !dl) return;
+    isLocked = dl.locked;
+    var banner = document.getElementById('dl-banner');
+    var status = document.getElementById('dl-status');
+    var icon = document.getElementById('dl-icon');
+    if (dl.locked) {
+      banner.className = 'dl-banner dl-lock';
+      banner.textContent = '🔒 登録締切済み（変更不可）';
+      icon.textContent = '🔒';
+      status.textContent = '登録締切日を過ぎています。変更はできません。';
+      status.style.color = '#c62828';
+      document.getElementById('btn-save').style.display = 'none';
+    } else if (dl.daysLeft === 0) {
+      banner.className = 'dl-banner dl-warn';
+      banner.textContent = '⚠️ 本日が登録締切日です！';
+      icon.textContent = '⚠️';
+      status.textContent = '本日が締切日です。今すぐ登録してください。';
+      status.style.color = '#e65100';
+    } else if (dl.daysLeft > 0) {
+      banner.className = 'dl-banner dl-ok';
+      banner.textContent = '📅 登録締切まで残り' + dl.daysLeft + '日';
+      icon.textContent = '📅';
+      status.textContent = '締切まで残り' + dl.daysLeft + '日です。期日までに登録してください。';
+      status.style.color = '#2e7d32';
+    } else {
+      banner.className = 'dl-banner dl-ok';
+      banner.textContent = '📅 登録受付中';
+      icon.textContent = '📅';
+      status.textContent = '登録受付中です。出勤可能な日程を入力してください。';
+      status.style.color = '#1565C0';
+    }
+    document.getElementById('dl-popup').style.display = 'flex';
+  });
+}
+
+function loadData() {
+  callGAS('getSlots', {school: school}, function(err, r) {
+    if (err || !r || !r.ok) return;
+    slots = r.slots;
+    callGAS('getMyAvailability', {code: code, school: school}, function(err2, r2) {
+      if (!err2 && r2 && r2.ok) avail = r2.entries || {};
+      renderTable();
+    });
+  });
+}
+
+function renderTable() {
+  var tbody = document.getElementById('tbl-body');
+  tbody.innerHTML = '';
+  var DAYS = ['日','月','火','水','木','金','土'];
+  var obonDone = false;
+  slots.forEach(function(sl) {
+    if (sl.rawDate === 'HOLIDAY') {
+      if (!obonDone) {
+        var tr = document.createElement('tr');
+        var td = document.createElement('td');
+        td.colSpan = 7;
+        td.className = 'obon';
+        td.textContent = '🌊 お盆休み（8/10〜8/16）';
+        tr.appendChild(td);
+        tbody.appendChild(tr);
+        obonDone = true;
+      }
+      return;
+    }
+    var d = new Date(sl.rawDate);
+    var lb = (d.getMonth()+1) + '/' + d.getDate() + '（' + DAYS[d.getDay()] + '）';
+    var tr = document.createElement('tr');
+    var tdDate = document.createElement('td');
+    tdDate.className = 'dc';
+    tdDate.textContent = lb;
+    tr.appendChild(tdDate);
+    for (var i = 0; i < 6; i++) {
+      var td = document.createElement('td');
+      if (!sl.enabled[i]) {
+        var btn = document.createElement('button');
+        btn.className = 'cb nd';
+        btn.textContent = '－';
+        btn.disabled = true;
+        td.appendChild(btn);
+      } else {
+        var key = sl.rawDate + '|' + i;
+        var val = avail[key] || '';
+        var btn = document.createElement('button');
+        btn.className = 'cb' + (val==='○'?' ci':val==='△'?' tr':'');
+        btn.textContent = val || '';
+        btn.dataset.key = key;
+        if (!isLocked) {
+          btn.onclick = function() { toggle(this); };
+        } else {
+          btn.disabled = true;
+        }
+        td.appendChild(btn);
+      }
+      tr.appendChild(td);
+    }
+    tbody.appendChild(tr);
+  });
+}
+
+function toggle(btn) {
+  var cur = avail[btn.dataset.key] || '';
+  var next = cur===''?'○':cur==='○'?'△':'';
+  avail[btn.dataset.key] = next;
+  btn.textContent = next;
+  btn.className = 'cb' + (next==='○'?' ci':next==='△'?' tr':'');
+}
+
+function saveData() {
+  var entries = [];
+  slots.forEach(function(sl) {
+    if (sl.rawDate === 'HOLIDAY') return;
+    for (var i = 0; i < 6; i++) {
+      if (!sl.enabled[i]) continue;
+      var key = sl.rawDate + '|' + i;
+      entries.push({rawDate: sl.rawDate, date: sl.date, slotIndex: i, value: avail[key]||''});
+    }
+  });
+  var params = {
+    code: code,
+    school: school,
+    entries: JSON.stringify(entries),
+    doSendEmail: true
+  };
+  callGAS('saveAvailability', params, function(err, r) {
+    if (err || !r || !r.ok) {
+      alert('エラー: ' + (r ? r.error : err.message));
+      return;
+    }
+    var pop = document.getElementById('done-pop');
+    pop.style.display = 'flex';
+    setTimeout(function(){ pop.style.display = 'none'; }, 2000);
+  });
+}
+
+function doLogout() {
+  code = ''; teacherName = ''; avail = {}; slots = []; isLocked = false;
+  document.getElementById('main').style.display = 'none';
+  document.getElementById('ls').style.display = 'block';
+  document.getElementById('code-inp').value = '';
+  document.getElementById('err-msg').style.display = 'none';
+  document.getElementById('dl-banner').textContent = '';
+  document.getElementById('tbl-body').innerHTML = '';
+  document.getElementById('btn-save').style.display = 'block';
+}
+
+function showErr(msg) {
+  var el = document.getElementById('err-msg');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+
+document.getElementById('code-inp').addEventListener('keypress', function(e){
+  if (e.key === 'Enter') doLogin();
+});
+</script>
+</body>
+</html>
