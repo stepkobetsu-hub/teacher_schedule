@@ -47,7 +47,7 @@ tr:nth-child(even) td{background:#f9fafb}
 <body>
 <div class="hero">
   <h1>☀️ 夏休み出勤可能日登録</h1>
-  <div class="sub">個別指導ステップ<span class="ver">Ver.1.4</span></div>
+  <div class="sub">個別指導ステップ<span class="ver">Ver.1.6</span></div>
 </div>
 
 <div id="loginScreen" class="wrap">
@@ -85,8 +85,8 @@ tr:nth-child(even) td{background:#f9fafb}
 </div>
 
 <script>
-const APP_VERSION = '1.4';
-const STORAGE_PREFIX = 'summer_teacher_app_v1_4_';
+const APP_VERSION = '1.6';
+const STORAGE_PREFIX = 'summer_teacher_app_v1_6_';
 const GAS_API = 'https://script.google.com/macros/s/AKfycbx8UeG5X_WSonK8StzuB8B_iC4BACDw3guGZgQvuSAWnxJCfUwnsycZLC5Wn19HBGO3pQ/exec';
 
 let school = '神領';
@@ -218,10 +218,6 @@ function render(){
   h += '</tr></thead><tbody>';
 
   slots.forEach(sl => {
-    if(sl.holiday){
-      h += '<tr class="holiday"><td colspan="7">🌊 ' + sl.date + '</td></tr>';
-      return;
-    }
 
     h += '<tr><td class="date">' + sl.date + '</td>';
     for(let i=0;i<6;i++){
@@ -308,6 +304,6 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 </script>
-<div class="small">Build 2026-06-28 10:17</div>
+<div class="small">Build 2026-06-28 10:31</div>
 </body>
 </html>
