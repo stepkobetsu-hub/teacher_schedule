@@ -98,7 +98,7 @@ button:disabled{opacity:.55;cursor:not-allowed}
 </head>
 <body>
 <div class="header">
-  <h1>夏休み出勤管理 <small>Supabase Ver.1.7</small></h1>
+  <h1>夏休み出勤管理 <small>Supabase Ver.1.8</small></h1>
   <p>個別指導ステップ</p>
 </div>
 
@@ -196,13 +196,15 @@ button:disabled{opacity:.55;cursor:not-allowed}
       <input id="newName" type="text" placeholder="氏名">
       <button id="addTeacher" class="primary" type="button">追加/更新</button>
       <button id="reloadTeacherMaster" class="gray" type="button">再読み込み</button>
-      <label style="font-weight:900"><input id="showInactiveTeachers" type="checkbox" checked> 無効講師も表示</label>
+      <span style="font-weight:900;margin-left:8px">表示対象</span>
+      <label style="font-weight:900"><input id="showActiveTeachers" type="checkbox" checked> 有効</label>
+      <label style="font-weight:900"><input id="showInactiveTeachers" type="checkbox"> 無効</label>
     </div>
     <div id="teacherMasterArea"></div>
     <div id="teacherMasterMsg" class="msg"></div>
   </section>
 
-  <div class="small noPrint">Build Supabase Ver.1.7</div>
+  <div class="small noPrint">Build Supabase Ver.1.8</div>
 </div>
 
 
@@ -579,9 +581,10 @@ async function loadStatusView(){
 async function loadTeacherMaster(){
   msg('teacherMasterMsg','読み込み中...',true);
   try{
-    const showInactive = $('showInactiveTeachers') ? $('showInactiveTeachers').checked : true;
+    const showActive = $('showActiveTeachers') ? $('showActiveTeachers').checked : true;
+    const showInactive = $('showInactiveTeachers') ? $('showInactiveTeachers').checked : false;
     const rows = await rest('teachers?select=code,name,school,email,active,retired_at&order=code.asc');
-    const filtered = showInactive ? (rows||[]) : (rows||[]).filter(t=>t.active);
+    const filtered = (rows||[]).filter(t => (t.active && showActive) || (!t.active && showInactive));
     let h='<table><thead><tr><th>コード</th><th>氏名</th><th>校舎</th><th>メール</th><th>状態</th><th>無効化日</th><th class="noPrint">操作</th></tr></thead><tbody>';
     filtered.forEach(t=>{
       const active = !!t.active;
@@ -599,7 +602,7 @@ async function loadTeacherMaster(){
     $('teacherMasterArea').innerHTML=h;
     const activeCount=(rows||[]).filter(t=>t.active).length;
     const inactiveCount=(rows||[]).filter(t=>!t.active).length;
-    msg('teacherMasterMsg','読み込みました。有効：'+activeCount+'名 / 無効：'+inactiveCount+'名',true);
+    msg('teacherMasterMsg','読み込みました。表示：'+filtered.length+'名 / 有効：'+activeCount+'名 / 無効：'+inactiveCount+'名',true);
   }catch(e){
     msg('teacherMasterMsg','読み込みできません。\n'+(e.message||String(e)),false);
   }
@@ -951,6 +954,7 @@ $('addTeacher').onclick=addTeacher;
 $('reloadStatus').onclick=loadStatusView;
 $('printStatus').onclick=()=>window.print();
 $('reloadTeacherMaster').onclick=loadTeacherMaster;
+$('showActiveTeachers').onchange=loadTeacherMaster;
 $('showInactiveTeachers').onchange=loadTeacherMaster;
 $('syncTeachersFromSheet').onclick=syncTeachersFromSheetUrl;
 $('importTeachers').onclick=importTeachersFromPaste;
