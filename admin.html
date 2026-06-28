@@ -67,7 +67,7 @@ td.actions{min-width:210px}
 </head>
 <body>
 <div class="header">
-  <h1>夏休み出勤管理 <small>Supabase Ver.1.0</small></h1>
+  <h1>夏休み出勤管理 <small>Supabase Ver.1.2</small></h1>
   <p>個別指導ステップ</p>
 </div>
 
@@ -79,6 +79,7 @@ td.actions{min-width:210px}
 
   <div class="row tabs noPrint">
     <button id="tabSlots" class="tab active" type="button">授業枠設定</button>
+    <button id="tabDeadline" class="tab" type="button">締切設定</button>
     <button id="tabTeachers" class="tab" type="button">先生別一覧</button>
     <button id="tabTeacherMaster" class="tab" type="button">講師登録</button>
   </div>
@@ -105,6 +106,20 @@ td.actions{min-width:210px}
     <div id="slotsMsg" class="msg"></div>
   </section>
 
+
+  <section id="viewDeadline" class="card hidden">
+    <h2>締切設定</h2>
+    <p>講師アプリの登録締切日です。</p>
+    <div class="row noPrint">
+      <b id="deadlineSchoolLabel">神領校</b>
+      <input id="deadlineDate" type="date">
+      <span id="deadlineLabel" style="font-size:22px;font-weight:900;color:#1565c0;background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:8px 12px;min-width:190px;text-align:center"></span>
+      <button id="saveDeadline" class="primary" type="button">保存する</button>
+      <button id="reloadDeadline" class="gray" type="button">再読み込み</button>
+    </div>
+    <div id="deadlineMsg" class="msg"></div>
+  </section>
+
   <section id="viewTeachers" class="card hidden">
     <h2>先生別一覧</h2>
     <div class="row noPrint">
@@ -127,7 +142,7 @@ td.actions{min-width:210px}
     <div id="teacherMasterMsg" class="msg"></div>
   </section>
 
-  <div class="small noPrint">Build Supabase Ver.1.0</div>
+  <div class="small noPrint">Build Supabase Ver.1.2</div>
 </div>
 
 <div id="savePopup" class="popup noPrint"><div class="popupBox">保存しました</div></div>
@@ -200,10 +215,12 @@ function setSchool(s){
 function setTab(t){
   tab=t;
   $('tabSlots').classList.toggle('active',t==='slots');
+  $('tabDeadline').classList.toggle('active',t==='deadline');
   $('tabTeachers').classList.toggle('active',t==='teachers');
   $('tabTeacherMaster').classList.toggle('active',t==='master');
 
   $('viewSlots').classList.toggle('hidden',t!=='slots');
+  $('viewDeadline').classList.toggle('hidden',t!=='deadline');
   $('viewTeachers').classList.toggle('hidden',t!=='teachers');
   $('viewTeacherMaster').classList.toggle('hidden',t!=='master');
 
@@ -212,6 +229,7 @@ function setTab(t){
 
 function loadCurrent(){
   if(tab==='slots') loadSlots();
+  if(tab==='deadline') loadDeadline();
   if(tab==='teachers') loadTeachersView();
   if(tab==='master') loadTeacherMaster();
 }
@@ -319,6 +337,46 @@ async function saveSlots(){
   }
 }
 
+
+async function loadDeadline(){
+  msg('deadlineMsg','読み込み中...',true);
+  try{
+    $('deadlineSchoolLabel').textContent = school + '校';
+    const rows = await rest('deadlines?select=school,deadline&school=eq.'+encodeURIComponent(school));
+    const d = rows && rows.length ? rows[0].deadline : '';
+    $('deadlineDate').value = d ? String(d).replaceAll('/','-').slice(0,10) : '';
+    updateDeadlineLabel();
+    msg('deadlineMsg','読み込みました。',true);
+  }catch(e){
+    msg('deadlineMsg','読み込みできません。\n'+(e.message||String(e)),false);
+  }
+}
+
+function updateDeadlineLabel(){
+  const raw = rawFromInput('deadlineDate');
+  $('deadlineLabel').textContent = raw ? label(raw) : '';
+}
+
+async function saveDeadline(){
+  try{
+    const raw = rawFromInput('deadlineDate');
+    if(!raw){
+      msg('deadlineMsg','締切日を選んでください。',false);
+      return;
+    }
+    msg('deadlineMsg','保存中...',true);
+    await rest('deadlines', {
+      method:'POST',
+      body: JSON.stringify({school:school, deadline:raw}),
+      headers:{Prefer:'resolution=merge-duplicates'}
+    });
+    msg('deadlineMsg','保存しました。 '+label(raw),true);
+  }catch(e){
+    msg('deadlineMsg','保存できません。\n'+(e.message||String(e)),false);
+  }
+}
+
+
 async function loadTeachersView(){
   msg('teachersMsg','読み込み中...',true);
   try{
@@ -415,12 +473,16 @@ async function addTeacher(){
 $('schoolS').onclick=()=>setSchool('神領');
 $('schoolO').onclick=()=>setSchool('大手町');
 $('tabSlots').onclick=()=>setTab('slots');
+$('tabDeadline').onclick=()=>setTab('deadline');
 $('tabTeachers').onclick=()=>setTab('teachers');
 $('tabTeacherMaster').onclick=()=>setTab('master');
 $('makeRange').onclick=makeRange;
 $('addDay').onclick=addDay;
 $('saveSlots').onclick=saveSlots;
 $('reloadSlots').onclick=loadSlots;
+$('reloadDeadline').onclick=loadDeadline;
+$('saveDeadline').onclick=saveDeadline;
+$('deadlineDate').onchange=updateDeadlineLabel;
 $('reloadTeachers').onclick=loadTeachersView;
 $('printBtn').onclick=()=>window.print();
 $('addTeacher').onclick=addTeacher;
