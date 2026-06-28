@@ -82,7 +82,7 @@ td.actions{min-width:210px}
 </head>
 <body>
 <div class="header">
-  <h1>夏休み出勤管理 <small>Supabase Ver.1.4</small></h1>
+  <h1>夏休み出勤管理 <small>Supabase Ver.1.5</small></h1>
   <p>個別指導ステップ</p>
 </div>
 
@@ -150,6 +150,12 @@ td.actions{min-width:210px}
     <h2>講師登録</h2>
     <p class="noPrint">Googleスプレッドシートの講師マスターから、A列コード・B列氏名・D列在籍・P列メールをコピーして貼り付けます。D列が「1」の人だけ登録します。</p>
     <div class="noPrint" style="margin:12px 0">
+      <div class="row" style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:12px;padding:10px">
+        <b>講師マスターURL同期</b>
+        <input id="teacherMasterUrl" type="text" value="https://docs.google.com/spreadsheets/d/1L5aFDXAmfUDkBg8d7X3WqJgMhdMq5tM5sfUZ2G-M58E/edit?gid=2020620808#gid=2020620808" style="flex:1;min-width:360px">
+        <button id="syncTeachersFromSheet" class="blue" type="button">講師マスターURLから同期</button>
+      </div>
+      <p style="font-size:13px;color:#64748b;margin:8px 0">※Google側の権限で直接読めない場合は、下の貼り付け方式を使ってください。</p>
       <textarea id="teacherPaste" placeholder="A列〜P列を範囲コピーして貼り付け&#10;例：7002	加瀬智子	...	1	...	mail@example.com" style="width:100%;min-height:130px;border:1px solid #cbd5e1;border-radius:10px;padding:10px;font-size:14px"></textarea>
       <div class="row">
         <button id="importTeachers" class="orange" type="button">講師マスターを一括登録</button>
@@ -167,7 +173,7 @@ td.actions{min-width:210px}
     <div id="teacherMasterMsg" class="msg"></div>
   </section>
 
-  <div class="small noPrint">Build Supabase Ver.1.4</div>
+  <div class="small noPrint">Build Supabase Ver.1.5</div>
 </div>
 
 
@@ -585,6 +591,126 @@ function runTeacherSelect(){
 
 
 
+
+function extractSheetIdAndGid(url){
+  const s = String(url || '');
+  const idMatch = s.match(/\/d\/([^/]+)/);
+  const gidMatch = s.match(/[?&#]gid=([0-9]+)/);
+  return {
+    id: idMatch ? idMatch[1] : '',
+    gid: gidMatch ? gidMatch[1] : '0'
+  };
+}
+
+function parseCsvLine(line){
+  const out = [];
+  let cur = '';
+  let inQ = false;
+  for(let i=0;i<line.length;i++){
+    const ch = line[i];
+    if(ch === '"'){
+      if(inQ && line[i+1] === '"'){ cur += '"'; i++; }
+      else inQ = !inQ;
+    }else if(ch === ',' && !inQ){
+      out.push(cur);
+      cur = '';
+    }else{
+      cur += ch;
+    }
+  }
+  out.push(cur);
+  return out;
+}
+
+function parseCsv(text){
+  const rows = [];
+  let row = [];
+  let cur = '';
+  let inQ = false;
+  const s = String(text || '').replace(/\r\n/g,'\n').replace(/\r/g,'\n');
+  for(let i=0;i<s.length;i++){
+    const ch = s[i];
+    if(ch === '"'){
+      if(inQ && s[i+1] === '"'){ cur += '"'; i++; }
+      else inQ = !inQ;
+    }else if(ch === ',' && !inQ){
+      row.push(cur);
+      cur = '';
+    }else if(ch === '\n' && !inQ){
+      row.push(cur);
+      rows.push(row);
+      row = [];
+      cur = '';
+    }else{
+      cur += ch;
+    }
+  }
+  if(cur || row.length){ row.push(cur); rows.push(row); }
+  return rows;
+}
+
+function rowsToTeachers(rows){
+  const result = [];
+  rows.forEach(cols=>{
+    const code = String(cols[0] || '').trim();
+    const name = String(cols[1] || '').trim();
+    const active = String(cols[3] || '').trim();
+    const email = String(cols[15] || '').trim();
+
+    if(!code || !name) return;
+    if(code === 'コード' || name === '氏名') return;
+    if(active !== '1') return;
+
+    result.push({
+      code: code,
+      name: name,
+      school: school,
+      email: email || null,
+      active: true
+    });
+  });
+  return result;
+}
+
+async function syncTeachersFromSheetUrl(){
+  try{
+    const info = extractSheetIdAndGid($('teacherMasterUrl').value);
+    if(!info.id){
+      msg('teacherMasterMsg','GoogleスプレッドシートURLを確認してください。',false);
+      return;
+    }
+
+    if(!confirm('Googleスプレッドシートから ' + school + '校 の講師マスターを同期します。よろしいですか？')) return;
+
+    msg('teacherMasterMsg','Googleスプレッドシートから取得中...',true);
+
+    const csvUrl = 'https://docs.google.com/spreadsheets/d/' + info.id + '/gviz/tq?tqx=out:csv&gid=' + info.gid + '&_=' + Date.now();
+    const res = await fetch(csvUrl);
+    if(!res.ok) throw new Error('Googleシートを取得できません。共有設定または公開設定を確認してください。');
+
+    const csv = await res.text();
+    const rows = parseCsv(csv);
+    const teachers = rowsToTeachers(rows);
+
+    if(teachers.length === 0){
+      msg('teacherMasterMsg','同期対象がありません。A列コード・B列氏名・D列=1・P列メールを確認してください。',false);
+      return;
+    }
+
+    await rest('teachers', {
+      method:'POST',
+      body: JSON.stringify(teachers),
+      headers:{Prefer:'resolution=merge-duplicates'}
+    });
+
+    msg('teacherMasterMsg','講師マスターを同期しました。人数：'+teachers.length+'名',true);
+    await loadTeacherMaster();
+  }catch(e){
+    msg('teacherMasterMsg','URL同期できませんでした。\n'+(e.message||String(e))+'\n\n下の貼り付け方式を使ってください。',false);
+  }
+}
+
+
 function parseTeacherPaste(text){
   const lines = String(text || '').split(/\r?\n/).map(l=>l.trim()).filter(Boolean);
   const rows = [];
@@ -662,6 +788,7 @@ $('teacherSelectRun').onclick=runTeacherSelect;
 $('teacherChecks').addEventListener('change',updateTeacherSelectSummary);
 $('addTeacher').onclick=addTeacher;
 $('reloadTeacherMaster').onclick=loadTeacherMaster;
+$('syncTeachersFromSheet').onclick=syncTeachersFromSheetUrl;
 $('importTeachers').onclick=importTeachersFromPaste;
 $('clearTeacherPaste').onclick=()=>{$('teacherPaste').value='';};
 
