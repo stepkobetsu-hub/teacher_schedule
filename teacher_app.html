@@ -42,12 +42,32 @@ tr:nth-child(even) td{background:#f9fafb}
 .save-area{padding:14px 0 0}
 .small{font-size:12px;color:#6b7280;text-align:center;margin-top:12px}
 .hidden{display:none}
+
+.teacher-toolbar{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.teacher-name{font-size:22px;font-weight:900}
+.teacher-actions{display:flex;gap:8px;flex-shrink:0}
+.header-btn{border:0;border-radius:9px;padding:8px 12px;font-weight:900;cursor:pointer;background:#fff;color:#2749b8}
+.header-btn.logout{background:#c62828;color:#fff}
+@media print{
+  .hero,.legend,.save-area,.msg,.info,.teacher-actions,.small{display:none!important}
+  body{background:#fff!important;color:#000!important}
+  .wrap{padding:0!important;max-width:none!important}
+  .bar{position:static!important;background:#fff!important;color:#000!important;border-bottom:1px solid #000!important;text-align:left!important}
+  .teacher-name{font-size:18px!important;color:#000!important}
+  .table-wrap{overflow:visible!important;box-shadow:none!important;border-radius:0!important}
+  table{min-width:0!important;width:100%!important;border-collapse:collapse!important}
+  th,td{border:1px solid #000!important;color:#000!important;background:#fff!important;font-size:10px!important;padding:4px 3px!important}
+  td.date{color:#000!important;background:#fff!important}
+  .slot{border:0!important;background:#fff!important;color:#000!important;width:auto!important;height:auto!important;font-size:12px!important}
+  @page{size:A4 portrait;margin:8mm}
+}
+
 </style>
 </head>
 <body>
 <div class="hero">
   <h1>☀️ 夏休み出勤可能日登録</h1>
-  <div class="sub">個別指導ステップ<span class="ver">Ver.2.0</span></div>
+  <div class="sub">個別指導ステップ<span class="ver">Ver.2.1</span></div>
 </div>
 
 <div id="loginScreen" class="wrap">
@@ -69,7 +89,15 @@ tr:nth-child(even) td{background:#f9fafb}
 </div>
 
 <div id="mainScreen" class="hidden">
-  <div id="topBar" class="bar"></div>
+  <div id="topBar" class="bar">
+    <div class="teacher-toolbar">
+      <div id="teacherNameHeader" class="teacher-name"></div>
+      <div class="teacher-actions">
+        <button id="printBtn" class="header-btn" type="button">🖨 印刷</button>
+        <button id="logoutBtn" class="header-btn logout" type="button">🚪 ログアウト</button>
+      </div>
+    </div>
+  </div>
   <div class="wrap">
     <div id="deadlineInfo" class="info hidden"></div>
     <div class="legend">
@@ -85,8 +113,8 @@ tr:nth-child(even) td{background:#f9fafb}
 </div>
 
 <script>
-const APP_VERSION = '2.0';
-const STORAGE_PREFIX = 'summer_teacher_app_v2_0_';
+const APP_VERSION = '2.1';
+const STORAGE_PREFIX = 'summer_teacher_app_v2_1_';
 const GAS_API = 'https://script.google.com/macros/s/AKfycbx8UeG5X_WSonK8StzuB8B_iC4BACDw3guGZgQvuSAWnxJCfUwnsycZLC5Wn19HBGO3pQ/exec';
 
 let school = '神領';
@@ -196,7 +224,7 @@ async function login(){
 function openMain(dl){
   $('loginScreen').classList.add('hidden');
   $('mainScreen').classList.remove('hidden');
-  $('topBar').textContent = school + '校　' + teacher.name + 'さん';
+  $('teacherNameHeader').textContent = school + '校　' + teacher.name + 'さん';
 
   if(dl && dl.deadline){
     const t = locked
@@ -299,12 +327,31 @@ function doLogout(){
   location.reload();
 }
 
+
+function printMySchedule(){
+  window.print();
+}
+
+function logoutTeacher(){
+  if(!confirm('ログアウトしますか？\n保存されている講師番号を削除します。')) return;
+  try{
+    Object.keys(localStorage).forEach(k=>{
+      if(k.startsWith(STORAGE_PREFIX) || k.startsWith('summer_teacher_app_') || k.startsWith('step_')){
+        localStorage.removeItem(k);
+      }
+    });
+  }catch(e){}
+  location.reload();
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   clearOldStorageOnce();
 
   const oldCode = localStorage.getItem(STORAGE_PREFIX + 'code');
   if(oldCode) $('codeInput').value = oldCode;
 
+  if($('printBtn')) $('printBtn').addEventListener('click', printMySchedule);
+  if($('logoutBtn')) $('logoutBtn').addEventListener('click', logoutTeacher);
   $('schoolShinryo').addEventListener('click', () => setSchool('神領'));
   $('schoolOtemachi').addEventListener('click', () => setSchool('大手町'));
   $('loginBtn').addEventListener('click', login);
@@ -317,6 +364,6 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 </script>
-<div class="small">Build 2026-06-28 12:21</div>
+<div class="small">Build 2026-06-28 12:26</div>
 </body>
 </html>
