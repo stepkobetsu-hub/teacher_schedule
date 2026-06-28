@@ -40,6 +40,11 @@ function doGet(e) {
       result = { ok: false, error: ex.message };
     }
     var json = JSON.stringify(result);
+    var cb = params.callback;
+    if (cb) {
+      return ContentService.createTextOutput(cb + '(' + json + ')')
+        .setMimeType(ContentService.MimeType.JAVASCRIPT);
+    }
     return ContentService.createTextOutput(json)
       .setMimeType(ContentService.MimeType.JSON);
   }
