@@ -18,7 +18,7 @@ input{width:100%;font-size:24px;text-align:center;padding:13px;border:2px solid 
 .primary{width:100%;background:#3158d6;color:#fff;margin-top:18px;font-size:22px}
 .msg{display:none;margin-top:14px;padding:12px;border-radius:12px;font-weight:900;white-space:pre-wrap;line-height:1.5}
 .ok{display:block;background:#ecfdf5;color:#166534;border:1px solid #a7f3d0;font-size:18px;text-align:center}.err{display:block;background:#fff7ed;color:#8a3a1c;border:1px solid #fed7aa}
-.logout{position:fixed;left:8px;top:6px;z-index:100;background:#c62828;color:#fff;border-radius:999px;padding:5px 9px;font-size:11px}
+.logout{background:#c62828;color:#fff;border-radius:999px;padding:7px 13px;font-size:13px;line-height:1}.topBack{position:fixed;right:8px;top:6px;z-index:100;background:#fff;color:#2749b8;border:2px solid #2749b8;border-radius:999px;padding:6px 10px;font-size:12px;line-height:1}
 .top{position:sticky;top:0;z-index:20;background:#2749b8;color:#fff;padding:10px 12px}.topLine{display:flex;justify-content:space-between;align-items:center;gap:10px}
 .name{font-size:25px;font-weight:950;text-align:center;flex:1}.actions{display:flex;gap:8px}.mini{background:#fff;color:#2749b8;padding:8px 12px;font-size:13px}
 .legend{background:#fff;border-radius:12px;padding:10px;margin-bottom:10px;line-height:1.7;font-weight:700}.tableWrap{overflow:auto;background:#fff;border-radius:12px;box-shadow:0 4px 12px rgba(15,23,42,.05);max-width:100%;max-height:62vh;-webkit-overflow-scrolling:touch}
@@ -66,11 +66,25 @@ th.dateHead{position:sticky;left:0;top:0;z-index:25;min-width:96px}
   .saveSmall{font-size:16px;padding:12px 8px}.saveBig{font-size:21px;padding:13px 12px}
 }
 
+
+.savePopup{position:fixed;inset:0;z-index:999;background:rgba(0,0,0,.22);display:flex;align-items:center;justify-content:center;padding:20px}
+.savePopup.hidden{display:none}
+.savePopupBox{background:#fff;border-radius:18px;padding:28px 34px;font-size:24px;font-weight:950;color:#166534;box-shadow:0 20px 50px rgba(0,0,0,.25);text-align:center}
+.saveRow{display:grid!important;grid-template-columns:0.85fr 1.65fr!important;gap:10px!important;width:100%!important}
+.saveSmall,.saveBig{display:block!important;width:100%!important;margin:0!important;border:0!important}
+.saveSmall{background:#607d8b!important;color:#fff!important;font-size:16px!important;padding:13px 8px!important;border-radius:14px!important}
+.saveBig{background:#3158d6!important;color:#fff!important;font-size:21px!important;padding:13px 10px!important;border-radius:14px!important}
+@media(max-width:640px){
+  .topBack{font-size:11px;padding:5px 8px}
+  .logout{font-size:12px;padding:6px 11px}
+  .savePopupBox{font-size:22px;padding:24px 28px}
+}
+
 </style>
 </head>
 <body>
-<button id="logoutTop" class="logout hidden">ログアウト</button>
-<div class="hero"><h1>夏休み出勤可能日登録</h1><div>個別指導ステップ <small>Supabase Ver.1.5</small></div></div>
+<button id="topBackBtn" class="topBack" type="button">←トップに戻る</button>
+<div class="hero"><h1>夏休み出勤可能日登録</h1><div>個別指導ステップ <small>Supabase Ver.1.6</small></div></div>
 
 <div id="login" class="wrap"><div class="card">
 <h2>ログイン</h2>
@@ -82,12 +96,17 @@ th.dateHead{position:sticky;left:0;top:0;z-index:25;min-width:96px}
 </div></div>
 
 <div id="main" class="hidden">
-<div class="top"><div class="topLine"><div id="teacherName" class="name"></div><div class="actions"><button id="printBtn" class="mini" type="button">🖨 印刷</button></div></div></div>
+<div class="top"><div class="topLine"><div id="teacherName" class="name"></div><div class="actions"><button id="printBtn" class="mini" type="button">🖨 印刷</button></div></div><div style="margin-top:8px;text-align:left"><button id="logoutTop" class="logout" type="button">ログアウト</button></div></div>
 <div class="wrap">
 <div class="legend">○：出勤できる ／ △：無理すれば可 ／ 空白：不可・未入力<br>ボタンは「空白 → ○ → △ → 空白」の順に変わります。</div>
 <div id="tableArea" class="tableWrap"></div>
 <div class="save"><div class="saveRow"><button id="saveOnlyBtn" class="saveSmall" type="button">保存のみ</button><button id="saveSendBtn" class="saveBig" type="button">保存して送信</button></div><div id="saveMsg" class="msg"></div></div>
 </div></div>
+
+
+<div id="savePopup" class="savePopup hidden">
+  <div id="savePopupBox" class="savePopupBox">保存中...</div>
+</div>
 
 <script>
 const SUPABASE_URL = 'https://jbiolkvegexkqjcwtyye.supabase.co';
@@ -153,7 +172,7 @@ async function login(){
     await loadData();
     $('login').classList.add('hidden');
     $('main').classList.remove('hidden');
-    $('logoutTop').classList.remove('hidden');
+    if($('logoutTop')) $('logoutTop').classList.remove('hidden');
     $('teacherName').textContent=school+'校　'+teacher.name+'さん';
   }catch(e){
     showMsg('loginMsg','ログインできません。\n'+(e.message||String(e)),false);
@@ -201,16 +220,45 @@ function toggle(key){
 
 async function save(mode='only'){
   try{
-    showMsg('saveMsg','保存中...',true);
-    await rest('availability?school=eq.'+encodeURIComponent(school)+'&teacher_code=eq.'+encodeURIComponent(teacher.code),{method:'DELETE'});
-    const rows=Object.entries(avail).map(([key,value])=>{
-      const [date,slot]=key.split('|');
-      return {school,teacher_code:teacher.code,teacher_name:teacher.name,date,slot_index:Number(slot),value};
+    if(!teacher) throw new Error('ログイン情報がありません。');
+
+    const isSend = mode === 'send';
+    showSavePopup(isSend ? '保存と送信しています。' : '保存しています。');
+    showMsg('saveMsg', isSend ? '保存と送信しています。' : '保存しています。', true);
+
+    await rest(
+      'availability?school=eq.' + encodeURIComponent(school) +
+      '&teacher_code=eq.' + encodeURIComponent(teacher.code),
+      { method:'DELETE' }
+    );
+
+    const rows = Object.entries(avail).map(([key,value]) => {
+      const [date,slot] = key.split('|');
+      return {
+        school: school,
+        teacher_code: teacher.code,
+        teacher_name: teacher.name,
+        date: date,
+        slot_index: Number(slot),
+        value: value
+      };
     });
-    if(rows.length>0) await rest('availability',{method:'POST',body:JSON.stringify(rows)});
-    showMsg('saveMsg', mode==='send' ? '保存して送信しました。' : '保存しました。', true);
+
+    if(rows.length > 0){
+      await rest('availability', {
+        method:'POST',
+        body: JSON.stringify(rows)
+      });
+    }
+
+    const doneText = isSend ? '保存・送信しました。' : '保存しました。';
+    showMsg('saveMsg', doneText, true);
+    hideSavePopupLater(doneText);
   }catch(e){
-    showMsg('saveMsg','保存できません。\n'+(e.message||String(e)),false);
+    const p = $('savePopup');
+    if(p) p.classList.add('hidden');
+    showMsg('saveMsg','保存できません。
+' + (e.message || String(e)), false);
   }
 }
 
@@ -221,6 +269,28 @@ function logout(){
   location.reload();
 }
 
+
+function goTop(){
+  window.scrollTo({top:0,left:0,behavior:'smooth'});
+}
+
+function showSavePopup(text){
+  const p = $('savePopup');
+  const b = $('savePopupBox');
+  if(!p || !b) return;
+  b.textContent = text;
+  p.classList.remove('hidden');
+}
+
+function hideSavePopupLater(text){
+  const p = $('savePopup');
+  const b = $('savePopupBox');
+  if(!p || !b) return;
+  b.textContent = text;
+  setTimeout(() => p.classList.add('hidden'), 1200);
+}
+
+
 document.addEventListener('click',e=>{
   const b=e.target.closest('.slot');
   if(b) toggle(b.dataset.key);
@@ -228,9 +298,10 @@ document.addEventListener('click',e=>{
 $('s1').addEventListener('click',()=>setSchool('神領'));
 $('s2').addEventListener('click',()=>setSchool('大手町'));
 $('loginBtn').addEventListener('click',login);
-$('saveBtn').addEventListener('click',save);
+if($('saveOnlyBtn')) $('saveOnlyBtn').addEventListener('click', () => save('only'));
 $('printBtn').addEventListener('click',()=>window.print());
-$('logoutTop').addEventListener('click',logout);
+if($('logoutTop')) $('logoutTop').addEventListener('click',logout);
+if($('topBackBtn')) $('topBackBtn').addEventListener('click',goTop);
 
 document.addEventListener('DOMContentLoaded',()=>{
   const savedCode=localStorage.getItem('step_teacher_code');
