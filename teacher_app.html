@@ -71,13 +71,30 @@ th.dateHead{position:sticky;left:0;top:0;z-index:35;min-width:96px}
 .helpBox{margin-bottom:10px}
 .helpBtn{background:#fff;color:#2749b8;border:2px solid #2749b8;border-radius:12px;padding:9px 12px;font-size:14px}
 .helpBox .legend{margin-top:8px}
+
+.deadlinePopup{
+  position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.35);
+  display:flex;align-items:center;justify-content:center;padding:18px;
+}
+.deadlinePopup.hidden{display:none}
+.deadlineBox{
+  background:#fff;border-radius:18px;padding:24px 22px;max-width:420px;width:100%;
+  box-shadow:0 20px 55px rgba(0,0,0,.28);text-align:center;
+}
+.deadlineTitle{font-size:22px;font-weight:950;color:#c62828;margin-bottom:12px}
+.deadlineText{font-size:17px;font-weight:850;line-height:1.7;color:#111827;white-space:pre-wrap}
+.deadlineClose{
+  margin-top:18px;background:#3158d6;color:#fff;border:0;border-radius:12px;
+  padding:12px 20px;font-size:17px;font-weight:900;width:100%;
+}
+
 </style>
 </head>
 <body>
 <div id="pageTop"></div>
 <button id="topBackBtn" class="topBack hidden" type="button">←トップへ</button>
 <button id="logoutTop" class="logout hidden" type="button">ログアウト</button>
-<div class="hero"><h1>夏休み出勤可能日登録</h1><div>個別指導ステップ <small>Supabase Ver.2.2</small></div></div>
+<div class="hero"><h1>夏休み出勤可能日登録</h1><div>個別指導ステップ <small>Supabase Ver.2.3</small></div></div>
 
 <div id="login" class="wrap"><div class="card">
 <h2>ログイン</h2>
@@ -95,6 +112,15 @@ th.dateHead{position:sticky;left:0;top:0;z-index:35;min-width:96px}
 <div id="tableArea" class="tableWrap"></div>
 <div class="save"><button id="saveBtn" class="primary" type="button">保存して送信</button><div id="saveMsg" class="msg"></div></div>
 </div></div>
+
+
+<div id="deadlinePopup" class="deadlinePopup hidden">
+  <div class="deadlineBox">
+    <div class="deadlineTitle">締切日の確認</div>
+    <div id="deadlineText" class="deadlineText"></div>
+    <button id="deadlineClose" class="deadlineClose" type="button">確認しました</button>
+  </div>
+</div>
 
 <script>
 const SUPABASE_URL = 'https://jbiolkvegexkqjcwtyye.supabase.co';
@@ -144,6 +170,30 @@ async function findTeacher(code){
   return all.find(t => String(t.code).trim() === String(code).trim() && (t.active === true || String(t.active).toLowerCase()==='true')) || null;
 }
 
+
+async function loadDeadlineNotice(){
+  try{
+    const rows = await rest('deadlines?select=school,deadline&school=eq.' + encodeURIComponent(school));
+    if(!Array.isArray(rows) || rows.length === 0 || !rows[0].deadline) return;
+
+    const raw = String(rows[0].deadline).replaceAll('-', '/').slice(0, 10);
+    const text =
+      dateLabel(raw) + '締め切りです。\n' +
+      'それ以降はこのアプリからは連絡できなくなります。';
+
+    $('deadlineText').textContent = text;
+    $('deadlinePopup').classList.remove('hidden');
+  }catch(e){
+    // 締切表示が失敗しても、出勤登録自体は止めない
+    console.warn('deadline notice error', e);
+  }
+}
+
+function closeDeadlinePopup(){
+  $('deadlinePopup').classList.add('hidden');
+}
+
+
 async function login(){
   try{
     const code=$('code').value.trim();
@@ -163,6 +213,7 @@ async function login(){
     $('logoutTop').classList.remove('hidden');
     if($('topBackBtn')) $('topBackBtn').classList.remove('hidden');
     $('teacherName').textContent=school+'校　'+teacher.name+'さん';
+    await loadDeadlineNotice();
   }catch(e){
     showMsg('loginMsg','ログインできません。\n'+(e.message||String(e)),false);
   }
@@ -267,6 +318,7 @@ $('printBtn').addEventListener('click',()=>window.print());
 $('logoutTop').addEventListener('click',logout);
 $('topBackBtn').addEventListener('click',goTop);
 $('helpToggle').addEventListener('click',()=>{const h=$('helpText');h.classList.toggle('hidden');$('helpToggle').textContent=h.classList.contains('hidden')?'○・△の説明を表示':'○・△の説明を隠す';});
+$('deadlineClose').addEventListener('click', closeDeadlinePopup);
 
 document.addEventListener('DOMContentLoaded',()=>{
   const savedCode=localStorage.getItem('step_teacher_code');
