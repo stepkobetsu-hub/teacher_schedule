@@ -2,284 +2,311 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>夏休み出勤可能日登録 - 個別指導ステップ</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>夏休み出勤可能日登録</title>
 <style>
 *{box-sizing:border-box}
-body{margin:0;font-family:Arial,"Hiragino Sans","Yu Gothic",sans-serif;background:#edf4ff;color:#1f2937}
-.app{max-width:560px;min-height:100vh;margin:0 auto;background:#f4f7ff}
-.hero{background:linear-gradient(135deg,#38bdf8,#2563eb);color:#fff;padding:28px 20px 34px;text-align:center}
-.hero h1{margin:0;font-size:30px;font-weight:900;line-height:1.25}.hero p{margin:10px 0 0;font-size:16px;font-weight:800;opacity:.95}
-.card{background:#fff;border-radius:22px;padding:22px;margin:18px;box-shadow:0 10px 28px rgba(15,23,42,.10)}
-h2{color:#2563eb;text-align:center;margin:4px 0 18px;font-size:24px}.label{font-weight:900;margin:18px 0 8px;display:block}
-.schoolBtns{display:grid;grid-template-columns:1fr 1fr;gap:12px}.schoolBtn{min-height:76px;border:3px solid #d1d5db;background:#fff;color:#374151;border-radius:18px;font-size:22px;font-weight:900}
-.schoolBtn.active{border-color:#2563eb;background:#eff6ff;color:#1d4ed8}input{width:100%;border:2px solid #d1d5db;border-radius:14px;padding:16px;font-size:22px;text-align:center}
-button{width:100%;border:0;border-radius:16px;padding:16px;margin-top:18px;font-size:20px;font-weight:900;color:#fff;background:#2563eb}button:disabled{background:#9ca3af}.subBtn{background:#eef2ff;color:#1e3a8a;border:1px solid #c7d2fe}
-.notice{background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;border-radius:14px;padding:13px;margin-top:14px;font-weight:800;line-height:1.6}.okNotice{background:#ecfdf5;border-color:#bbf7d0;color:#166534}.hidden{display:none!important}
-.teacherName{text-align:center;font-size:28px;font-weight:900;color:#111827;background:#f8fbff;border:1px solid #e5edf7;border-radius:18px;padding:14px;margin-bottom:12px}.deadlineBox{text-align:center;background:#eff6ff;border:1px solid #bfdbfe;color:#1d4ed8;border-radius:14px;padding:12px;margin:12px 0;font-weight:900}
-.legend{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin:14px 0}.legend div{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:9px;text-align:center;font-size:13px;font-weight:900}
-.dayCard{background:#fff;border:1px solid #e5e7eb;border-radius:18px;margin:14px 0;overflow:hidden}.dayTitle{background:#f8fafc;font-size:18px;font-weight:900;color:#111827;padding:13px 14px;border-bottom:1px solid #e5e7eb}.holiday{background:#fef3c7;color:#92400e;text-align:center;font-weight:900;padding:18px}
-.slotRow{display:grid;grid-template-columns:112px 1fr 1fr 1fr;gap:6px;align-items:center;padding:10px;border-bottom:1px solid #f1f5f9}.slotRow:last-child{border-bottom:0}.slotTime{font-size:14px;font-weight:900;color:#374151}.choice{border:2px solid #e5e7eb;background:#fff;color:#334155;border-radius:12px;padding:10px 4px;font-size:15px;font-weight:900;margin:0}.choice.selected.ok{background:#dcfce7;border-color:#22c55e;color:#166534}.choice.selected.maybe{background:#fef3c7;border-color:#f59e0b;color:#92400e}.choice.selected.none{background:#fee2e2;border-color:#ef4444;color:#991b1b}
-.loading{text-align:center;color:#2563eb;font-weight:900;padding:20px}.footerSpace{height:28px}@media(max-width:430px){.slotRow{grid-template-columns:96px 1fr 1fr 1fr}.choice{font-size:14px;padding:9px 2px}.hero h1{font-size:27px}}
+body{margin:0;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Noto Sans JP",sans-serif;background:#f3f6fb;color:#1f2937}
+.hero{background:linear-gradient(135deg,#58b8f7,#3158d6);color:white;text-align:center;padding:30px 16px 28px}
+.hero h1{font-size:26px;margin:0 0 8px;font-weight:800}
+.hero .sub{font-size:15px;font-weight:700;opacity:.95}
+.hero .ver{font-size:11px;font-weight:700;opacity:.9;margin-left:4px}
+.wrap{max-width:760px;margin:0 auto;padding:18px}
+.card{background:white;border-radius:22px;padding:22px;box-shadow:0 14px 35px rgba(15,23,42,.08)}
+h2{text-align:center;color:#3b62df;margin:0 0 20px;font-size:24px}
+label{display:block;font-weight:800;margin:16px 0 8px}
+.school-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.school-btn{border:2px solid #d1d5db;border-radius:16px;background:white;padding:18px 6px;font-size:21px;font-weight:800;color:#374151}
+.school-btn.selected{border-color:#3b62df;background:#eff6ff;color:#2f55cf}
+input{width:100%;font-size:24px;text-align:center;padding:14px;border:2px solid #d1d5db;border-radius:14px}
+.primary{width:100%;border:0;border-radius:16px;background:#3b62df;color:white;font-size:22px;font-weight:800;padding:17px;margin-top:20px}
+.primary:disabled{background:#9ca3af}
+.msg{margin-top:18px;border-radius:14px;padding:14px 16px;font-weight:800;line-height:1.6;display:none}
+.msg.err{display:block;background:#fff7ed;border:1px solid #fed7aa;color:#8a3a1c}
+.msg.ok{display:block;background:#ecfdf5;border:1px solid #a7f3d0;color:#166534}
+.bar{position:sticky;top:0;z-index:5;background:#2749b8;color:white;padding:12px 16px;font-weight:800}
+.info{background:#fff7ed;color:#92400e;border:1px solid #fed7aa;border-radius:12px;padding:10px 12px;font-weight:800;margin:0 0 12px}
+.legend{font-size:13px;background:white;padding:10px;border-radius:12px;margin-bottom:10px;line-height:1.8}
+.table-wrap{overflow-x:auto;background:white;border-radius:14px;box-shadow:0 4px 12px rgba(15,23,42,.05)}
+table{border-collapse:collapse;width:100%;min-width:560px}
+th{background:#374151;color:white;padding:9px 5px;font-size:12px}
+td{border:1px solid #e5e7eb;text-align:center;padding:5px}
+td.date{position:sticky;left:0;background:white;font-weight:800;min-width:82px;z-index:1}
+tr:nth-child(even) td.date{background:#f9fafb}
+tr:nth-child(even) td{background:#f9fafb}
+.holiday td{background:#e0f2fe!important;color:#075985;font-weight:800;padding:12px}
+.slot{width:44px;height:44px;border-radius:10px;border:2px solid #d1d5db;background:white;font-size:18px;font-weight:900}
+.slot.on{background:#2563eb;border-color:#2563eb;color:white}
+.slot.tri{background:#f97316;border-color:#f97316;color:white}
+.slot:disabled{opacity:.45}
+.save-area{padding:14px 0 0}
+.small{font-size:12px;color:#6b7280;text-align:center;margin-top:12px}
+.hidden{display:none}
 </style>
 </head>
 <body>
-<div class="app">
-  <section class="hero"><h1>☀️ 夏休み出勤可能日登録</h1><p>個別指導ステップ</p></section>
-  <section id="loginCard" class="card">
-    <h2>ログイン</h2>
-    <label class="label">校舎を選んでください</label>
-    <div class="schoolBtns">
-      <button type="button" class="schoolBtn" id="btnShinryo" onclick="selectSchool('神領')">神領校</button>
-      <button type="button" class="schoolBtn" id="btnOtemachi" onclick="selectSchool('大手町')">大手町校</button>
-    </div>
-    <label class="label">コード番号（半角数字）</label>
-    <input id="code" type="text" inputmode="numeric" placeholder="例：7002" autocomplete="off">
-    <button id="loginBtn" onclick="login()">ログイン</button>
-    <div id="loginMsg" class="notice hidden"></div>
-  </section>
-  <section id="appCard" class="card hidden">
-    <button class="subBtn" onclick="logout()">← 別のコードでログイン</button>
-    <div class="teacherName" id="teacherName">----</div>
-    <div class="deadlineBox" id="deadlineBox">締切確認中...</div>
-    <div class="legend"><div>○ 出勤できる</div><div>△ 無理すれば可</div><div>空欄 出勤不可</div></div>
-    <div id="slotsArea"><div class="loading">読み込み中...</div></div>
-    <button id="saveBtn" onclick="save()">登録する</button>
-    <div id="saveMsg" class="notice hidden"></div>
-  </section>
-  <section id="completeCard" class="card hidden">
-    <h2>登録完了</h2>
-    <div class="notice okNotice">登録が完了しました。<br>締切前であれば、もう一度ログインして修正できます。</div>
-    <button onclick="showApp()">登録内容を確認・修正する</button>
-  </section>
-  <div class="footerSpace"></div>
+<div class="hero">
+  <h1>☀️ 夏休み出勤可能日登録</h1>
+  <div class="sub">個別指導ステップ<span class="ver">Ver.1.0</span></div>
 </div>
+
+<div id="loginScreen" class="wrap">
+  <div class="card">
+    <h2>ログイン</h2>
+    <label>校舎を選んでください</label>
+    <div class="school-row">
+      <button id="schoolShinryo" class="school-btn selected" type="button">神領校</button>
+      <button id="schoolOtemachi" class="school-btn" type="button">大手町校</button>
+    </div>
+
+    <label>コード番号（半角数字）</label>
+    <input id="codeInput" type="number" inputmode="numeric" placeholder="例：7002">
+
+    <button id="loginBtn" class="primary" type="button">ログイン</button>
+    <div id="loginMsg" class="msg"></div>
+    <div class="small">画面：GitHub Pages ／ データ通信：Google Apps Script</div>
+  </div>
+</div>
+
+<div id="mainScreen" class="hidden">
+  <div id="topBar" class="bar"></div>
+  <div class="wrap">
+    <div id="deadlineInfo" class="info hidden"></div>
+    <div class="legend">
+      ○：出勤できる　／　△：無理すれば可　／　空白：不可・未入力<br>
+      ボタンは「空白 → ○ → △ → 空白」の順に変わります。
+    </div>
+    <div id="tableArea" class="table-wrap"></div>
+    <div class="save-area">
+      <button id="saveBtn" class="primary" type="button">保存して送信する</button>
+      <div id="saveMsg" class="msg"></div>
+    </div>
+  </div>
+</div>
+
 <script>
-'use strict';
-
-// GASは裏側のJSONP通信だけに使います。画面遷移には絶対に使いません。
+const APP_VERSION = '1.0';
+const STORAGE_PREFIX = 'summer_teacher_app_v1_';
 const GAS_API = 'https://script.google.com/macros/s/AKfycbz1HWbiT1DdT0IzJiBT6OrTg_i0E72iPW5keiZqUCTPEJhwkty9FJT3ZjfKbrbmgIHf/exec';
-const TIMES = ['13:00〜14:15','14:20〜15:35','15:45〜17:00','17:10〜18:25','18:35〜19:50','20:00〜21:15'];
 
-let state = {
-  school: localStorage.getItem('summerSchool') || '',
-  code: localStorage.getItem('summerCode') || '',
-  teacherName: '',
-  slots: [],
-  entries: {},
-  locked: false
-};
+let school = '神領';
+let teacher = null;
+let slots = [];
+let availability = {};
+let locked = false;
 
-window.addEventListener('DOMContentLoaded', () => {
-  if (state.code) document.getElementById('code').value = state.code;
-  if (state.school) selectSchool(state.school);
-});
+function $(id){ return document.getElementById(id); }
 
-function selectSchool(school) {
-  state.school = school;
-  localStorage.setItem('summerSchool', school);
-  document.getElementById('btnShinryo').classList.toggle('active', school === '神領');
-  document.getElementById('btnOtemachi').classList.toggle('active', school === '大手町');
+function clearOldStorageOnce(){
+  const key = STORAGE_PREFIX + 'cleared';
+  if(localStorage.getItem(key) === APP_VERSION) return;
+  Object.keys(localStorage).forEach(k => {
+    if(k.startsWith('step_') || k.startsWith('teacher_') || k.startsWith('summer_teacher_app_')){
+      localStorage.removeItem(k);
+    }
+  });
+  localStorage.setItem(key, APP_VERSION);
 }
 
-function jsonp(params) {
-  return new Promise((resolve, reject) => {
-    const cb = 'summer_jsonp_' + Date.now() + '_' + Math.floor(Math.random() * 999999);
-    const payload = Object.assign({}, params, { callback: cb, _t: Date.now() });
-    const q = Object.keys(payload).map(k => encodeURIComponent(k) + '=' + encodeURIComponent(payload[k] ?? '')).join('&');
-    const s = document.createElement('script');
-    s.async = true;
-    s.src = GAS_API + '?' + q;
+function showMsg(id, text, ok=false){
+  const el = $(id);
+  el.textContent = text || '';
+  el.className = 'msg ' + (ok ? 'ok' : 'err');
+  el.style.display = text ? 'block' : 'none';
+}
 
+function jsonp(params){
+  return new Promise((resolve, reject) => {
+    const cb = 'cb_' + Date.now() + '_' + Math.random().toString(36).slice(2);
+    const url = new URL(GAS_API);
+    Object.entries(params).forEach(([k,v]) => url.searchParams.set(k, v));
+    url.searchParams.set('callback', cb);
+    url.searchParams.set('_', Date.now());
+
+    const script = document.createElement('script');
     const timer = setTimeout(() => {
       cleanup();
-      reject(new Error('通信がタイムアウトしました。時間をおいて再度お試しください。'));
-    }, 25000);
+      reject(new Error('通信タイムアウト'));
+    }, 20000);
 
-    function cleanup() {
+    function cleanup(){
       clearTimeout(timer);
-      try { delete window[cb]; } catch(e) { window[cb] = undefined; }
-      if (s.parentNode) s.parentNode.removeChild(s);
+      delete window[cb];
+      if(script.parentNode) script.parentNode.removeChild(script);
     }
 
-    window[cb] = res => {
+    window[cb] = data => {
       cleanup();
-      resolve(res || {});
+      resolve(data);
     };
 
-    s.onerror = () => {
+    script.onerror = () => {
       cleanup();
-      reject(new Error('通信に失敗しました。Google Apps Script側の公開設定も確認してください。'));
+      reject(new Error('Google Apps Scriptとの通信に失敗しました'));
     };
 
-    document.body.appendChild(s);
+    script.src = url.toString();
+    document.body.appendChild(script);
   });
 }
 
-function showMsg(id, text, ok=false) {
-  const el = document.getElementById(id);
-  el.textContent = text;
-  el.classList.remove('hidden');
-  el.classList.toggle('okNotice', ok);
+function setSchool(s){
+  school = s;
+  $('schoolShinryo').classList.toggle('selected', s === '神領');
+  $('schoolOtemachi').classList.toggle('selected', s === '大手町');
+  showMsg('loginMsg','');
 }
 
-async function login() {
-  const code = document.getElementById('code').value.trim();
-  document.getElementById('loginMsg').classList.add('hidden');
-  if (!state.school) return showMsg('loginMsg', '校舎を選んでください。');
-  if (!code) return showMsg('loginMsg', 'コード番号を入力してください。');
-
-  const btn = document.getElementById('loginBtn');
-  btn.disabled = true;
-  btn.textContent = '確認中...';
-
-  try {
-    const res = await jsonp({ action: 'login', code });
-    if (!res.ok) throw new Error(res.error || res.message || 'コード番号が見つかりません。');
-    state.code = code;
-    state.teacherName = res.name || '';
-    localStorage.setItem('summerCode', code);
-    document.getElementById('teacherName').textContent = (state.teacherName || code) + ' さん';
-    document.getElementById('loginCard').classList.add('hidden');
-    document.getElementById('completeCard').classList.add('hidden');
-    document.getElementById('appCard').classList.remove('hidden');
-    await loadAll();
-  } catch (e) {
-    showMsg('loginMsg', e.message || 'ログインできませんでした。');
-  } finally {
-    btn.disabled = false;
-    btn.textContent = 'ログイン';
-  }
-}
-
-async function loadAll() {
-  document.getElementById('slotsArea').innerHTML = '<div class="loading">読み込み中...</div>';
-  document.getElementById('saveMsg').classList.add('hidden');
-  try {
-    const [deadline, slots, mine] = await Promise.all([
-      jsonp({ action: 'checkDeadline', school: state.school }),
-      jsonp({ action: 'getSlots', school: state.school }),
-      jsonp({ action: 'getMyAvailability', school: state.school, code: state.code })
-    ]);
-
-    state.locked = !!deadline.locked;
-    document.getElementById('deadlineBox').textContent = deadline.deadline
-      ? (state.locked ? '締切を過ぎています：' + deadline.deadline : '締切：' + deadline.deadline)
-      : '締切日は未設定です';
-
-    if (!slots.ok) throw new Error(slots.error || slots.message || '授業枠を取得できませんでした。');
-    state.slots = slots.slots || [];
-    state.entries = mine.entries || {};
-    renderSlots();
-  } catch (e) {
-    document.getElementById('slotsArea').innerHTML = '';
-    showMsg('saveMsg', e.message || '読み込みできませんでした。');
-  }
-}
-
-function renderSlots() {
-  const area = document.getElementById('slotsArea');
-  area.innerHTML = '';
-
-  if (!state.slots.length) {
-    area.innerHTML = '<div class="loading">登録対象の日程がありません。</div>';
-    document.getElementById('saveBtn').disabled = state.locked;
-  if (state.locked) showMsg('saveMsg', '締切を過ぎているため、この画面からは変更できません。管理画面の締切日を変更すると押せるようになります。');
+async function login(){
+  const code = $('codeInput').value.trim();
+  if(!code){
+    showMsg('loginMsg','コード番号を入力してください。');
     return;
   }
 
-  state.slots.forEach(day => {
-    const card = document.createElement('div');
-    card.className = 'dayCard';
+  $('loginBtn').disabled = true;
+  showMsg('loginMsg','通信中です...', true);
 
-    if (day.holiday) {
-      card.innerHTML = '<div class="holiday">' + escapeHtml(day.date) + '</div>';
-      area.appendChild(card);
-      return;
-    }
+  try{
+    const r = await jsonp({ action:'login', code });
+    if(!r.ok) throw new Error(r.error || 'ログインできませんでした');
 
-    const title = document.createElement('div');
-    title.className = 'dayTitle';
-    title.textContent = day.date;
-    card.appendChild(title);
+    teacher = { code, name:r.name, email:r.email || '' };
+    localStorage.setItem(STORAGE_PREFIX + 'code', code);
 
-    (day.enabled || []).forEach((enabled, idx) => {
-      if (!enabled) return;
-      const key = day.rawDate + '|' + idx;
-      const val = state.entries[key] || '';
-      const row = document.createElement('div');
-      row.className = 'slotRow';
-      row.innerHTML =
-        '<div class="slotTime">' + TIMES[idx] + '</div>' +
-        buttonHtml(key, '○', 'ok', val) +
-        buttonHtml(key, '△', 'maybe', val) +
-        buttonHtml(key, '', 'none', val, '空欄');
-      card.appendChild(row);
-    });
+    const dl = await jsonp({ action:'checkDeadline', school });
+    locked = !!dl.locked;
 
-    area.appendChild(card);
-  });
+    const sl = await jsonp({ action:'getSlots', school });
+    if(!sl.ok) throw new Error(sl.error || '授業枠を取得できませんでした');
+    slots = sl.slots || [];
 
-  document.getElementById('saveBtn').disabled = state.locked;
-}
+    const av = await jsonp({ action:'getMyAvailability', code, school });
+    if(!av.ok) throw new Error(av.error || '入力済みデータを取得できませんでした');
+    availability = av.entries || {};
 
-function buttonHtml(key, value, cls, current, label) {
-  const selected = current === value ? ' selected ' + cls : '';
-  const text = label || value;
-  return '<button type="button" class="choice ' + selected + '" ' + (state.locked ? 'disabled ' : '') + 'onclick="setEntry(' + JSON.stringify(key) + ',' + JSON.stringify(value) + ')">' + escapeHtml(text) + '</button>';
-}
-
-function setEntry(key, value) {
-  if (state.locked) return;
-  if (value === '') delete state.entries[key];
-  else state.entries[key] = value;
-  renderSlots();
-}
-
-async function save() {
-  if (state.locked) return showMsg('saveMsg', '締切を過ぎているため変更できません。');
-
-  const entries = Object.keys(state.entries).map(key => {
-    const [rawDate, slotIndex] = key.split('|');
-    return { rawDate, slotIndex: Number(slotIndex), value: state.entries[key] };
-  });
-
-  const btn = document.getElementById('saveBtn');
-  btn.disabled = true;
-  btn.textContent = '登録中...';
-  document.getElementById('saveMsg').classList.add('hidden');
-
-  try {
-    const res = await jsonp({ action: 'saveAvailability', code: state.code, school: state.school, entries: JSON.stringify(entries) });
-    if (!res.ok) throw new Error(res.error || res.message || '保存できませんでした。');
-    document.getElementById('appCard').classList.add('hidden');
-    document.getElementById('completeCard').classList.remove('hidden');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  } catch(e) {
-    showMsg('saveMsg', e.message || '保存できませんでした。');
-  } finally {
-    btn.disabled = false;
-    btn.textContent = '登録する';
+    openMain(dl);
+  }catch(e){
+    showMsg('loginMsg', e.message || String(e));
+  }finally{
+    $('loginBtn').disabled = false;
   }
 }
 
-function showApp() {
-  document.getElementById('completeCard').classList.add('hidden');
-  document.getElementById('appCard').classList.remove('hidden');
+function openMain(dl){
+  $('loginScreen').classList.add('hidden');
+  $('mainScreen').classList.remove('hidden');
+  $('topBar').textContent = school + '校　' + teacher.name + 'さん';
+
+  if(dl && dl.deadline){
+    const t = locked
+      ? '締め切りを過ぎているため変更できません。締め切り：' + dl.deadline
+      : '登録・変更締め切り：' + dl.deadline + '（あと' + dl.daysLeft + '日）';
+    $('deadlineInfo').textContent = t;
+    $('deadlineInfo').classList.remove('hidden');
+  }
+
+  render();
 }
 
-function logout() {
-  localStorage.removeItem('summerCode');
-  state.code = '';
-  document.getElementById('code').value = '';
-  document.getElementById('appCard').classList.add('hidden');
-  document.getElementById('completeCard').classList.add('hidden');
-  document.getElementById('loginCard').classList.remove('hidden');
+function render(){
+  const start = ['13:00','14:20','15:45','17:10','18:35','20:00'];
+  const end   = ['14:15','15:35','17:00','18:25','19:50','21:15'];
+
+  let h = '<table><thead><tr><th>日付</th>';
+  for(let i=0;i<6;i++) h += '<th>' + start[i] + '<br>' + end[i] + '</th>';
+  h += '</tr></thead><tbody>';
+
+  slots.forEach(sl => {
+    if(sl.holiday){
+      h += '<tr class="holiday"><td colspan="7">🌊 ' + sl.date + '</td></tr>';
+      return;
+    }
+
+    h += '<tr><td class="date">' + sl.date + '</td>';
+    for(let i=0;i<6;i++){
+      h += '<td>';
+      if(!sl.enabled[i]){
+        h += 'ー';
+      }else{
+        const key = sl.rawDate + '|' + i;
+        const val = availability[key] || '';
+        const cls = val === '○' ? ' on' : (val === '△' ? ' tri' : '');
+        h += '<button class="slot' + cls + '" type="button" data-key="' + key + '"' + (locked ? ' disabled' : '') + '>' + val + '</button>';
+      }
+      h += '</td>';
+    }
+    h += '</tr>';
+  });
+
+  h += '</tbody></table>';
+  $('tableArea').innerHTML = h;
 }
 
-function escapeHtml(s) {
-  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function toggle(key){
+  if(locked) return;
+  const cur = availability[key] || '';
+  if(cur === '') availability[key] = '○';
+  else if(cur === '○') availability[key] = '△';
+  else delete availability[key];
+  render();
 }
+
+async function save(){
+  if(locked){
+    showMsg('saveMsg','締め切りを過ぎているため変更できません。');
+    return;
+  }
+
+  const entries = [];
+  slots.forEach(sl => {
+    if(sl.holiday) return;
+    for(let i=0;i<6;i++){
+      if(!sl.enabled[i]) continue;
+      const key = sl.rawDate + '|' + i;
+      const val = availability[key] || '';
+      if(val === '○' || val === '△'){
+        entries.push({ rawDate:sl.rawDate, slotIndex:i, value:val });
+      }
+    }
+  });
+
+  $('saveBtn').disabled = true;
+  showMsg('saveMsg','保存中です...', true);
+
+  try{
+    const r = await jsonp({
+      action:'saveAvailability',
+      code:teacher.code,
+      school,
+      entries:JSON.stringify(entries)
+    });
+    if(!r.ok) throw new Error(r.error || '保存できませんでした');
+    showMsg('saveMsg','保存しました。登録数：' + r.saved + '件', true);
+  }catch(e){
+    showMsg('saveMsg', e.message || String(e));
+  }finally{
+    $('saveBtn').disabled = false;
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  clearOldStorageOnce();
+
+  const oldCode = localStorage.getItem(STORAGE_PREFIX + 'code');
+  if(oldCode) $('codeInput').value = oldCode;
+
+  $('schoolShinryo').addEventListener('click', () => setSchool('神領'));
+  $('schoolOtemachi').addEventListener('click', () => setSchool('大手町'));
+  $('loginBtn').addEventListener('click', login);
+  $('saveBtn').addEventListener('click', save);
+
+  document.addEventListener('click', e => {
+    const b = e.target.closest('.slot');
+    if(!b) return;
+    toggle(b.dataset.key);
+  });
+});
 </script>
 </body>
 </html>
