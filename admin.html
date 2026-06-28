@@ -46,7 +46,7 @@ input[type=date]{font-size:15px;padding:9px;border:1px solid #d1d5db;border-radi
 }
 </style></head>
 <body>
-<div class="hero"><h1>夏休み出勤管理 <span style="font-size:12px">Ver.1.8</span></h1><p>個別指導ステップ</p></div>
+<div class="hero"><h1>夏休み出勤管理 <span style="font-size:12px">Ver.1.9</span></h1><p>個別指導ステップ</p></div>
 <div class="wrap">
 <div class="schools no-print"><button id="schoolShinryo" class="school active">神領校</button><button id="schoolOtemachi" class="school">大手町校</button></div>
 <div class="tabs no-print"><button id="tabSlots" class="tab active">授業枠設定</button><button id="tabDeadline" class="tab">締切設定</button><button id="tabTeachers" class="tab">先生別一覧</button></div>
@@ -70,10 +70,10 @@ input[type=date]{font-size:15px;padding:9px;border:1px solid #d1d5db;border-radi
 <div class="row no-print"><button class="gray" id="reloadTeachersBtn">再読み込み</button><button class="warn long" id="bulkWriteBtn">時間割に一括登録</button><button class="gray" id="printSelectBtn">印刷する</button></div>
 <div id="teachersArea"></div><div id="teachersMsg" class="msg"></div>
 </section>
-<div class="small no-print" style="text-align:center;margin:18px">Build 2026-06-28 11:34</div>
+<div class="small no-print" style="text-align:center;margin:18px">Build 2026-06-28 11:52</div>
 </div>
 
-<div id="savePopup" class="popup no-print"><div class="popupBox">保存しました</div></div>
+<div id="savePopup" class="popup no-print"><div class="popupBox" id="savePopupText">保存しました</div></div>
 <div id="selectModal" class="modal no-print"><div class="modal-box"><h3 id="modalTitle">対象の先生を選択</h3><div class="row"><button class="gray" onclick="selectAllTeachers(true)">全員選択</button><button class="gray" onclick="selectAllTeachers(false)">全員解除</button></div><div id="teacherChecks" class="teacher-checks"></div><div class="row" style="margin-top:14px"><button class="primary" id="modalRunBtn">実行</button><button class="danger" onclick="closeModal()">閉じる</button></div></div></div>
 
 <script>
@@ -85,7 +85,7 @@ function ymdToInput(s){return s?String(s).replaceAll('/','-').slice(0,10):''}
 function inputToYmd(s){return s?String(s).replaceAll('-','/'):''}
 function inputDateToRaw(id){const v=$(id).value;if(!v)return '';const p=v.split('-');return p[0]+'/'+p[1]+'/'+p[2]}
 function dateLabel(raw){if(!raw)return '';const d=new Date(String(raw).replaceAll('/','-'));if(isNaN(d))return raw;return raw.replaceAll('-','/')+'（'+'日月火水木金土'[d.getDay()]+'）'}
-function jsonp(params){return new Promise((resolve,reject)=>{const cb='cb_'+Date.now()+'_'+Math.random().toString(36).slice(2);const url=new URL(GAS_API);Object.entries(params).forEach(([k,v])=>url.searchParams.set(k,v));url.searchParams.set('callback',cb);url.searchParams.set('_',Date.now());const script=document.createElement('script');const timer=setTimeout(()=>{cleanup();reject(new Error('通信タイムアウト'))},20000);function cleanup(){clearTimeout(timer);delete window[cb];if(script.parentNode)script.parentNode.removeChild(script)}window[cb]=data=>{cleanup();resolve(data)};script.onerror=()=>{cleanup();reject(new Error('GAS通信に失敗しました'))};script.src=url.toString();document.body.appendChild(script)})}
+function jsonp(params){return new Promise((resolve,reject)=>{const cb='cb_'+Date.now()+'_'+Math.random().toString(36).slice(2);const url=new URL(GAS_API);Object.entries(params).forEach(([k,v])=>url.searchParams.set(k,v));url.searchParams.set('callback',cb);url.searchParams.set('_',Date.now());const script=document.createElement('script');const timer=setTimeout(()=>{cleanup();reject(new Error('通信タイムアウト'))},90000);function cleanup(){clearTimeout(timer);delete window[cb];if(script.parentNode)script.parentNode.removeChild(script)}window[cb]=data=>{cleanup();resolve(data)};script.onerror=()=>{cleanup();reject(new Error('GAS通信に失敗しました'))};script.src=url.toString();document.body.appendChild(script)})}
 function setSchool(s){school=s;$('schoolShinryo').classList.toggle('active',s==='神領');$('schoolOtemachi').classList.toggle('active',s==='大手町');loadActive()}
 function setTab(t){activeTab=t;$('tabSlots').classList.toggle('active',t==='slots');$('tabDeadline').classList.toggle('active',t==='deadline');$('tabTeachers').classList.toggle('active',t==='teachers');$('viewSlots').classList.toggle('hidden',t!=='slots');$('viewDeadline').classList.toggle('hidden',t!=='deadline');$('viewTeachers').classList.toggle('hidden',t!=='teachers');loadActive()}
 function loadActive(){if(activeTab==='slots')loadSlots();if(activeTab==='deadline')loadDeadlines();if(activeTab==='teachers')loadTeachers()}
@@ -98,7 +98,8 @@ function deleteDay(idx){if(confirm(dateLabel(slotConfig[idx].rawDate)+' を削�
 function addDateRaw(raw){if(!raw){showMsg('slotsMsg','日付を選んでください。',false);return false}if(slotConfig.some(r=>r.rawDate===raw)){showMsg('slotsMsg','同じ日付があります。',false);return false}slotConfig.push({rawDate:raw,date:dateLabel(raw),holiday:false,enabled:[true,true,true,true,true,true]});slotConfig.sort((a,b)=>a.rawDate<b.rawDate?-1:1);renderSlots();return true}
 function addSingleDate(){const ok=addDateRaw(inputDateToRaw('singleDate'));if(ok){$('singleDate').value='';showMsg('slotsMsg','授業日を追加しました。保存ボタンを押すと反映されます。',true)}}
 function makeRange(){const s=$('rangeStart').value,e=$('rangeEnd').value;if(!s||!e){showMsg('slotsMsg','開始日と終了日を選んでください。',false);return}const sp=s.split('-').map(Number),ep=e.split('-').map(Number);const start=new Date(sp[0],sp[1]-1,sp[2]),end=new Date(ep[0],ep[1]-1,ep[2]);if(start>end){showMsg('slotsMsg','終了日は開始日より後にしてください。',false);return}const map={};slotConfig.forEach(r=>map[r.rawDate]=r);for(let d=new Date(start);d<=end;d.setDate(d.getDate()+1)){const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),day=String(d.getDate()).padStart(2,'0');const raw=y+'/'+m+'/'+day;if(!map[raw])map[raw]={rawDate:raw,date:dateLabel(raw),holiday:false,enabled:[true,true,true,true,true,true]}}slotConfig=Object.values(map).sort((a,b)=>a.rawDate<b.rawDate?-1:1);renderSlots();showMsg('slotsMsg','期間の枠を作成しました。保存ボタンを押すと反映されます。',true)}
-async function saveSlots(){document.querySelectorAll('#slotsArea input[type=checkbox]').forEach(cb=>{const idx=Number(cb.dataset.idx),slot=Number(cb.dataset.slot);slotConfig[idx].enabled[slot]=cb.checked});showMsg('slotsMsg','保存中...',true);try{const r=await jsonp({action:'saveSlotConfig',school,config:JSON.stringify(slotConfig)});if(!r.ok)throw new Error(r.error||'保存できません');showMsg('slotsMsg','保存しました。件数：'+r.saved,true);showSavePopup()}catch(e){showMsg('slotsMsg',e.message||String(e),false)}}
+async function saveSlots(){document.querySelectorAll('#slotsArea input[type=checkbox]').forEach(cb=>{const idx=Number(cb.dataset.idx),slot=Number(cb.dataset.slot);slotConfig[idx].enabled[slot]=cb.checked});showMsg('slotsMsg','保存中...',true);showSavingPopup('保存中です...');try{const r=await jsonp({action:'saveSlotConfig',school,config:JSON.stringify(slotConfig)});if(!r.ok)throw new Error(r.error||'保存できません');showMsg('slotsMsg','保存しました。件数：'+r.saved,true);showSavePopup()}catch(e){hideSavingPopup();showMsg('slotsMsg','保存確認中に通信エラーが出ました。シートを再読み込みして、保存されているか確認してください。
+'+(e.message||String(e)),false)}}
 
 async function loadDeadlines(){showMsg('deadlineMsg','読み込み中...',true);try{const r=await jsonp({action:'getDeadlines'});if(!r.ok)throw new Error(r.error||'取得できません');$('deadlineShinryo').value=ymdToInput(r['神領']);$('deadlineOtemachi').value=ymdToInput(r['大手町']);updateDeadlineLabels();showMsg('deadlineMsg','読み込みました。',true)}catch(e){showMsg('deadlineMsg',e.message||String(e),false)}}
 function updateDeadlineLabels(){$('deadlineShinryoLabel').textContent=dateLabel(inputToYmd($('deadlineShinryo').value));$('deadlineOtemachiLabel').textContent=dateLabel(inputToYmd($('deadlineOtemachi').value))}
@@ -112,6 +113,8 @@ function selectAllTeachers(v){document.querySelectorAll('.teacherCheck').forEach
 function selectedCodesFromModal(){return Array.from(document.querySelectorAll('.teacherCheck:checked')).map(c=>c.value)}
 async function runModal(){const codes=selectedCodesFromModal();closeModal();if(modalMode==='print'){printFilterCodes=codes;renderTeachers(lastTeacherResult);setTimeout(()=>{window.print();printFilterCodes=null;renderTeachers(lastTeacherResult)},200)}else{await bulkWrite(codes)}}
 async function bulkWrite(codes){const count=codes&&codes.length?codes.length:teacherData.length;if(!confirm(school+'校の '+count+' 名を「全体時間割」へ一括登録します。よろしいですか？'))return;showMsg('teachersMsg','時間割へ書き込み中...',true);try{const r=await jsonp({action:'bulkWriteToSchedule',school,codes:JSON.stringify(codes||[])});if(!r.ok)throw new Error(r.error||'一括登録できません');let msg='時間割へ一括登録しました。書き込み：'+r.written+'件';if(r.addedRows)msg+='、追加行：'+r.addedRows+'行';if(r.notFound&&r.notFound.length)msg+='\n\n※日付が見つからない日：\n'+r.notFound.join('\n');showMsg('teachersMsg',msg,true)}catch(e){showMsg('teachersMsg',e.message||String(e),false)}}
-function showSavePopup(){const p=$('savePopup');p.style.display='flex';setTimeout(()=>{p.style.display='none'},1500)}
+function showSavingPopup(text){$('savePopupText').textContent=text||'保存中です...';$('savePopup').style.display='flex'}
+function hideSavingPopup(){ $('savePopup').style.display='none' }
+function showSavePopup(){ $('savePopupText').textContent='保存しました'; $('savePopup').style.display='flex'; setTimeout(()=>{$('savePopup').style.display='none'},1500)}
 document.addEventListener('DOMContentLoaded',()=>{$('schoolShinryo').onclick=()=>setSchool('神領');$('schoolOtemachi').onclick=()=>setSchool('大手町');$('tabSlots').onclick=()=>setTab('slots');$('tabDeadline').onclick=()=>setTab('deadline');$('tabTeachers').onclick=()=>setTab('teachers');$('makeRangeBtn').onclick=makeRange;$('addSingleDateBtn').onclick=addSingleDate;$('saveSlotsBtn').onclick=saveSlots;$('reloadSlotsBtn').onclick=loadSlots;$('deadlineShinryo').onchange=updateDeadlineLabels;$('deadlineOtemachi').onchange=updateDeadlineLabels;$('reloadDeadlineBtn').onclick=loadDeadlines;$('reloadTeachersBtn').onclick=loadTeachers;$('bulkWriteBtn').onclick=()=>openSelectModal('bulk');$('printSelectBtn').onclick=()=>openSelectModal('print');$('modalRunBtn').onclick=runModal;loadSlots()});
 </script></body></html>
