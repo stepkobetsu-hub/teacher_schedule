@@ -18,11 +18,11 @@ input{width:100%;font-size:24px;text-align:center;padding:13px;border:2px solid 
 .primary{width:100%;background:#3158d6;color:#fff;margin-top:18px;font-size:22px}
 .msg{display:none;margin-top:14px;padding:12px;border-radius:12px;font-weight:900;white-space:pre-wrap;line-height:1.5}
 .ok{display:block;background:#ecfdf5;color:#166534;border:1px solid #a7f3d0;font-size:18px;text-align:center}.err{display:block;background:#fff7ed;color:#8a3a1c;border:1px solid #fed7aa}
-.logout{background:#c62828;color:#fff;border-radius:999px;padding:7px 13px;font-size:13px;line-height:1}.topBack{position:fixed;right:8px;top:6px;z-index:100;background:#fff;color:#2749b8;border:2px solid #2749b8;border-radius:999px;padding:6px 10px;font-size:12px;line-height:1}
+.logout{background:#c62828;color:#fff;border-radius:999px;padding:6px 11px;font-size:12px;line-height:1}.topBack{position:fixed;left:8px;top:6px;z-index:100;background:#fff;color:#2749b8;border:2px solid #2749b8;border-radius:999px;padding:6px 10px;font-size:12px;line-height:1}
 .top{position:sticky;top:0;z-index:20;background:#2749b8;color:#fff;padding:10px 12px}.topLine{display:flex;justify-content:space-between;align-items:center;gap:10px}
 .name{font-size:25px;font-weight:950;text-align:center;flex:1}.actions{display:flex;gap:8px}.mini{background:#fff;color:#2749b8;padding:8px 12px;font-size:13px}
-.legend{background:#fff;border-radius:12px;padding:10px;margin-bottom:10px;line-height:1.7;font-weight:700}.tableWrap{overflow-x:auto;overflow-y:visible;background:#fff;border-radius:12px;box-shadow:0 4px 12px rgba(15,23,42,.05);max-width:100%;-webkit-overflow-scrolling:touch}
-table{border-collapse:collapse;width:100%;min-width:540px}th{background:#374151;color:#fff;position:sticky;top:58px;z-index:15;font-size:12px;padding:8px 4px}
+.legend{background:#fff;border-radius:12px;padding:10px;margin-bottom:10px;line-height:1.7;font-weight:700}.tableWrap{overflow:auto;background:#fff;border-radius:12px;box-shadow:0 4px 12px rgba(15,23,42,.05);max-width:100%;max-height:62vh;-webkit-overflow-scrolling:touch}
+table{border-collapse:separate;border-spacing:0;width:100%;min-width:540px}th{background:#374151;color:#fff;position:sticky;top:0;z-index:15;font-size:12px;padding:8px 4px}
 td{border:1px solid #e5e7eb;text-align:center;padding:5px}td.date{position:sticky;left:0;background:#fff;font-size:11px;font-weight:900;min-width:96px;z-index:2}
 .slot{
 width:42px;height:42px;border:2px solid #d1d5db;background:#fff;border-radius:9px;
@@ -53,7 +53,7 @@ top:12px;
 }
 
 
-th.dateHead{left:0;z-index:18;min-width:96px}
+th.dateHead{position:sticky;left:0;top:0;z-index:25;min-width:96px}
 .save{position:sticky;bottom:0;z-index:30;background:#eef3fb;padding:12px 0 14px;width:100%;left:0;right:0}
 .save .primary{display:block;width:100%;margin:0;font-size:22px;padding:14px 16px;border-radius:14px}
 @media(max-width:640px){
@@ -61,27 +61,34 @@ th.dateHead{left:0;z-index:18;min-width:96px}
   .hero h1{font-size:22px}
   .name{font-size:24px}
   table{min-width:520px}
-  th{top:58px;font-size:11px}
+  th{top:0;font-size:11px}
   td.date{min-width:88px;font-size:10px}
   .slot{width:39px;height:39px}
   .save .primary{font-size:22px;padding:13px 16px}
 }
 
 
-.saveRow{display:grid!important;grid-template-columns:0.85fr 1.65fr!important;gap:10px!important;width:100%!important}
-.saveSmall,.saveBig{display:block!important;width:100%!important;margin:0!important;border:0!important}
-.saveSmall{background:#607d8b!important;color:#fff!important;font-size:16px!important;padding:13px 8px!important;border-radius:14px!important}
-.saveBig{background:#3158d6!important;color:#fff!important;font-size:21px!important;padding:13px 10px!important;border-radius:14px!important}
+.save{position:sticky;bottom:0;z-index:30;background:#eef3fb;padding:12px 0 14px;width:100%;left:0;right:0}
+.save .primary{display:block;width:100%;margin:0;font-size:24px;padding:15px 16px;border-radius:14px}
+@media(max-width:640px){
+  .topBack{font-size:11px;padding:5px 8px}
+  .logout{font-size:12px;padding:6px 11px}
+  table{min-width:520px}
+  .tableWrap{max-height:60vh}
+  td.date{min-width:88px;font-size:10px}
+  th.dateHead{min-width:88px}
+  .save .primary{font-size:23px;padding:14px 12px}
+}
+
+
 .savePopup{position:fixed;inset:0;z-index:999;background:rgba(0,0,0,.22);display:flex;align-items:center;justify-content:center;padding:20px}
 .savePopup.hidden{display:none}
 .savePopupBox{background:#fff;border-radius:18px;padding:28px 34px;font-size:24px;font-weight:950;color:#166534;box-shadow:0 20px 50px rgba(0,0,0,.25);text-align:center}
-@media(max-width:640px){.topBack{font-size:11px;padding:5px 8px}.logout{font-size:12px;padding:6px 11px}.savePopupBox{font-size:22px;padding:24px 28px}.saveSmall{font-size:16px!important}.saveBig{font-size:20px!important}}
-
 </style>
 </head>
 <body>
-<button id="topBackBtn" class="topBack" type="button">←トップに戻る</button>
-<div class="hero"><h1>夏休み出勤可能日登録</h1><div>個別指導ステップ <small>Supabase Ver.1.7</small></div></div>
+<button id="topBackBtn" class="topBack hidden" type="button">←トップに戻る</button>
+<div class="hero"><h1>夏休み出勤可能日登録</h1><div>個別指導ステップ <small>Supabase Ver.1.8</small></div></div>
 
 <div id="login" class="wrap"><div class="card">
 <h2>ログイン</h2>
@@ -97,7 +104,7 @@ th.dateHead{left:0;z-index:18;min-width:96px}
 <div class="wrap">
 <div class="legend">○：出勤できる ／ △：無理すれば可 ／ 空白：不可・未入力<br>ボタンは「空白 → ○ → △ → 空白」の順に変わります。</div>
 <div id="tableArea" class="tableWrap"></div>
-<div class="save"><div class="saveRow"><button id="saveOnlyBtn" class="saveSmall" type="button">保存のみ</button><button id="saveSendBtn" class="saveBig" type="button">保存して送信</button></div><div id="saveMsg" class="msg"></div></div>
+<div class="save"><button id="saveBtn" class="primary" type="button">保存する</button><div id="saveMsg" class="msg"></div></div>
 </div></div>
 
 
@@ -168,7 +175,7 @@ async function login(){
     await loadData();
     $('login').classList.add('hidden');
     $('main').classList.remove('hidden');
-    if($('logoutTop')) $('logoutTop').classList.remove('hidden');
+    if($('topBackBtn')) $('topBackBtn').classList.remove('hidden');
     $('teacherName').textContent=school+'校　'+teacher.name+'さん';
   }catch(e){
     showMsg('loginMsg','ログインできません。\n'+(e.message||String(e)),false);
@@ -214,19 +221,18 @@ function toggle(key){
   render();
 }
 
-async function save(mode='only'){
+async function save(){
   try{
-    showSavePopup(mode==='send'?'保存と送信しています。':'保存しています。');
-    showMsg('saveMsg',mode==='send'?'保存と送信しています。':'保存しています。',true);
+    showSavePopup('保存と送信しています。');
+    showMsg('saveMsg','保存と送信しています。',true);
     await rest('availability?school=eq.'+encodeURIComponent(school)+'&teacher_code=eq.'+encodeURIComponent(teacher.code),{method:'DELETE'});
     const rows=Object.entries(avail).map(([key,value])=>{
       const [date,slot]=key.split('|');
       return {school,teacher_code:teacher.code,teacher_name:teacher.name,date,slot_index:Number(slot),value};
     });
     if(rows.length>0) await rest('availability',{method:'POST',body:JSON.stringify(rows)});
-    const doneText=mode==='send'?'保存・送信しました。':'保存しました。';
-    showMsg('saveMsg',doneText,true);
-    finishSavePopup(doneText);
+    showMsg('saveMsg','保存・送信しました。',true);
+    finishSavePopup('保存・送信しました。');
   }catch(e){
     const p=$('savePopup'); if(p) p.classList.add('hidden');
     showMsg('saveMsg','保存できません。\n'+(e.message||String(e)),false);
@@ -242,6 +248,8 @@ function logout(){
 
 
 function goTop(){
+  const tw = document.querySelector('.tableWrap');
+  if(tw) tw.scrollTop = 0;
   window.scrollTo({top:0,left:0,behavior:'smooth'});
 }
 function showSavePopup(text){
@@ -264,8 +272,7 @@ document.addEventListener('click',e=>{
 $('s1').addEventListener('click',()=>setSchool('神領'));
 $('s2').addEventListener('click',()=>setSchool('大手町'));
 $('loginBtn').addEventListener('click',login);
-if($('saveOnlyBtn')) $('saveOnlyBtn').addEventListener('click',()=>save('only'));
-if($('saveSendBtn')) $('saveSendBtn').addEventListener('click',()=>save('send'));
+$('saveBtn').addEventListener('click',save);
 $('printBtn').addEventListener('click',()=>window.print());
 if($('logoutTop')) $('logoutTop').addEventListener('click',logout);
 if($('topBackBtn')) $('topBackBtn').addEventListener('click',goTop);
@@ -274,7 +281,10 @@ document.addEventListener('DOMContentLoaded',()=>{
   const savedCode=localStorage.getItem('step_teacher_code');
   const savedSchool=localStorage.getItem('step_teacher_school');
   if(savedSchool) setSchool(savedSchool);
-  if(savedCode) $('code').value=savedCode;
+  if(savedCode){
+    $('code').value=savedCode;
+    setTimeout(()=>login(),250);
+  }
 });
 </script>
 </body>
