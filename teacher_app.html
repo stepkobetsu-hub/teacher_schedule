@@ -2,22 +2,512 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>出勤登録 - 個別指導ステップ</title>
-<meta http-equiv="refresh" content="0; url=https://script.google.com/macros/s/AKfycbz8WuWu7rGAx96_7Bz5YLaN5lW2fAZg_NY4JwjJwlX2cabLv603ey5mCMGpCfHoEil1cw/exec">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>夏休み出勤可能日登録 - 個別指導ステップ</title>
 <style>
-body{font-family:sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;background:#f0f4f8;margin:0}
-.box{text-align:center;padding:40px 24px;background:#fff;border-radius:16px;box-shadow:0 4px 16px rgba(0,0,0,.1);max-width:320px;width:90%}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:Arial,"Hiragino Sans","Yu Gothic",sans-serif;
+  background:#edf4ff;
+  color:#1f2937;
+}
+.app{
+  max-width:560px;
+  min-height:100vh;
+  margin:0 auto;
+  background:#f4f7ff;
+}
+.hero{
+  background:linear-gradient(135deg,#38bdf8,#2563eb);
+  color:#fff;
+  padding:28px 20px 34px;
+  text-align:center;
+}
+.hero h1{
+  margin:0;
+  font-size:30px;
+  font-weight:900;
+  line-height:1.25;
+}
+.hero p{
+  margin:10px 0 0;
+  font-size:16px;
+  font-weight:800;
+  opacity:.95;
+}
+.card{
+  background:#fff;
+  border-radius:22px;
+  padding:22px;
+  margin:18px;
+  box-shadow:0 10px 28px rgba(15,23,42,.10);
+}
+h2{
+  color:#2563eb;
+  text-align:center;
+  margin:4px 0 18px;
+  font-size:24px;
+}
+.label{
+  font-weight:900;
+  margin:18px 0 8px;
+  display:block;
+}
+.schoolBtns{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+}
+.schoolBtn{
+  min-height:76px;
+  border:3px solid #d1d5db;
+  background:#fff;
+  color:#374151;
+  border-radius:18px;
+  font-size:22px;
+  font-weight:900;
+}
+.schoolBtn.active{
+  border-color:#2563eb;
+  background:#eff6ff;
+  color:#1d4ed8;
+}
+input{
+  width:100%;
+  border:2px solid #d1d5db;
+  border-radius:14px;
+  padding:16px;
+  font-size:22px;
+  text-align:center;
+}
+button{
+  width:100%;
+  border:0;
+  border-radius:16px;
+  padding:16px;
+  margin-top:18px;
+  font-size:20px;
+  font-weight:900;
+  color:#fff;
+  background:#2563eb;
+}
+button:disabled{
+  background:#9ca3af;
+}
+.subBtn{
+  background:#eef2ff;
+  color:#1e3a8a;
+  border:1px solid #c7d2fe;
+}
+.notice{
+  background:#fff7ed;
+  border:1px solid #fed7aa;
+  color:#9a3412;
+  border-radius:14px;
+  padding:13px;
+  margin-top:14px;
+  font-weight:800;
+  line-height:1.6;
+}
+.okNotice{
+  background:#ecfdf5;
+  border-color:#bbf7d0;
+  color:#166534;
+}
+.hidden{display:none!important}
+.teacherName{
+  text-align:center;
+  font-size:28px;
+  font-weight:900;
+  color:#111827;
+  background:#f8fbff;
+  border:1px solid #e5edf7;
+  border-radius:18px;
+  padding:14px;
+  margin-bottom:12px;
+}
+.deadlineBox{
+  text-align:center;
+  background:#eff6ff;
+  border:1px solid #bfdbfe;
+  color:#1d4ed8;
+  border-radius:14px;
+  padding:12px;
+  margin:12px 0;
+  font-weight:900;
+}
+.legend{
+  display:grid;
+  grid-template-columns:1fr 1fr 1fr;
+  gap:8px;
+  margin:14px 0;
+}
+.legend div{
+  background:#fff;
+  border:1px solid #e5e7eb;
+  border-radius:12px;
+  padding:9px;
+  text-align:center;
+  font-size:13px;
+  font-weight:900;
+}
+.dayCard{
+  background:#fff;
+  border:1px solid #e5e7eb;
+  border-radius:18px;
+  margin:14px 0;
+  overflow:hidden;
+}
+.dayTitle{
+  background:#f8fafc;
+  font-size:18px;
+  font-weight:900;
+  color:#111827;
+  padding:13px 14px;
+  border-bottom:1px solid #e5e7eb;
+}
+.holiday{
+  background:#fef3c7;
+  color:#92400e;
+  text-align:center;
+  font-weight:900;
+  padding:18px;
+}
+.slotRow{
+  display:grid;
+  grid-template-columns:112px 1fr 1fr 1fr;
+  gap:6px;
+  align-items:center;
+  padding:10px 10px;
+  border-bottom:1px solid #f1f5f9;
+}
+.slotRow:last-child{border-bottom:0}
+.slotTime{
+  font-size:14px;
+  font-weight:900;
+  color:#374151;
+}
+.choice{
+  border:2px solid #e5e7eb;
+  background:#fff;
+  color:#334155;
+  border-radius:12px;
+  padding:10px 4px;
+  font-size:15px;
+  font-weight:900;
+  margin:0;
+}
+.choice.selected.ok{
+  background:#dcfce7;
+  border-color:#22c55e;
+  color:#166534;
+}
+.choice.selected.maybe{
+  background:#fef3c7;
+  border-color:#f59e0b;
+  color:#92400e;
+}
+.choice.selected.none{
+  background:#fee2e2;
+  border-color:#ef4444;
+  color:#991b1b;
+}
+.loading{
+  text-align:center;
+  color:#2563eb;
+  font-weight:900;
+  padding:20px;
+}
+.footerSpace{height:28px}
+@media(max-width:430px){
+  .slotRow{grid-template-columns:96px 1fr 1fr 1fr}
+  .choice{font-size:14px;padding:9px 2px}
+  .hero h1{font-size:27px}
+}
 </style>
 </head>
 <body>
-<div class="box">
-  <div style="font-size:48px;margin-bottom:16px">📋</div>
-  <h1 style="font-size:18px;font-weight:bold;color:#1565C0;margin-bottom:8px">出勤登録アプリ</h1>
-  <p style="font-size:13px;color:#666;margin-bottom:20px">個別指導ステップ<br>2026年 夏期講習</p>
-  <p style="font-size:12px;color:#999;margin-bottom:16px">自動的に移動します...</p>
-  <a href="https://script.google.com/macros/s/AKfycbz8WuWu7rGAx96_7Bz5YLaN5lW2fAZg_NY4JwjJwlX2cabLv603ey5mCMGpCfHoEil1cw/exec" style="display:block;padding:14px;background:#1565C0;color:#fff;text-decoration:none;border-radius:10px;font-weight:bold;font-size:15px">開かない場合はこちら</a>
+<div class="app">
+  <section class="hero">
+    <h1>☀️ 夏休み出勤可能日登録</h1>
+    <p>個別指導ステップ</p>
+  </section>
+
+  <section id="loginCard" class="card">
+    <h2>ログイン</h2>
+    <label class="label">校舎を選んでください</label>
+    <div class="schoolBtns">
+      <button type="button" class="schoolBtn" id="btnShinryo" onclick="selectSchool('神領')">🏫 神領校</button>
+      <button type="button" class="schoolBtn" id="btnOtemachi" onclick="selectSchool('大手町')">🏫 大手町校</button>
+    </div>
+
+    <label class="label">コード番号（半角数字）</label>
+    <input id="code" type="text" inputmode="numeric" placeholder="例：7002">
+
+    <button id="loginBtn" onclick="login()">ログイン</button>
+    <div id="loginMsg" class="notice hidden"></div>
+  </section>
+
+  <section id="appCard" class="card hidden">
+    <button class="subBtn" onclick="logout()">← 別のコードでログイン</button>
+    <div class="teacherName" id="teacherName">----</div>
+    <div class="deadlineBox" id="deadlineBox">締切確認中...</div>
+
+    <div class="legend">
+      <div>○ 出勤できる</div>
+      <div>△ 無理すれば可</div>
+      <div>空欄 出勤不可</div>
+    </div>
+
+    <div id="slotsArea">
+      <div class="loading">読み込み中...</div>
+    </div>
+
+    <button id="saveBtn" onclick="save()">登録する</button>
+    <div id="saveMsg" class="notice hidden"></div>
+  </section>
+
+  <section id="completeCard" class="card hidden">
+    <h2>登録完了</h2>
+    <div class="notice okNotice">
+      登録が完了しました。<br>
+      締切前であれば、もう一度ログインして修正できます。
+    </div>
+    <button onclick="showApp()">登録内容を確認・修正する</button>
+  </section>
+
+  <div class="footerSpace"></div>
 </div>
-<script>window.location.href='https://script.google.com/macros/s/AKfycbz8WuWu7rGAx96_7Bz5YLaN5lW2fAZg_NY4JwjJwlX2cabLv603ey5mCMGpCfHoEil1cw/exec';</script>
+
+<script>
+const GAS_API = "https://script.google.com/macros/s/AKfycbz8WuWu7rGAx96_7Bz5YLaN5lW2fAZg_NY4JwjJwlX2cabLv603ey5mCMGpCfHoEil1cw/exec";
+const TIMES = ['13:00〜14:15','14:20〜15:35','15:45〜17:00','17:10〜18:25','18:35〜19:50','20:00〜21:15'];
+
+let state = {
+  school: localStorage.getItem('summerSchool') || '',
+  code: localStorage.getItem('summerCode') || '',
+  teacherName: '',
+  slots: [],
+  entries: {},
+  locked: false
+};
+
+window.addEventListener('DOMContentLoaded', () => {
+  if (state.code) document.getElementById('code').value = state.code;
+  if (state.school) selectSchool(state.school);
+});
+
+function selectSchool(school) {
+  state.school = school;
+  localStorage.setItem('summerSchool', school);
+  document.getElementById('btnShinryo').classList.toggle('active', school === '神領');
+  document.getElementById('btnOtemachi').classList.toggle('active', school === '大手町');
+}
+
+function jsonp(params) {
+  return new Promise((resolve, reject) => {
+    const cb = 'cb_' + Date.now() + '_' + Math.floor(Math.random() * 999999);
+    params.callback = cb;
+    const q = Object.keys(params).map(k => encodeURIComponent(k) + '=' + encodeURIComponent(params[k] ?? '')).join('&');
+    const s = document.createElement('script');
+    s.src = GAS_API + '?' + q;
+    const timer = setTimeout(() => {
+      cleanup();
+      reject(new Error('通信がタイムアウトしました。'));
+    }, 25000);
+    function cleanup() {
+      clearTimeout(timer);
+      delete window[cb];
+      if (s.parentNode) s.parentNode.removeChild(s);
+    }
+    window[cb] = res => {
+      cleanup();
+      resolve(res);
+    };
+    s.onerror = () => {
+      cleanup();
+      reject(new Error('通信に失敗しました。'));
+    };
+    document.body.appendChild(s);
+  });
+}
+
+function showMsg(id, text, ok=false) {
+  const el = document.getElementById(id);
+  el.textContent = text;
+  el.classList.remove('hidden');
+  el.classList.toggle('okNotice', ok);
+}
+
+async function login() {
+  const code = document.getElementById('code').value.trim();
+  document.getElementById('loginMsg').classList.add('hidden');
+  if (!state.school) {
+    showMsg('loginMsg', '校舎を選んでください。');
+    return;
+  }
+  if (!code) {
+    showMsg('loginMsg', 'コード番号を入力してください。');
+    return;
+  }
+
+  const btn = document.getElementById('loginBtn');
+  btn.disabled = true;
+  btn.textContent = '確認中...';
+
+  try {
+    const res = await jsonp({ action: 'login', code });
+    if (!res.ok) throw new Error(res.error || 'コード番号が見つかりません。');
+
+    state.code = code;
+    state.teacherName = res.name || '';
+    localStorage.setItem('summerCode', code);
+
+    document.getElementById('teacherName').textContent = state.teacherName + ' さん';
+    document.getElementById('loginCard').classList.add('hidden');
+    document.getElementById('completeCard').classList.add('hidden');
+    document.getElementById('appCard').classList.remove('hidden');
+
+    await loadAll();
+  } catch (e) {
+    showMsg('loginMsg', e.message || 'ログインできませんでした。');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'ログイン';
+  }
+}
+
+async function loadAll() {
+  document.getElementById('slotsArea').innerHTML = '<div class="loading">読み込み中...</div>';
+  document.getElementById('saveMsg').classList.add('hidden');
+  const [deadline, slots, mine] = await Promise.all([
+    jsonp({ action: 'checkDeadline', school: state.school }),
+    jsonp({ action: 'getSlots', school: state.school }),
+    jsonp({ action: 'getMyAvailability', school: state.school, code: state.code })
+  ]);
+
+  state.locked = !!deadline.locked;
+  if (deadline.deadline) {
+    document.getElementById('deadlineBox').textContent =
+      state.locked ? '締切を過ぎています：' + deadline.deadline : '締切：' + deadline.deadline;
+  } else {
+    document.getElementById('deadlineBox').textContent = '締切日は未設定です';
+  }
+
+  if (!slots.ok) throw new Error(slots.error || '授業枠を取得できませんでした。');
+  state.slots = slots.slots || [];
+  state.entries = mine.entries || {};
+  renderSlots();
+}
+
+function renderSlots() {
+  const area = document.getElementById('slotsArea');
+  area.innerHTML = '';
+
+  state.slots.forEach(day => {
+    const card = document.createElement('div');
+    card.className = 'dayCard';
+
+    if (day.holiday) {
+      card.innerHTML = '<div class="holiday">' + escapeHtml(day.date) + '</div>';
+      area.appendChild(card);
+      return;
+    }
+
+    const title = document.createElement('div');
+    title.className = 'dayTitle';
+    title.textContent = day.date;
+    card.appendChild(title);
+
+    (day.enabled || []).forEach((enabled, idx) => {
+      if (!enabled) return;
+      const key = day.rawDate + '|' + idx;
+      const val = state.entries[key] || '';
+
+      const row = document.createElement('div');
+      row.className = 'slotRow';
+      row.innerHTML =
+        '<div class="slotTime">' + TIMES[idx] + '</div>' +
+        buttonHtml(key, '○', 'ok', val) +
+        buttonHtml(key, '△', 'maybe', val) +
+        buttonHtml(key, '', 'none', val, '空欄');
+      card.appendChild(row);
+    });
+
+    area.appendChild(card);
+  });
+
+  document.getElementById('saveBtn').disabled = state.locked;
+}
+
+function buttonHtml(key, value, cls, current, label) {
+  const selected = current === value ? ' selected ' + cls : '';
+  const text = label || value;
+  return '<button type="button" class="choice ' + selected + '" onclick="setEntry(\'' + key + '\',\'' + value + '\')">' + text + '</button>';
+}
+
+function setEntry(key, value) {
+  if (state.locked) return;
+  if (value === '') delete state.entries[key];
+  else state.entries[key] = value;
+  renderSlots();
+}
+
+async function save() {
+  if (state.locked) {
+    showMsg('saveMsg', '締切を過ぎているため変更できません。');
+    return;
+  }
+
+  const entries = [];
+  Object.keys(state.entries).forEach(key => {
+    const [rawDate, slotIndex] = key.split('|');
+    entries.push({ rawDate, slotIndex: Number(slotIndex), value: state.entries[key] });
+  });
+
+  const btn = document.getElementById('saveBtn');
+  btn.disabled = true;
+  btn.textContent = '登録中...';
+  document.getElementById('saveMsg').classList.add('hidden');
+
+  try {
+    const res = await jsonp({
+      action: 'saveAvailability',
+      code: state.code,
+      school: state.school,
+      entries: JSON.stringify(entries)
+    });
+    if (!res.ok) throw new Error(res.error || '保存できませんでした。');
+
+    document.getElementById('appCard').classList.add('hidden');
+    document.getElementById('completeCard').classList.remove('hidden');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  } catch(e) {
+    showMsg('saveMsg', e.message || '保存できませんでした。');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '登録する';
+  }
+}
+
+function showApp() {
+  document.getElementById('completeCard').classList.add('hidden');
+  document.getElementById('appCard').classList.remove('hidden');
+}
+
+function logout() {
+  localStorage.removeItem('summerCode');
+  state.code = '';
+  document.getElementById('code').value = '';
+  document.getElementById('appCard').classList.add('hidden');
+  document.getElementById('completeCard').classList.add('hidden');
+  document.getElementById('loginCard').classList.remove('hidden');
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+</script>
 </body>
 </html>
