@@ -89,12 +89,7 @@ button:disabled{opacity:.55;cursor:not-allowed}
 
 .deadlinePanel{margin-left:auto;background:linear-gradient(135deg,#fff7ed,#ffffff);border:2px solid #f97316;border-radius:16px;padding:10px 12px;box-shadow:0 8px 20px rgba(249,115,22,.14);min-width:620px;max-width:720px}
 .deadlinePanelTop{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
-.deadlinePanelTitle{display:inline-flex;align-items:center;justify-content:center;
-min-width:140px;padding:10px 18px;border-radius:12px;
-font-weight:950;font-size:28px;color:#fff;white-space:nowrap}
-.deadlinePanelTitle.shinryo{background:#1565c0}
-.deadlinePanelTitle.otemachi{background:#e65100}
-.deadlineCaption{font-weight:900;color:#9a3412;font-size:22px;white-space:nowrap}
+.deadlinePanelTitle{font-weight:950;color:#9a3412;font-size:15px;white-space:nowrap}
 .deadlinePanelBody{display:flex;gap:10px;align-items:center;flex:1;min-width:380px}
 .deadlineDisplay{display:block;flex:1;border:2px solid #1565c0;background:#fff;color:#1565c0;border-radius:12px;font-size:24px;font-weight:950;padding:9px 16px;text-align:center;min-height:48px;letter-spacing:.02em}
 .deadlineDisplay:hover{background:#eff6ff}
@@ -102,16 +97,11 @@ font-weight:950;font-size:28px;color:#fff;white-space:nowrap}
 .deadlinePanel .deadlineActions button{padding:10px 14px;white-space:nowrap}
 .deadlinePanel input[type=date]{position:absolute;opacity:0;pointer-events:none;width:1px;height:1px}
 .deadlineNote{font-size:11px;color:#8a3a1c;font-weight:800;margin-top:6px;text-align:right}
-.compactMsg{font-size:13px!important;padding:8px 10px!important;margin:8px 0 0!important;border-radius:10px!important;line-height:1.35!important;text-align:left!important;min-height:0}
-.slotControls{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:14px;align-items:center;margin:10px 0 8px}
-.slotControlsLeft{min-width:0}
-.slotControlRow{align-items:center;margin:8px 0}
-.slotControlRow b{min-width:94px}
-.slotSaveBox{min-width:220px;max-width:270px;display:flex;flex-direction:column;align-items:stretch;justify-content:center;gap:4px}
-.slotSaveButtons{display:flex;gap:8px;justify-content:flex-end;align-items:center}
-.slotSaveButtons .primary{width:112px;height:54px;padding:0;font-size:18px;border-radius:13px}
-.slotSaveButtons .gray{width:92px;height:54px;padding:0;font-size:15px;border-radius:13px}
-@media(max-width:1000px){.deadlinePanel{min-width:100%;max-width:none;margin-left:0}.deadlinePanelTop{display:block}.deadlinePanelTitle{margin-bottom:6px}.deadlinePanelBody{min-width:0}.slotControls{grid-template-columns:1fr}.slotSaveBox{width:100%;max-width:none}.slotSaveButtons{justify-content:flex-start}.slotSaveButtons .primary{width:140px}.slotSaveButtons .gray{width:110px}}
+.compactMsg{font-size:13px!important;padding:9px 12px!important;margin:8px 0 0!important;border-radius:10px!important;line-height:1.35!important;text-align:left!important;min-height:0}
+.slotSaveBox{margin-left:auto;min-width:340px;display:flex;flex-direction:column;align-items:stretch;gap:4px}
+.slotSaveButtons{display:flex;gap:10px;justify-content:flex-end;align-items:center}
+.slotSaveButtons .big{min-width:230px}
+@media(max-width:1000px){.deadlinePanel{min-width:100%;max-width:none;margin-left:0}.deadlinePanelTop{display:block}.deadlinePanelTitle{margin-bottom:6px}.deadlinePanelBody{min-width:0}.slotSaveBox{margin-left:0;width:100%}}
 @media(max-width:760px){.deadlinePanelBody{flex-direction:column;align-items:stretch}.deadlinePanel .deadlineActions{justify-content:stretch}.deadlinePanel .deadlineActions button{flex:1}.deadlineDisplay{font-size:20px}}
 
 
@@ -157,8 +147,7 @@ input[type=file]{font-size:14px;padding:8px;border:1px solid #cbd5e1;border-radi
       </div>
       <div class="deadlinePanel noPrint">
         <div class="deadlinePanelTop">
-          <div id="deadlineSchoolLabel" class="deadlinePanelTitle shinryo">神領校</div>
-          <div class="deadlineCaption">講師出勤日提出：締切日</div>
+          <div id="deadlineSchoolLabel" class="deadlinePanelTitle">神領校 講師出勤日提出：締切日</div>
           <div class="deadlinePanelBody">
             <button id="deadlineDisplayBtn" class="deadlineDisplay" type="button">締切日を選択</button>
             <input id="deadlineDate" type="date">
@@ -172,25 +161,20 @@ input[type=file]{font-size:14px;padding:8px;border:1px solid #cbd5e1;border-radi
       </div>
     </div>
 
-    <div class="slotControls noPrint">
-      <div class="slotControlsLeft">
-        <div class="row slotControlRow">
-          <b>期間設定</b>
-          <input id="rangeStart" type="date"> <span>〜</span> <input id="rangeEnd" type="date">
-          <button id="makeRange" class="blue" type="button">期間の枠を作成</button>
-        </div>
+    <div class="row noPrint">
+      <b>期間設定</b>
+      <input id="rangeStart" type="date"> <span>〜</span> <input id="rangeEnd" type="date">
+      <button id="makeRange" class="gray" type="button">期間の枠を作成</button>
+    </div>
 
-        <div class="row slotControlRow">
-          <b>授業日の追加</b>
-          <input id="singleDate" type="date">
-          <button id="addDay" class="blue" type="button">授業日を追加</button>
-        </div>
-      </div>
-
+    <div class="row noPrint">
+      <b>授業日の追加</b>
+      <input id="singleDate" type="date">
+      <button id="addDay" class="blue" type="button">授業日を追加</button>
       <div class="slotSaveBox">
         <div class="slotSaveButtons">
-          <button id="saveSlots" class="primary" type="button">保存</button>
-          <button id="reloadSlots" class="gray" type="button">再読込</button>
+          <button id="saveSlots" class="primary big" type="button">保存する</button>
+          <button id="reloadSlots" class="gray" type="button">再読み込み</button>
         </div>
         <div id="slotsMsg" class="msg compactMsg"></div>
       </div>
@@ -576,12 +560,7 @@ async function saveSlots(){
 
 async function loadDeadline(showNotice=false){
   try{
-    if($('deadlineSchoolLabel')){
- const el=$('deadlineSchoolLabel');
- el.textContent=school+'校';
- el.classList.toggle('shinryo',school==='神領');
- el.classList.toggle('otemachi',school==='大手町');
-}
+    if($('deadlineSchoolLabel')) $('deadlineSchoolLabel').textContent = school + '校 講師出勤日提出：締切日';
     const rows = await rest('deadlines?select=school,deadline&school=eq.'+encodeURIComponent(school));
     const d = rows && rows.length ? rows[0].deadline : '';
     $('deadlineDate').value = d ? String(d).replaceAll('/','-').slice(0,10) : '';
@@ -630,7 +609,7 @@ async function saveDeadline(){
 async function loadTeachersView(){
   msg('teachersMsg','読み込み中...',true);
   try{
-    const t = await rest('teachers?select=code,name,school,active&school=eq.'+encodeURIComponent(school)+'&active=eq.true&order=code.asc');
+    const t = await rest('teachers?select=code,name,active&active=eq.true&order=code.asc');
     const d = await rest('class_days?select=school,date,slots&school=eq.'+encodeURIComponent(school)+'&order=date.asc');
     const a = await rest('availability?select=school,teacher_code,date,slot_index,value&school=eq.'+encodeURIComponent(school));
 
@@ -695,7 +674,7 @@ function renderTeachers(){
 async function loadStatusView(){
   msg('statusMsg','読み込み中...',true);
   try{
-    const t = await rest('teachers?select=code,name,school,email,active&school=eq.'+encodeURIComponent(school)+'&active=eq.true&order=code.asc');
+    const t = await rest('teachers?select=code,name,email,active&active=eq.true&order=code.asc');
     const a = await rest('availability?select=teacher_code,teacher_name,date,slot_index,value,school&school=eq.'+encodeURIComponent(school));
 
     const teacherRows = t || [];
@@ -895,15 +874,14 @@ async function loadTeacherMaster(){
   try{
     const showActive = $('showActiveTeachers') ? $('showActiveTeachers').checked : true;
     const showInactive = $('showInactiveTeachers') ? $('showInactiveTeachers').checked : false;
-    const rows = await rest('teachers?select=code,name,school,email,active,retired_at&order=code.asc');
+    const rows = await rest('teachers?select=code,name,email,active,retired_at&order=code.asc');
     const filtered = (rows||[]).filter(t => (t.active && showActive) || (!t.active && showInactive));
-    let h='<table><thead><tr><th>コード</th><th>氏名</th><th>校舎</th><th>メール</th><th>状態</th><th>無効化日</th><th class="noPrint">操作</th></tr></thead><tbody>';
+    let h='<table><thead><tr><th>コード</th><th>氏名</th><th>メール</th><th>状態</th><th>無効化日</th><th class="noPrint">操作</th></tr></thead><tbody>';
     filtered.forEach(t=>{
       const active = !!t.active;
       h+='<tr class="'+(active?'':'inactiveRow')+'">';
       h+='<td>'+escapeHtml(t.code)+'</td>';
       h+='<td>'+escapeHtml(t.name)+'</td>';
-      h+='<td>'+escapeHtml(t.school||'')+'</td>';
       h+='<td>'+escapeHtml(t.email||'')+'</td>';
       h+='<td><span class="statusBadge '+(active?'on':'off')+'">'+(active?'有効':'無効')+'</span></td>';
       h+='<td>'+(t.retired_at ? escapeHtml(String(t.retired_at)) : '')+'</td>';
@@ -958,7 +936,7 @@ async function addTeacher(){
     const name=$('newName').value.trim();
     if(!code||!name){msg('teacherMasterMsg','コードと氏名を入力してください。',false);return}
 
-    const row={code:code,name:name,school:school,active:true};
+    const row={code:code,name:name,active:true};
     await autoBackup('講師追加/更新前');
     await rest('teachers',{method:'POST',body:JSON.stringify(row),headers:{Prefer:'resolution=merge-duplicates'}});
 
@@ -1118,7 +1096,6 @@ function rowsToTeachers(rows){
     const row = {
       code: code,
       name: name,
-      school: school,
       email: email || null,
       active: isActive
     };
@@ -1141,7 +1118,7 @@ async function syncTeachersFromSheetUrl(){
       return;
     }
 
-    if(!confirm('Googleスプレッドシートから ' + school + '校 の講師マスターを同期します。よろしいですか？')) return;
+    if(!confirm('Googleスプレッドシートから講師マスターを同期します。よろしいですか？')) return;
 
     setImportBusy(true,'Googleスプレッドシートから取得中...');
     await autoBackup('講師マスターURL同期前');
@@ -1195,7 +1172,6 @@ function parseTeacherPaste(text){
     const row = {
       code: code,
       name: name,
-      school: school,
       email: email || null,
       active: isActive
     };
@@ -1223,7 +1199,7 @@ async function importTeachersFromPaste(){
 
     const activeCount = rows.filter(t=>t.active).length;
     const inactiveCount = rows.length - activeCount;
-    if(!confirm(rows.length + '名を ' + school + '校 の講師として同期します。\n有効：' + activeCount + '名 / 無効：' + inactiveCount + '名\nよろしいですか？')) return;
+    if(!confirm(rows.length + '名を講師として同期します。\n有効：' + activeCount + '名 / 無効：' + inactiveCount + '名\nよろしいですか？')) return;
 
     setImportBusy(true,'一括登録中...');
     await autoBackup('講師マスター貼り付け同期前');
