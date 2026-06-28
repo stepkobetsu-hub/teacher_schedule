@@ -5,58 +5,199 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>夏休み出勤可能日登録</title>
 <style>
-*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,"Noto Sans JP",sans-serif;background:#eef3fb;color:#111827}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Noto Sans JP",sans-serif;background:#eef3fb;color:#111827}
 .hero{background:linear-gradient(135deg,#4aa9f5,#3158d6);color:#fff;text-align:center;padding:24px 16px}
-.hero h1{font-size:24px;margin:0 0 6px}.hero small{font-size:12px}
+.hero h1{font-size:22px;margin:0 0 6px;font-weight:900}.hero small{font-size:12px}
 .wrap{max-width:820px;margin:0 auto;padding:16px}.card{background:#fff;border-radius:18px;padding:22px;box-shadow:0 12px 30px rgba(15,23,42,.08)}
 h2{text-align:center;color:#3158d6}label{display:block;font-weight:900;margin:14px 0 7px}
-.schoolRow{display:grid;grid-template-columns:1fr 1fr;gap:10px}button{border:0;border-radius:12px;padding:14px;font-weight:900;font-size:16px;cursor:pointer}
+.schoolRow{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+button{border:0;border-radius:12px;padding:14px;font-weight:900;font-size:16px;cursor:pointer}
 .schoolBtn{background:#fff;border:2px solid #d1d5db;color:#111827}.schoolBtn.on{border-color:#3158d6;background:#eff6ff;color:#3158d6}
-input{width:100%;font-size:24px;text-align:center;padding:13px;border:2px solid #d1d5db;border-radius:12px}.primary{width:100%;background:#3158d6;color:#fff;margin-top:18px;font-size:22px}
-.msg{display:none;margin-top:14px;padding:12px;border-radius:12px;font-weight:900;white-space:pre-wrap}.ok{display:block;background:#ecfdf5;color:#166534;border:1px solid #a7f3d0}.err{display:block;background:#fff7ed;color:#8a3a1c;border:1px solid #fed7aa}
+input{width:100%;font-size:24px;text-align:center;padding:13px;border:2px solid #d1d5db;border-radius:12px}
+.primary{width:100%;background:#3158d6;color:#fff;margin-top:18px;font-size:22px}
+.msg{display:none;margin-top:14px;padding:12px;border-radius:12px;font-weight:900;white-space:pre-wrap;line-height:1.5}
+.ok{display:block;background:#ecfdf5;color:#166534;border:1px solid #a7f3d0}.err{display:block;background:#fff7ed;color:#8a3a1c;border:1px solid #fed7aa}
+.logout{position:fixed;left:8px;top:6px;z-index:100;background:#c62828;color:#fff;border-radius:999px;padding:5px 9px;font-size:11px}
 .top{position:sticky;top:0;z-index:20;background:#2749b8;color:#fff;padding:10px 12px}.topLine{display:flex;justify-content:space-between;align-items:center;gap:10px}
-.name{font-size:25px;font-weight:950}.actions{display:flex;gap:8px}.mini{background:#fff;color:#2749b8;padding:8px 12px;font-size:13px}.logout{position:fixed;right:8px;top:6px;z-index:100;background:#c62828;color:#fff;border-radius:999px;padding:5px 9px;font-size:11px}
-.legend{background:#fff;border-radius:12px;padding:10px;margin-bottom:10px;line-height:1.7;font-weight:700}.tableWrap{overflow:auto;background:#fff;border-radius:12px}
+.name{font-size:25px;font-weight:950;text-align:center;flex:1}.actions{display:flex;gap:8px}.mini{background:#fff;color:#2749b8;padding:8px 12px;font-size:13px}
+.legend{background:#fff;border-radius:12px;padding:10px;margin-bottom:10px;line-height:1.7;font-weight:700}.tableWrap{overflow:auto;background:#fff;border-radius:12px;box-shadow:0 4px 12px rgba(15,23,42,.05)}
 table{border-collapse:collapse;width:100%;min-width:540px}th{background:#374151;color:#fff;position:sticky;top:52px;z-index:10;font-size:12px;padding:8px 4px}
-td{border:1px solid #e5e7eb;text-align:center;padding:5px}td.date{position:sticky;left:0;background:#fff;font-size:11px;font-weight:900;min-width:96px}
+td{border:1px solid #e5e7eb;text-align:center;padding:5px}td.date{position:sticky;left:0;background:#fff;font-size:11px;font-weight:900;min-width:96px;z-index:2}
 .slot{width:42px;height:42px;border:2px solid #d1d5db;background:#fff;border-radius:9px;font-size:18px}.slot.on{background:#2563eb;color:#fff}.slot.tri{background:#f97316;color:#fff}
 .hidden{display:none}.save{position:sticky;bottom:0;background:#eef3fb;padding:10px 0}
-@media print{.hero,.actions,.logout,.legend,.save,.msg{display:none!important}body{background:#fff}.wrap{padding:0;max-width:none}.top{position:static;background:#fff;color:#000}.name{font-size:18px;color:#000}.tableWrap{overflow:visible}table{min-width:0;table-layout:fixed}th{position:static;background:#fff;color:#000;border:1px solid #000;font-size:10px}td{border:1px solid #000;color:#000;background:#fff;font-size:10px}td.date{position:static;font-size:9px}.slot{border:0;background:#fff;color:#000;width:auto;height:auto;padding:0}@page{size:A4 portrait;margin:8mm}}
 </style>
 </head>
 <body>
 <button id="logoutTop" class="logout hidden">ログアウト</button>
-<div class="hero"><h1>夏休み出勤可能日登録</h1><div>個別指導ステップ <small>Supabase Ver.1.0</small></div></div>
+<div class="hero"><h1>夏休み出勤可能日登録</h1><div>個別指導ステップ <small>Supabase Ver.1.1</small></div></div>
+
 <div id="login" class="wrap"><div class="card">
 <h2>ログイン</h2>
-<label>校舎</label><div class="schoolRow"><button id="s1" class="schoolBtn on">神領校</button><button id="s2" class="schoolBtn">大手町校</button></div>
+<label>校舎</label>
+<div class="schoolRow"><button id="s1" class="schoolBtn on" type="button">神領校</button><button id="s2" class="schoolBtn" type="button">大手町校</button></div>
 <label>コード番号</label><input id="code" inputmode="numeric" type="number" placeholder="例：7002">
-<button id="loginBtn" class="primary">ログイン</button><div id="loginMsg" class="msg"></div>
+<button id="loginBtn" class="primary" type="button">ログイン</button>
+<div id="loginMsg" class="msg"></div>
 </div></div>
+
 <div id="main" class="hidden">
-<div class="top"><div class="topLine"><div id="teacherName" class="name"></div><div class="actions"><button id="printBtn" class="mini">🖨 印刷</button></div></div></div>
+<div class="top"><div class="topLine"><div id="teacherName" class="name"></div><div class="actions"><button id="printBtn" class="mini" type="button">🖨 印刷</button></div></div></div>
 <div class="wrap">
 <div class="legend">○：出勤できる ／ △：無理すれば可 ／ 空白：不可・未入力<br>ボタンは「空白 → ○ → △ → 空白」の順に変わります。</div>
 <div id="tableArea" class="tableWrap"></div>
-<div class="save"><button id="saveBtn" class="primary">保存する</button><div id="saveMsg" class="msg"></div></div>
+<div class="save"><button id="saveBtn" class="primary" type="button">保存する</button><div id="saveMsg" class="msg"></div></div>
 </div></div>
+
 <script>
-const SUPABASE_URL='https://jbiolkvegexkqjcwtyye.supabase.co';
-const SUPABASE_KEY='sb_publishable_1si6OSrS0AGP19FstAudug_ErlLMMqX';
-const headers={apikey:SUPABASE_KEY,Authorization:'Bearer '+SUPABASE_KEY,'Content-Type':'application/json',Prefer:'return=representation'};
-let school='神領', teacher=null, days=[], avail={};
-const times=['13:00<br>14:15','14:20<br>15:35','15:45<br>17:00','17:10<br>18:25','18:35<br>19:50','20:00<br>21:15'];
-function $(id){return document.getElementById(id)}function msg(id,t,ok=true){const e=$(id);e.textContent=t||'';e.className='msg '+(ok?'ok':'err')}
-function dateLabel(raw){const p=raw.split('/').map(Number),d=new Date(p[0],p[1]-1,p[2]);return raw+'（'+'日月火水木金土'[d.getDay()]+'）'}
-async function api(path,opt={}){const r=await fetch(SUPABASE_URL+'/rest/v1/'+path,{...opt,headers:{...headers,...(opt.headers||{})}});if(!r.ok)throw new Error(await r.text());return r.status===204?null:await r.json()}
-function setSchool(s){school=s;$('s1').classList.toggle('on',s==='神領');$('s2').classList.toggle('on',s==='大手町')}
-async function login(){try{msg('loginMsg','確認中...',true);const code=$('code').value.trim();const t=await api('teachers?code=eq.'+encodeURIComponent(code)+'&active=eq.true');if(!t.length)throw new Error('コード番号が見つかりません');teacher=t[0];localStorage.setItem('step_teacher_code',code);await loadData();$('login').classList.add('hidden');$('main').classList.remove('hidden');$('logoutTop').classList.remove('hidden');$('teacherName').textContent=school+'校　'+teacher.name+'さん'}catch(e){msg('loginMsg','ログインできません。\n'+e.message,false)}}
-async function loadData(){days=await api('class_days?school=eq.'+encodeURIComponent(school)+'&order=date.asc');const rows=await api('availability?school=eq.'+encodeURIComponent(school)+'&teacher_code=eq.'+encodeURIComponent(teacher.code));avail={};rows.forEach(r=>avail[r.date+'|'+r.slot_index]=r.value);render()}
-function render(){let h='<table><thead><tr><th>日付</th>';times.forEach(t=>h+='<th>'+t+'</th>');h+='</tr></thead><tbody>';days.forEach(d=>{const closed=d.slots.every(v=>!v);h+='<tr><td class="date">'+dateLabel(d.date)+'</td>';for(let i=0;i<6;i++){if(closed||!d.slots[i])h+='<td>ー</td>';else{const k=d.date+'|'+i,v=avail[k]||'';h+='<td><button class="slot '+(v==='○'?'on':v==='△'?'tri':'')+'" data-k="'+k+'">'+v+'</button></td>'}}h+='</tr>'});h+='</tbody></table>';$('tableArea').innerHTML=h}
-function toggle(k){const v=avail[k]||'';if(v==='')avail[k]='○';else if(v==='○')avail[k]='△';else delete avail[k];render()}
-async function save(){try{msg('saveMsg','保存中...',true);await api('availability?school=eq.'+encodeURIComponent(school)+'&teacher_code=eq.'+encodeURIComponent(teacher.code),{method:'DELETE'});const rows=[];Object.entries(avail).forEach(([k,v])=>{const [date,slot]=k.split('|');rows.push({school,teacher_code:teacher.code,teacher_name:teacher.name,date,slot_index:Number(slot),value:v})});if(rows.length)await api('availability',{method:'POST',body:JSON.stringify(rows)});msg('saveMsg','保存しました',true)}catch(e){msg('saveMsg','保存できません。\n'+e.message,false)}}
-function logout(){if(confirm('ログアウトしますか？')){localStorage.removeItem('step_teacher_code');location.reload()}}
-document.addEventListener('click',e=>{const b=e.target.closest('.slot');if(b)toggle(b.dataset.k)});
-$('s1').onclick=()=>setSchool('神領');$('s2').onclick=()=>setSchool('大手町');$('loginBtn').onclick=login;$('saveBtn').onclick=save;$('printBtn').onclick=()=>window.print();$('logoutTop').onclick=logout;
+const SUPABASE_URL = 'https://jbiolkvegexkqjcwtyye.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_1si6OSrS0AGP19FstAudug_ErlLMMqX';
+
+let school = '神領';
+let teacher = null;
+let days = [];
+let avail = {};
+const timeHeaders = ['13:00<br>14:15','14:20<br>15:35','15:45<br>17:00','17:10<br>18:25','18:35<br>19:50','20:00<br>21:15'];
+
+function $(id){return document.getElementById(id)}
+function showMsg(id,text,ok=true){const el=$(id);el.textContent=text||'';el.className='msg '+(ok?'ok':'err')}
+function dateLabel(raw){const p=String(raw).replaceAll('-','/').split('/').map(Number);const d=new Date(p[0],p[1]-1,p[2]);return String(raw).replaceAll('-','/')+'（'+'日月火水木金土'[d.getDay()]+'）'}
+
+async function rest(path, options={}){
+  const res = await fetch(SUPABASE_URL + '/rest/v1/' + path, {
+    ...options,
+    headers: {
+      apikey: SUPABASE_KEY,
+      Authorization: 'Bearer ' + SUPABASE_KEY,
+      'Content-Type': 'application/json',
+      Prefer: 'return=representation',
+      ...(options.headers || {})
+    }
+  });
+  const text = await res.text();
+  if(!res.ok) throw new Error(text || ('HTTP ' + res.status));
+  if(!text) return null;
+  try{return JSON.parse(text)}catch(e){return text}
+}
+
+function setSchool(s){
+  school=s;
+  $('s1').classList.toggle('on',s==='神領');
+  $('s2').classList.toggle('on',s==='大手町');
+}
+
+async function findTeacher(code){
+  const exact = await rest('teachers?select=code,name,school,email,active&code=eq.' + encodeURIComponent(code));
+  if(Array.isArray(exact) && exact.length > 0){
+    return exact.find(t => t.active === true || String(t.active).toLowerCase()==='true') || exact[0];
+  }
+
+  const all = await rest('teachers?select=code,name,school,email,active');
+  if(!Array.isArray(all)) return null;
+  return all.find(t => String(t.code).trim() === String(code).trim() && (t.active === true || String(t.active).toLowerCase()==='true')) || null;
+}
+
+async function login(){
+  try{
+    const code=$('code').value.trim();
+    if(!code){showMsg('loginMsg','コード番号を入力してください。',false);return}
+    showMsg('loginMsg','確認中...',true);
+
+    const found = await findTeacher(code);
+    if(!found) throw new Error('コード番号が見つかりません。');
+
+    teacher=found;
+    localStorage.setItem('step_teacher_code',code);
+    localStorage.setItem('step_teacher_school',school);
+
+    await loadData();
+    $('login').classList.add('hidden');
+    $('main').classList.remove('hidden');
+    $('logoutTop').classList.remove('hidden');
+    $('teacherName').textContent=school+'校　'+teacher.name+'さん';
+  }catch(e){
+    showMsg('loginMsg','ログインできません。\n'+(e.message||String(e)),false);
+  }
+}
+
+async function loadData(){
+  days = await rest('class_days?select=school,date,slots&school=eq.' + encodeURIComponent(school) + '&order=date.asc');
+  const rows = await rest('availability?select=school,teacher_code,date,slot_index,value&school=eq.' + encodeURIComponent(school) + '&teacher_code=eq.' + encodeURIComponent(teacher.code));
+  avail={};
+  (rows||[]).forEach(r=>{avail[r.date+'|'+r.slot_index]=r.value});
+  render();
+}
+
+function render(){
+  let h='<table><thead><tr><th>日付</th>';
+  timeHeaders.forEach(t=>h+='<th>'+t+'</th>');
+  h+='</tr></thead><tbody>';
+  (days||[]).forEach(d=>{
+    const slots=Array.isArray(d.slots)?d.slots:[true,true,true,true,true,true];
+    const closed=slots.every(v=>!v);
+    h+='<tr><td class="date">'+dateLabel(d.date)+'</td>';
+    for(let i=0;i<6;i++){
+      if(closed||!slots[i]) h+='<td>ー</td>';
+      else{
+        const key=d.date+'|'+i;
+        const value=avail[key]||'';
+        const cls=value==='○'?'on':(value==='△'?'tri':'');
+        h+='<td><button class="slot '+cls+'" type="button" data-key="'+key+'">'+value+'</button></td>';
+      }
+    }
+    h+='</tr>';
+  });
+  h+='</tbody></table>';
+  $('tableArea').innerHTML=h;
+}
+
+function toggle(key){
+  const current=avail[key]||'';
+  if(current==='') avail[key]='○';
+  else if(current==='○') avail[key]='△';
+  else delete avail[key];
+  render();
+}
+
+async function save(){
+  try{
+    showMsg('saveMsg','保存中...',true);
+    await rest('availability?school=eq.'+encodeURIComponent(school)+'&teacher_code=eq.'+encodeURIComponent(teacher.code),{method:'DELETE'});
+    const rows=Object.entries(avail).map(([key,value])=>{
+      const [date,slot]=key.split('|');
+      return {school,teacher_code:teacher.code,teacher_name:teacher.name,date,slot_index:Number(slot),value};
+    });
+    if(rows.length>0) await rest('availability',{method:'POST',body:JSON.stringify(rows)});
+    showMsg('saveMsg','保存しました。',true);
+  }catch(e){
+    showMsg('saveMsg','保存できません。\n'+(e.message||String(e)),false);
+  }
+}
+
+function logout(){
+  if(!confirm('ログアウトしますか？')) return;
+  localStorage.removeItem('step_teacher_code');
+  localStorage.removeItem('step_teacher_school');
+  location.reload();
+}
+
+document.addEventListener('click',e=>{
+  const b=e.target.closest('.slot');
+  if(b) toggle(b.dataset.key);
+});
+$('s1').addEventListener('click',()=>setSchool('神領'));
+$('s2').addEventListener('click',()=>setSchool('大手町'));
+$('loginBtn').addEventListener('click',login);
+$('saveBtn').addEventListener('click',save);
+$('printBtn').addEventListener('click',()=>window.print());
+$('logoutTop').addEventListener('click',logout);
+
+document.addEventListener('DOMContentLoaded',()=>{
+  const savedCode=localStorage.getItem('step_teacher_code');
+  const savedSchool=localStorage.getItem('step_teacher_school');
+  if(savedSchool) setSchool(savedSchool);
+  if(savedCode) $('code').value=savedCode;
+});
 </script>
-</body></html>
+</body>
+</html>
