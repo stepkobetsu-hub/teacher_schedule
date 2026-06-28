@@ -286,6 +286,7 @@ input[type=file]{font-size:14px;padding:8px;border:1px solid #cbd5e1;border-radi
     <div class="row">
       <button id="teacherAllOn" class="gray" type="button">全員選択</button>
       <button id="teacherAllOff" class="gray" type="button">全員解除</button>
+      <button id="teacherRestoreSaved" class="gray" type="button">前回設定に戻す</button>
     </div>
     <div id="teacherSelectSummary" class="selectSummary"></div>
     <div id="teacherChecks" class="teacherChecks"></div>
@@ -370,7 +371,7 @@ async function rest(path, options={}){
 
 function setSchool(s){
   school=s;
-  selectedTeacherCodes=[];
+  restoreDisplaySelection();
   $('schoolS').classList.toggle('active',s==='神領');
   $('schoolO').classList.toggle('active',s==='大手町');
   if($('copySlotsSource')) $('copySlotsSource').value = (s === '神領' ? '大手町' : '神領');
@@ -614,6 +615,7 @@ async function loadTeachersView(){
     const a = await rest('availability?select=school,teacher_code,date,slot_index,value&school=eq.'+encodeURIComponent(school));
 
     teachers=t||[];
+    restoreDisplaySelection();
     slotConfig=(d||[]).map(r=>({date:r.date,slots:Array.isArray(r.slots)?r.slots:[true,true,true,true,true,true]}));
     availability=a||[];
 
@@ -958,7 +960,8 @@ function openTeacherSelect(mode){
   }
 
   $('teacherSelectTitle').textContent = mode === 'print' ? '印刷する先生を選択' : '表示する先生を選択';
-  const current = selectedTeacherCodes.length ? selectedTeacherCodes : teachers.map(t=>t.code);
+  const saved = mode === 'print' ? readSavedTeacherSelection('print') : selectedTeacherCodes;
+  const current = effectiveTeacherCodes(saved);
 
   let h='';
   teachers.forEach(t=>{
@@ -976,6 +979,51 @@ function closeTeacherSelect(){
 
 function teacherSelectAll(v){
   document.querySelectorAll('.teacherCheck').forEach(c=>c.checked=v);
+  updateTeacherSelectSummary();
+}
+
+function teacherSelectionKey(mode){
+  return 'step_teacher_' + mode + '_' + school;
+}
+
+function allTeacherCodes(){
+  return (teachers || []).map(t=>String(t.code));
+}
+
+function normalizeTeacherSelection(codes){
+  const valid = new Set(allTeacherCodes());
+  const normalized = Array.from(new Set((codes || []).map(String))).filter(code=>valid.has(code));
+  return normalized.length === 0 || normalized.length === valid.size ? [] : normalized;
+}
+
+function effectiveTeacherCodes(codes){
+  const normalized = normalizeTeacherSelection(codes);
+  return normalized.length ? normalized : allTeacherCodes();
+}
+
+function readSavedTeacherSelection(mode){
+  const text = localStorage.getItem(teacherSelectionKey(mode));
+  if(text === null) return [];
+  try{
+    const parsed = JSON.parse(text);
+    return Array.isArray(parsed) ? normalizeTeacherSelection(parsed) : [];
+  }catch(e){
+    return [];
+  }
+}
+
+function saveTeacherSelection(mode, codes){
+  localStorage.setItem(teacherSelectionKey(mode), JSON.stringify(normalizeTeacherSelection(codes)));
+}
+
+function restoreDisplaySelection(){
+  selectedTeacherCodes = readSavedTeacherSelection('display');
+}
+
+function restoreTeacherSelectionInModal(){
+  const codes = effectiveTeacherCodes(selectMode === 'print' ? readSavedTeacherSelection('print') : readSavedTeacherSelection('display'));
+  const set = new Set(codes);
+  document.querySelectorAll('.teacherCheck').forEach(c=>{ c.checked = set.has(c.value); });
   updateTeacherSelectSummary();
 }
 
@@ -998,11 +1046,14 @@ function runTeacherSelect(){
   closeTeacherSelect();
 
   if(selectMode === 'display'){
-    selectedTeacherCodes = (codes.length === teachers.length) ? [] : codes;
+    selectedTeacherCodes = normalizeTeacherSelection(codes);
+    saveTeacherSelection('display', selectedTeacherCodes);
     renderTeachers();
   }else{
     const before = selectedTeacherCodes.slice();
-    selectedTeacherCodes = (codes.length === teachers.length) ? [] : codes;
+    const printCodes = normalizeTeacherSelection(codes);
+    saveTeacherSelection('print', printCodes);
+    selectedTeacherCodes = printCodes;
     renderTeachers();
     setTimeout(()=>{
       window.print();
@@ -1242,6 +1293,7 @@ $('printBtn').onclick=()=>openTeacherSelect('print');
 $('teacherSelectClose').onclick=closeTeacherSelect;
 $('teacherAllOn').onclick=()=>teacherSelectAll(true);
 $('teacherAllOff').onclick=()=>teacherSelectAll(false);
+$('teacherRestoreSaved').onclick=restoreTeacherSelectionInModal;
 $('teacherSelectRun').onclick=runTeacherSelect;
 $('teacherChecks').addEventListener('change',updateTeacherSelectSummary);
 $('addTeacher').onclick=addTeacher;
