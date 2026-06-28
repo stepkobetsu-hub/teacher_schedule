@@ -3,418 +3,1315 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>夏休み出勤可能日登録</title>
+<title>夏休み出勤管理</title>
 <style>
 *{box-sizing:border-box}
-body{margin:0;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Noto Sans JP",sans-serif;background:#eef3fb;color:#111827;overflow-x:hidden}
-.hero{background:linear-gradient(135deg,#4aa9f5,#3158d6);color:#fff;text-align:center;padding:24px 16px}
-.hero h1{font-size:22px;margin:0 0 6px;font-weight:900}.hero small{font-size:12px}
-.wrap{max-width:820px;margin:0 auto;padding:16px}.card{background:#fff;border-radius:18px;padding:22px;box-shadow:0 12px 30px rgba(15,23,42,.08)}
-h2{text-align:center;color:#3158d6}label{display:block;font-weight:900;margin:14px 0 7px}
-.schoolRow{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-button{border:0;border-radius:12px;padding:14px;font-weight:900;font-size:16px;cursor:pointer}
-button:disabled{opacity:.55;cursor:not-allowed}
-.schoolBtn{background:#fff;border:2px solid #d1d5db;color:#111827}.schoolBtn.on{border-color:#3158d6;background:#eff6ff;color:#3158d6}
-input{width:100%;font-size:24px;text-align:center;padding:13px;border:2px solid #d1d5db;border-radius:12px}
-.primary{width:100%;background:#3158d6;color:#fff;margin-top:18px;font-size:22px}
-.msg{display:none;margin-top:14px;padding:12px;border-radius:12px;font-weight:900;white-space:pre-wrap;line-height:1.5}
-.ok{display:block;background:#ecfdf5;color:#166534;border:1px solid #a7f3d0;font-size:18px;text-align:center}.err{display:block;background:#fff7ed;color:#8a3a1c;border:1px solid #fed7aa}
-.logout{position:fixed;left:8px;top:60px;z-index:100;background:#c62828;color:#fff;border-radius:999px;padding:5px 9px;font-size:11px;line-height:1}.topBack{position:fixed;left:8px;top:8px;z-index:100;background:#fff;color:#2749b8;border:1.5px solid #2749b8;border-radius:999px;padding:4px 8px;font-size:11px;line-height:1}
-.top{position:sticky;top:0;z-index:20;background:#2749b8;color:#fff;padding:10px 12px}.topLine{display:flex;justify-content:space-between;align-items:center;gap:10px}
-.name{font-size:25px;font-weight:950;text-align:center;flex:1}.actions{display:flex;gap:8px}.mini{background:#fff;color:#2749b8;padding:8px 12px;font-size:13px}
-.legend{background:#fff;border-radius:12px;padding:10px;margin-bottom:10px;line-height:1.7;font-weight:700}.tableWrap{overflow:auto;background:#fff;border-radius:12px;box-shadow:0 4px 12px rgba(15,23,42,.05);max-width:100%;max-height:62vh;-webkit-overflow-scrolling:touch}
-table{border-collapse:separate;border-spacing:0;width:100%;min-width:540px}th{background:#374151;color:#fff;position:sticky;top:0;z-index:20;font-size:12px;padding:8px 4px}
-td{border:1px solid #e5e7eb;text-align:center;padding:5px}td.date{position:sticky;left:0;background:#fff;font-size:11px;font-weight:900;min-width:72px;width:72px;white-space:nowrap;z-index:10}
-.slot{
-width:42px;height:42px;border:2px solid #d1d5db;background:#fff;border-radius:9px;
-display:flex;align-items:center;justify-content:center;padding:0;margin:0 auto;
-font-size:0;line-height:1;position:relative;
-}
-.slot.on{background:#2563eb;color:#fff}
-.slot.tri{background:#f97316;color:#fff}
-.slot.on::before{
-content:"";display:block;width:17px;height:17px;border:3px solid #fff;border-radius:50%;
-}
-.slot.tri::before{
-content:"";display:block;width:0;height:0;
-border-left:12px solid transparent;border-right:12px solid transparent;border-bottom:22px solid #fff;
-}
-.slot.tri::after{
-content:"";position:absolute;width:0;height:0;
-border-left:8px solid transparent;border-right:8px solid transparent;border-bottom:15px solid #f97316;
-top:12px;
-}
-.hidden{display:none}.save{position:sticky;bottom:0;background:#eef3fb;padding:10px 0}
-
+body{margin:0;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Noto Sans JP",sans-serif;background:#eef3fb;color:#111827}
+.header{background:linear-gradient(135deg,#1565c0,#42a5f5);color:#fff;padding:18px 22px}
+.header h1{margin:0;font-size:22px}
+.header small{font-size:12px;margin-left:4px}
+.header p{margin:6px 0 0;font-size:12px}
+.wrap{max-width:1180px;margin:0 auto;padding:16px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:10px 0}
+button{border:0;border-radius:9px;padding:10px 15px;font-weight:800;cursor:pointer}
+.school,.tab{background:#e5e7eb;color:#111827}
+.school.active,.tab.active{background:#1565c0;color:#fff}
+.primary{background:#2e7d32;color:#fff}
+.blue{background:#1565c0;color:#fff}
+.gray{background:#607d8b;color:#fff}
+.orange{background:#e65100;color:#fff}
+.red{background:#e53935;color:#fff}
+.big{font-size:17px;padding:14px 30px;min-width:230px}
+.card{background:#fff;border-radius:14px;padding:18px;margin:14px 0;box-shadow:0 10px 24px rgba(15,23,42,.08)}
+.hidden{display:none}
+input[type=date],input[type=text]{font-size:16px;padding:9px;border:1px solid #cbd5e1;border-radius:8px}
+input[type=checkbox]{width:18px;height:18px}
+.tableWrap{overflow:auto;max-height:none}
+table{border-collapse:collapse;width:100%;min-width:840px;background:#fff}
+th{background:#374151;color:#fff;padding:8px 5px;font-size:12px;white-space:nowrap;position:sticky;top:0;z-index:2}
+td{border:1px solid #e5e7eb;text-align:center;padding:5px 4px;font-size:12px}
+td.date{font-weight:900;text-align:left;white-space:nowrap;min-width:145px}
+td.actions{min-width:210px}
+.closed td:not(.date):not(.actions){background:#f3f4f6;color:#555}
+.msg{display:none;margin-top:10px;padding:12px;border-radius:10px;font-weight:800;white-space:pre-wrap;line-height:1.5}
+.msg.ok{display:block;background:#ecfdf5;border:1px solid #a7f3d0;color:#166534}
+.msg.err{display:block;background:#fff7ed;border:1px solid #fed7aa;color:#8a3a1c}
+.teacherCard{border:1px solid #e5e7eb;border-radius:12px;margin:12px 0;overflow:hidden;background:#fff}
+.teacherTitle{background:#374151;color:#fff;font-weight:900;padding:9px 12px}
+.markIcon{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:7px;margin:0 auto}
+.markIcon.on{background:#2563eb}
+.markIcon.tri{background:#f97316}
+.markIcon.on::before{content:"";width:12px;height:12px;border:2px solid #fff;border-radius:50%}
+.markIcon.tri::before{content:"";width:0;height:0;border-left:9px solid transparent;border-right:9px solid transparent;border-bottom:17px solid #fff}
+.popup{display:none;position:fixed;inset:0;background:rgba(0,0,0,.25);z-index:100;align-items:center;justify-content:center}
+.popupBox{background:#fff;border-radius:18px;padding:32px 42px;font-size:24px;font-weight:900;color:#166534;box-shadow:0 20px 50px rgba(0,0,0,.25)}
+.small{font-size:12px;color:#64748b;text-align:center;margin-top:18px}
 @media print{
-  .slot{border:0!important;background:#fff!important;color:#000!important;width:auto!important;height:auto!important;font-size:15px!important;display:inline!important}
-  .slot.on::before,.slot.tri::before,.slot.tri::after{display:none!important}
-  .slot.on::after{content:"○"!important;display:inline!important;position:static!important;color:#000!important}
-  .slot.tri::after{content:"△"!important;display:inline!important;position:static!important;color:#000!important;border:0!important}
+  .header,.tabs,.schools,.noPrint,.popup,.msg,.small{display:none!important}
+  body{background:#fff;color:#000}
+  .wrap{max-width:none;padding:0}
+  .card{box-shadow:none;border:0;padding:0;margin:0}
+  .teacherCard{break-inside:avoid;border:1px solid #000;border-radius:0}
+  .teacherTitle{background:#fff;color:#000;border-bottom:1px solid #000}
+  table{min-width:0;width:100%;table-layout:fixed}
+  th,td{border:1px solid #000!important;color:#000!important;background:#fff!important;font-size:10px!important;padding:4px 2px!important}
+  th{position:static!important}
+  td.date{font-size:9px!important}
+  .markIcon{background:#fff!important;color:#000!important;width:auto;height:auto}
+  .markIcon::before{display:none!important}
+  .markIcon.on::after{content:"○"}
+  .markIcon.tri::after{content:"△"}
+  @page{size:A4 portrait;margin:8mm}
+}
+
+/* teacher select modal */
+.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:500;align-items:center;justify-content:center;padding:16px}
+.modalBox{background:#fff;border-radius:16px;width:100%;max-width:560px;max-height:82vh;overflow:auto;padding:18px;box-shadow:0 20px 50px rgba(0,0,0,.25)}
+.teacherChecks label{display:block;padding:8px 4px;border-bottom:1px solid #eee;font-weight:800}
+.teacherChecks input{width:18px;height:18px;margin-right:8px}
+.selectSummary{font-weight:900;color:#1565c0;margin:8px 0}
+@media print{
+  .teacherCard{page-break-after:always;break-after:page}
+  .teacherCard:last-child{page-break-after:auto;break-after:auto}
+  .teacherTitle{font-size:15px!important}
+  td.date{font-size:11px!important}
+  .markIcon{transform:scale(1.15)}
 }
 
 
-th.dateHead{position:sticky;left:0;top:0;z-index:35;min-width:72px;width:72px;white-space:nowrap}
-.save{position:sticky;bottom:0;z-index:30;background:#eef3fb;padding:12px 0 14px;width:100%;left:0;right:0}
-.save .primary{display:block;width:100%;margin:0;font-size:22px;padding:14px 16px;border-radius:14px}
-@media(max-width:640px){
-  .hero{padding:20px 16px}
-  .hero h1{font-size:22px}
-  .name{font-size:24px}
-  table{min-width:520px}
-  th{top:0;font-size:11px}
-  td.date{min-width:66px;width:66px;font-size:15px}
-  .slot{width:39px;height:39px}
-  .save .primary{font-size:22px;padding:13px 16px}
-}
+.statusCards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:12px 0}
+.statusCard{background:#eff6ff;border:1px solid #bfdbfe;border-radius:14px;padding:16px;text-align:center;font-weight:900}
+.statusNum{font-size:34px;color:#1565c0;margin-top:6px}
+.statusTable{margin-top:12px}
+.loadingInline{display:inline-block;margin-left:10px;font-weight:900;color:#1565c0}
+button:disabled{opacity:.55;cursor:not-allowed}
+@media(max-width:700px){.statusCards{grid-template-columns:1fr}}
+
+.deadlinePanel{margin-left:auto;background:linear-gradient(135deg,#fff7ed,#ffffff);border:2px solid #f97316;border-radius:16px;padding:10px 12px;box-shadow:0 8px 20px rgba(249,115,22,.14);min-width:620px;max-width:720px}
+.deadlinePanelTop{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.deadlinePanelTitle{font-weight:950;color:#9a3412;font-size:15px;white-space:nowrap}
+.deadlinePanelBody{display:flex;gap:10px;align-items:center;flex:1;min-width:380px}
+.deadlineDisplay{display:block;flex:1;border:2px solid #1565c0;background:#fff;color:#1565c0;border-radius:12px;font-size:24px;font-weight:950;padding:9px 16px;text-align:center;min-height:48px;letter-spacing:.02em}
+.deadlineDisplay:hover{background:#eff6ff}
+.deadlinePanel .deadlineActions{display:flex;gap:8px;align-items:center;white-space:nowrap}
+.deadlinePanel .deadlineActions button{padding:10px 14px;white-space:nowrap}
+.deadlinePanel input[type=date]{position:absolute;opacity:0;pointer-events:none;width:1px;height:1px}
+.deadlineNote{font-size:11px;color:#8a3a1c;font-weight:800;margin-top:6px;text-align:right}
+.compactMsg{font-size:13px!important;padding:9px 12px!important;margin:8px 0 0!important;border-radius:10px!important;line-height:1.35!important;text-align:left!important;min-height:0}
+.slotSaveBox{margin-left:auto;min-width:340px;display:flex;flex-direction:column;align-items:stretch;gap:4px}
+.slotSaveButtons{display:flex;gap:10px;justify-content:flex-end;align-items:center}
+.slotSaveButtons .big{min-width:230px}
+@media(max-width:1000px){.deadlinePanel{min-width:100%;max-width:none;margin-left:0}.deadlinePanelTop{display:block}.deadlinePanelTitle{margin-bottom:6px}.deadlinePanelBody{min-width:0}.slotSaveBox{margin-left:0;width:100%}}
+@media(max-width:760px){.deadlinePanelBody{flex-direction:column;align-items:stretch}.deadlinePanel .deadlineActions{justify-content:stretch}.deadlinePanel .deadlineActions button{flex:1}.deadlineDisplay{font-size:20px}}
 
 
-.helpBox{margin-bottom:10px}
-.helpBtn{background:#fff;color:#2749b8;border:2px solid #2749b8;border-radius:12px;padding:9px 12px;font-size:14px}
-.helpBox .legend{margin-top:8px}
 
-.deadlinePopup{
-  position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.35);
-  display:flex;align-items:center;justify-content:center;padding:18px;
-}
-.deadlinePopup.hidden{display:none}
-.deadlineBox{
-  background:#fff;border-radius:18px;padding:24px 22px;max-width:420px;width:100%;
-  box-shadow:0 20px 55px rgba(0,0,0,.28);text-align:center;
-}
-.deadlineTitle{font-size:22px;font-weight:950;color:#c62828;margin-bottom:12px}
-.deadlineText{font-size:17px;font-weight:850;line-height:1.7;color:#111827;white-space:pre-wrap}
-.deadlineClose{
-  margin-top:18px;background:#3158d6;color:#fff;border:0;border-radius:12px;
-  padding:12px 20px;font-size:17px;font-weight:900;width:100%;
-}
+.inactiveRow{background:#f8fafc;color:#94a3b8}
+.statusBadge{display:inline-block;border-radius:999px;padding:4px 10px;font-weight:900;font-size:12px}
+.statusBadge.on{background:#dcfce7;color:#166534;border:1px solid #86efac}
+.statusBadge.off{background:#fee2e2;color:#991b1b;border:1px solid #fecaca}
+.toggleBtn{min-width:92px;padding:7px 10px;border-radius:999px;font-size:12px}
 
-
-/* Ver.2.4 date size */
-td.date{
-  font-size:17px!important;
-  line-height:1.25!important;
-}
-@media(max-width:640px){
-  td.date{
-    font-size:15px!important;
-    line-height:1.25!important;
-  }
-}
+.backupBox{background:#f8fafc;border:1px solid #cbd5e1;border-radius:14px;padding:14px;margin:12px 0}
+.backupBox h3{margin:0 0 8px;color:#1565c0}
+.backupList{font-size:13px;line-height:1.7;color:#475569}
+input[type=file]{font-size:14px;padding:8px;border:1px solid #cbd5e1;border-radius:8px;background:#fff}
 
 </style>
 </head>
 <body>
-<div id="pageTop"></div>
-<button id="topBackBtn" class="topBack hidden" type="button">←トップへ</button>
-<button id="logoutTop" class="logout hidden" type="button">ログアウト</button>
-<div class="hero"><h1>夏休み出勤可能日登録</h1><div>個別指導ステップ <small>Supabase Ver.2.6</small></div></div>
+<div class="header">
+  <h1>夏休み出勤管理 <small>Supabase Ver.1.13</small></h1>
+  <p>個別指導ステップ</p>
+</div>
 
-<div id="login" class="wrap"><div class="card">
-<h2>ログイン</h2>
-<label>校舎</label>
-<div class="schoolRow"><button id="s1" class="schoolBtn on" type="button">神領校</button><button id="s2" class="schoolBtn" type="button">大手町校</button></div>
-<label>コード番号</label><input id="code" inputmode="numeric" type="number" placeholder="例：7002">
-<button id="loginBtn" class="primary" type="button">ログイン</button>
-<div id="loginMsg" class="msg"></div>
-</div></div>
-
-<div id="main" class="hidden">
-<div class="top"><div class="topLine"><div id="teacherName" class="name"></div><div class="actions"><button id="printBtn" class="mini" type="button">🖨 印刷</button></div></div></div>
 <div class="wrap">
-<div class="helpBox"><button id="helpToggle" class="helpBtn" type="button">○・△の説明を表示</button><div id="helpText" class="legend hidden">○：出勤できる ／ △：無理すれば可 ／ 空白：不可・未入力<br>ボタンは「空白 → ○ → △ → 空白」の順に変わります。</div></div>
-<div id="tableArea" class="tableWrap"></div>
-<div class="save"><button id="saveBtn" class="primary" type="button">保存して送信</button><div id="saveMsg" class="msg"></div></div>
-</div></div>
+  <div class="row schools noPrint">
+    <button id="schoolS" class="school active" type="button">神領校</button>
+    <button id="schoolO" class="school" type="button">大手町校</button>
+  </div>
+
+  <div class="row tabs noPrint">
+    <button id="tabSlots" class="tab active" type="button">授業枠設定</button>
+    <button id="tabTeachers" class="tab" type="button">先生別一覧</button>
+    <button id="tabStatus" class="tab" type="button">提出状況一覧</button>
+    <button id="tabTeacherMaster" class="tab" type="button">講師登録</button>
+    <button id="tabBackup" class="tab" type="button">バックアップ</button>
+  </div>
+
+  <section id="viewSlots" class="card">
+    <div class="row" style="align-items:flex-start">
+      <div>
+        <h2 style="text-align:left;margin:0 0 6px">授業枠設定</h2>
+        <p style="margin:0 0 8px">ここで作った日付・時間帯が、講師アプリ・先生別一覧・印刷の基準になります。</p>
+      </div>
+      <div class="deadlinePanel noPrint">
+        <div class="deadlinePanelTop">
+          <div id="deadlineSchoolLabel" class="deadlinePanelTitle">神領校 講師出勤日提出：締切日</div>
+          <div class="deadlinePanelBody">
+            <button id="deadlineDisplayBtn" class="deadlineDisplay" type="button">締切日を選択</button>
+            <input id="deadlineDate" type="date">
+            <div class="deadlineActions">
+              <button id="saveDeadline" class="primary" type="button">締切日を保存</button>
+              <button id="reloadDeadline" class="gray" type="button">再読込</button>
+            </div>
+          </div>
+        </div>
+        <div class="deadlineNote">日付部分をクリックすると変更できます。</div>
+      </div>
+    </div>
+
+    <div class="row noPrint">
+      <b>期間設定</b>
+      <input id="rangeStart" type="date"> <span>〜</span> <input id="rangeEnd" type="date">
+      <button id="makeRange" class="gray" type="button">期間の枠を作成</button>
+    </div>
+
+    <div class="row noPrint">
+      <b>授業日の追加</b>
+      <input id="singleDate" type="date">
+      <button id="addDay" class="blue" type="button">授業日を追加</button>
+      <div class="slotSaveBox">
+        <div class="slotSaveButtons">
+          <button id="saveSlots" class="primary big" type="button">保存する</button>
+          <button id="reloadSlots" class="gray" type="button">再読み込み</button>
+        </div>
+        <div id="slotsMsg" class="msg compactMsg"></div>
+      </div>
+    </div>
+
+    <div class="row noPrint" style="background:#fff7ed;border:1px solid #fed7aa;border-radius:12px;padding:10px">
+      <b>他校の授業枠をコピー</b>
+      <span>コピー元</span>
+      <select id="copySlotsSource" style="font-size:16px;padding:9px;border:1px solid #cbd5e1;border-radius:8px">
+        <option value="神領">神領校</option>
+        <option value="大手町">大手町校</option>
+      </select>
+      <button id="copySlotsFromSchool" class="orange" type="button">他校の内容をコピーして上書き</button>
+      <span style="font-size:13px;color:#8a3a1c;font-weight:800">※現在表示中の校舎の授業枠は全て上書きされます。</span>
+    </div>
+
+    <div id="slotsArea" class="tableWrap"></div>
+  </section>
 
 
-<div id="deadlinePopup" class="deadlinePopup hidden">
-  <div class="deadlineBox">
-    <div class="deadlineTitle">締切日の確認</div>
-    <div id="deadlineText" class="deadlineText"></div>
-    <button id="deadlineClose" class="deadlineClose" type="button">確認しました</button>
+  <section id="viewTeachers" class="card hidden">
+    <h2>先生別一覧</h2>
+    <div class="row noPrint">
+      <button id="reloadTeachers" class="gray" type="button">再読み込み</button>
+      <button id="selectDisplayBtn" class="blue" type="button">表示する先生を選択</button>
+      <button id="printBtn" class="gray" type="button">印刷する先生を選択</button>
+    </div>
+    <div id="teachersArea"></div>
+    <div id="teachersMsg" class="msg"></div>
+  </section>
+
+
+  <section id="viewStatus" class="card hidden">
+    <h2>提出状況一覧</h2>
+    <div class="row noPrint">
+      <button id="reloadStatus" class="gray" type="button">再読み込み</button>
+      <button id="printStatus" class="gray" type="button">印刷する</button>
+    </div>
+    <div id="statusArea"></div>
+    <div id="statusMsg" class="msg"></div>
+  </section>
+
+  <section id="viewTeacherMaster" class="card hidden">
+    <h2>講師登録</h2>
+    <p class="noPrint">Googleスプレッドシートの講師マスターから、A列コード・B列氏名・D列在籍・P列メールをコピーして貼り付けます。D列が「1」の人は有効、空白の人は無効として同期します。</p>
+    <div class="noPrint" style="margin:12px 0">
+      <div class="row" style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:12px;padding:10px">
+        <b>講師マスターURL同期</b>
+        <input id="teacherMasterUrl" type="text" value="https://docs.google.com/spreadsheets/d/1L5aFDXAmfUDkBg8d7X3WqJgMhdMq5tM5sfUZ2G-M58E/edit?gid=2020620808#gid=2020620808" style="flex:1;min-width:360px">
+        <button id="syncTeachersFromSheet" class="blue" type="button">講師マスターURLから同期</button>
+      </div>
+      <p style="font-size:13px;color:#64748b;margin:8px 0">※Google側の権限で直接読めない場合は、下の貼り付け方式を使ってください。</p>
+      <textarea id="teacherPaste" placeholder="A列〜P列を範囲コピーして貼り付け&#10;例：7002	加瀬智子	...	1	...	mail@example.com" style="width:100%;min-height:130px;border:1px solid #cbd5e1;border-radius:10px;padding:10px;font-size:14px"></textarea>
+      <div class="row">
+        <button id="importTeachers" class="orange" type="button">講師マスターを一括登録</button>
+        <button id="clearTeacherPaste" class="gray" type="button">貼り付け欄をクリア</button>
+      </div>
+    </div>
+    <hr class="noPrint">
+    <div class="row noPrint">
+      <input id="newCode" type="text" placeholder="コード 例:7002">
+      <input id="newName" type="text" placeholder="氏名">
+      <button id="addTeacher" class="primary" type="button">追加/更新</button>
+      <button id="reloadTeacherMaster" class="gray" type="button">再読み込み</button>
+      <span style="font-weight:900;margin-left:8px">表示対象</span>
+      <label style="font-weight:900"><input id="showActiveTeachers" type="checkbox" checked> 有効</label>
+      <label style="font-weight:900"><input id="showInactiveTeachers" type="checkbox"> 無効</label>
+    </div>
+    <div id="teacherMasterArea"></div>
+    <div id="teacherMasterMsg" class="msg"></div>
+  </section>
+
+
+
+  <section id="viewBackup" class="card hidden">
+    <h2>バックアップ・復元</h2>
+    <div class="backupBox noPrint">
+      <h3>自動バックアップ</h3>
+      <div class="backupList">
+        ・画面を開いたときに現在のSupabase設定を自動保存します。<br>
+        ・授業枠保存、締切保存、講師同期、有効/無効切替の直前にも自動保存します。<br>
+        ・自動バックアップはこのブラウザ内に保存されます。別PCでも使う場合は「JSONとして保存」を押してください。
+      </div>
+      <div class="row">
+        <button id="makeManualBackup" class="blue" type="button">📥 現在の設定をJSONとして保存</button>
+        <button id="restoreLatestAuto" class="orange" type="button">📤 直近の自動バックアップから復元</button>
+        <button id="showBackupInfo" class="gray" type="button">直近バックアップ確認</button>
+      </div>
+    </div>
+
+    <div class="backupBox noPrint">
+      <h3>ファイルから復元</h3>
+      <div class="backupList">保存済みJSONファイルを選んで復元します。復元前にも自動バックアップを作成します。</div>
+      <div class="row">
+        <input id="restoreFile" type="file" accept="application/json,.json">
+        <button id="restoreFromFile" class="red" type="button">ファイルから復元する</button>
+      </div>
+    </div>
+    <div id="backupMsg" class="msg"></div>
+  </section>
+
+  <div class="small noPrint">Build Supabase Ver.1.13</div>
+</div>
+
+
+<div id="teacherSelectModal" class="modal noPrint">
+  <div class="modalBox">
+    <h3 id="teacherSelectTitle">先生を選択</h3>
+    <div class="row">
+      <button id="teacherAllOn" class="gray" type="button">全員選択</button>
+      <button id="teacherAllOff" class="gray" type="button">全員解除</button>
+      <button id="teacherRestoreSaved" class="gray" type="button">前回設定に戻す</button>
+    </div>
+    <div id="teacherSelectSummary" class="selectSummary"></div>
+    <div id="teacherChecks" class="teacherChecks"></div>
+    <div class="row" style="margin-top:14px">
+      <button id="teacherSelectRun" class="primary" type="button">実行</button>
+      <button id="teacherSelectClose" class="red" type="button">閉じる</button>
+    </div>
   </div>
 </div>
+
+<div id="savePopup" class="popup noPrint"><div class="popupBox">保存しました</div></div>
 
 <script>
 const SUPABASE_URL = 'https://jbiolkvegexkqjcwtyye.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_1si6OSrS0AGP19FstAudug_ErlLMMqX';
 
 let school = '神領';
-let teacher = null;
-let days = [];
-let avail = {};
-let currentDeadline = null;
-const inactiveMessage = 'この講師は現在利用できません。\n教室担当者へお問い合わせください。';
-const timeHeaders = ['13:00<br>14:15','14:20<br>15:35','15:45<br>17:00','17:10<br>18:25','18:35<br>19:50','20:00<br>21:15'];
+let tab = 'slots';
+let slotConfig = [];
+let teachers = [];
+let availability = [];
+let selectedTeacherCodes = [];
+let selectMode = 'display';
+
+const timeLabels = ['13:00<br>14:15','14:20<br>15:35','15:45<br>17:00','17:10<br>18:25','18:35<br>19:50','20:00<br>21:15'];
+const timeShort = ['13:00','14:20','15:45','17:10','18:35','20:00'];
 
 function $(id){return document.getElementById(id)}
-function showMsg(id,text,ok=true){const el=$(id);el.textContent=text||'';el.className='msg '+(ok?'ok':'err')}
-function dateLabel(raw){const p=String(raw).replaceAll('-','/').split('/').map(Number);const d=new Date(p[0],p[1]-1,p[2]);return String(raw).replaceAll('-','/')+'（'+'日月火水木金土'[d.getDay()]+'）'}
 
-function isActiveTeacher(t){
-  return t && (t.active === true || String(t.active).toLowerCase() === 'true');
-}
-
-function rawDateToDate(raw){
-  if(!raw) return null;
-  const p = String(raw).replaceAll('-', '/').split('/').map(Number);
-  return new Date(p[0], p[1]-1, p[2]);
-}
-
-function isDeadlinePassed(){
-  if(!currentDeadline) return false;
-  const d = rawDateToDate(currentDeadline);
-  if(!d) return false;
-  const today = new Date();
-  today.setHours(0,0,0,0);
-  d.setHours(0,0,0,0);
-  return today > d;
-}
-
-function applyDeadlineState(){
-  const btn = $('saveBtn');
-  if(!btn) return;
-  if(isDeadlinePassed()){
-    btn.disabled = true;
-    btn.textContent = '締切後のため保存できません';
-    showMsg('saveMsg','締切を過ぎています。変更は教室担当者へ直接連絡してください。',false);
-  }else{
-    btn.disabled = false;
-    btn.textContent = '保存して送信';
+let msgTimers = {};
+function msg(id,t,ok=true){
+  const e=$(id);
+  if(!e) return;
+  if(msgTimers[id]){ clearTimeout(msgTimers[id]); msgTimers[id]=null; }
+  e.textContent=t||'';
+  e.className='msg '+(ok?'ok':'err');
+  e.style.display=t?'block':'none';
+  // 成功メッセージは画面を圧迫しないように自動で消します。エラーは残します。
+  if(t && ok && !String(t).includes('中')){
+    msgTimers[id]=setTimeout(()=>{
+      e.textContent='';
+      e.style.display='none';
+    },3000);
   }
+}
+
+function rawFromInput(id){
+  const v=$(id).value;
+  if(!v)return '';
+  const p=v.split('-');
+  return p[0]+'/'+p[1]+'/'+p[2];
+}
+
+function inputFromRaw(s){
+  return s ? String(s).replaceAll('/','-').slice(0,10) : '';
+}
+
+function label(raw){
+  if(!raw)return '';
+  const p=String(raw).replaceAll('-','/').split('/').map(Number);
+  const d=new Date(p[0],p[1]-1,p[2]);
+  return String(raw).replaceAll('-','/')+'（'+'日月火水木金土'[d.getDay()]+'）';
 }
 
 async function rest(path, options={}){
   const res = await fetch(SUPABASE_URL + '/rest/v1/' + path, {
     ...options,
-    headers: {
+    headers:{
       apikey: SUPABASE_KEY,
       Authorization: 'Bearer ' + SUPABASE_KEY,
-      'Content-Type': 'application/json',
-      Prefer: 'return=representation',
-      ...(options.headers || {})
+      'Content-Type':'application/json',
+      Prefer:'return=representation',
+      ...(options.headers||{})
     }
   });
+
   const text = await res.text();
-  if(!res.ok) throw new Error(text || ('HTTP ' + res.status));
+  if(!res.ok) throw new Error(text || ('HTTP '+res.status));
   if(!text) return null;
   try{return JSON.parse(text)}catch(e){return text}
 }
 
 function setSchool(s){
   school=s;
-  $('s1').classList.toggle('on',s==='神領');
-  $('s2').classList.toggle('on',s==='大手町');
+  restoreDisplaySelection();
+  $('schoolS').classList.toggle('active',s==='神領');
+  $('schoolO').classList.toggle('active',s==='大手町');
+  if($('copySlotsSource')) $('copySlotsSource').value = (s === '神領' ? '大手町' : '神領');
+  loadCurrent();
 }
 
-async function findTeacher(code){
-  const rows = await rest('teachers?select=code,name,email,active&code=eq.' + encodeURIComponent(code));
-  if(!Array.isArray(rows) || rows.length === 0) return null;
-  const t = rows[0];
-  if(!isActiveTeacher(t)){
-    throw new Error(inactiveMessage);
-  }
-  return t;
+function setTab(t){
+  tab=t;
+  $('tabSlots').classList.toggle('active',t==='slots');
+  $('tabTeachers').classList.toggle('active',t==='teachers');
+  $('tabStatus').classList.toggle('active',t==='status');
+  $('tabTeacherMaster').classList.toggle('active',t==='master');
+  $('tabBackup').classList.toggle('active',t==='backup');
+
+  $('viewSlots').classList.toggle('hidden',t!=='slots');
+  $('viewTeachers').classList.toggle('hidden',t!=='teachers');
+  $('viewStatus').classList.toggle('hidden',t!=='status');
+  $('viewTeacherMaster').classList.toggle('hidden',t!=='master');
+  $('viewBackup').classList.toggle('hidden',t!=='backup');
+
+  loadCurrent();
 }
 
-async function checkTeacherStillActive(){
-  if(!teacher || !teacher.code) return false;
-  const rows = await rest('teachers?select=code,name,email,active&code=eq.' + encodeURIComponent(teacher.code));
-  const t = Array.isArray(rows) && rows.length ? rows[0] : null;
-  if(!isActiveTeacher(t)){
-    localStorage.removeItem('step_teacher_code');
-    localStorage.removeItem('step_teacher_school');
-    teacher = null;
-    showMsg('loginMsg', inactiveMessage, false);
-    return false;
-  }
-  teacher = t;
-  return true;
+function loadCurrent(){
+  if(tab==='slots') loadSlots();
+  if(tab==='teachers') loadTeachersView();
+  if(tab==='status') loadStatusView();
+  if(tab==='master') loadTeacherMaster();
+  if(tab==='backup') loadBackupView();
 }
 
-
-async function loadDeadlineNotice(){
+async function loadSlots(){
+  msg('slotsMsg','読み込み中...',true);
   try{
-    const rows = await rest('deadlines?select=school,deadline&school=eq.' + encodeURIComponent(school));
-    if(!Array.isArray(rows) || rows.length === 0 || !rows[0].deadline){
-      currentDeadline = null;
-      applyDeadlineState();
-      return;
-    }
-
-    const raw = String(rows[0].deadline).replaceAll('-', '/').slice(0, 10);
-    currentDeadline = raw;
-    const text =
-      dateLabel(raw) + '締め切りです。\n' +
-      '締切日までは何度でも変更可能です。\n' +
-      '締切日以降は、このアプリからは連絡できなくなりますので、変更内容は教室担当者に直接連絡をしてください。';
-
-    $('deadlineText').textContent = text;
-    $('deadlinePopup').classList.remove('hidden');
-    applyDeadlineState();
+    const rows = await rest('class_days?select=school,date,slots&school=eq.'+encodeURIComponent(school)+'&order=date.asc');
+    slotConfig = (rows||[]).map(r=>({date:r.date,slots:Array.isArray(r.slots)?r.slots:[true,true,true,true,true,true]}));
+    renderSlots();
+    await loadDeadline();
+    msg('slotsMsg','読み込みました。',true);
   }catch(e){
-    // 締切表示が失敗しても、出勤登録自体は止めない
-    console.warn('deadline notice error', e);
+    msg('slotsMsg','読み込みできません。\n'+(e.message||String(e)),false);
   }
 }
 
-function closeDeadlinePopup(){
-  $('deadlinePopup').classList.add('hidden');
-}
+function renderSlots(){
+  let h='<table><thead><tr><th>日付</th>';
+  timeLabels.forEach(t=>h+='<th>'+t+'</th>');
+  h+='<th class="noPrint">操作</th></tr></thead><tbody>';
 
+  slotConfig.forEach((r,i)=>{
+    const closed=(r.slots||[]).every(v=>!v);
+    h+='<tr class="'+(closed?'closed':'')+'"><td class="date">'+label(r.date)+'</td>';
 
-async function login(){
-  try{
-    const code=$('code').value.trim();
-    if(!code){showMsg('loginMsg','コード番号を入力してください。',false);return}
-    showMsg('loginMsg','確認中...',true);
-
-    const found = await findTeacher(code);
-    if(!found) throw new Error('コード番号が見つかりません。');
-
-    teacher=found;
-    localStorage.setItem('step_teacher_code',code);
-    localStorage.setItem('step_teacher_school',school);
-
-    await loadData();
-    $('login').classList.add('hidden');
-    $('main').classList.remove('hidden');
-    $('logoutTop').classList.remove('hidden');
-    if($('topBackBtn')) $('topBackBtn').classList.remove('hidden');
-    $('teacherName').textContent=school+'校　'+teacher.name+'さん';
-    await loadDeadlineNotice();
-  }catch(e){
-    const m = e.message || String(e);
-    if(m.includes('現在利用できません')){
-      localStorage.removeItem('step_teacher_code');
-      localStorage.removeItem('step_teacher_school');
-      showMsg('loginMsg', m, false);
-    }else{
-      showMsg('loginMsg','ログインできません。\n'+m,false);
+    for(let j=0;j<6;j++){
+      h+='<td>'+(closed?'ー':'<input type="checkbox" data-i="'+i+'" data-j="'+j+'" '+(r.slots[j]?'checked':'')+'>')+'</td>';
     }
-  }
-}
 
-async function loadData(){
-  days = await rest('class_days?select=school,date,slots&school=eq.' + encodeURIComponent(school) + '&order=date.asc');
-  const rows = await rest('availability?select=school,teacher_code,date,slot_index,value&school=eq.' + encodeURIComponent(school) + '&teacher_code=eq.' + encodeURIComponent(teacher.code));
-  avail={};
-  (rows||[]).forEach(r=>{avail[r.date+'|'+r.slot_index]=r.value});
-  render();
-}
-
-function render(){
-  let h='<table><thead><tr><th class="dateHead">日付</th>';
-  timeHeaders.forEach(t=>h+='<th>'+t+'</th>');
-  h+='</tr></thead><tbody>';
-  (days||[]).forEach(d=>{
-    const slots=Array.isArray(d.slots)?d.slots:[true,true,true,true,true,true];
-    const closed=slots.every(v=>!v);
-    h+='<tr><td class="date">'+dateLabel(d.date)+'</td>';
-    for(let i=0;i<6;i++){
-      if(closed||!slots[i]) h+='<td>ー</td>';
-      else{
-        const key=d.date+'|'+i;
-        const value=avail[key]||'';
-        const cls=value==='○'?'on':(value==='△'?'tri':'');
-        h+='<td><button class="slot '+cls+'" type="button" data-key="'+key+'" aria-label="'+value+'"></button></td>';
-      }
-    }
-    h+='</tr>';
+    h+='<td class="actions noPrint">';
+    h+='<button class="primary" type="button" onclick="classDay('+i+')">授業</button> ';
+    h+='<button class="gray" type="button" onclick="closeDay('+i+')">休校</button> ';
+    h+='<button class="red" type="button" onclick="deleteDay('+i+')">削除</button>';
+    h+='</td></tr>';
   });
+
   h+='</tbody></table>';
-  $('tableArea').innerHTML=h;
+  $('slotsArea').innerHTML=h;
 }
 
-function toggle(key){
-  const current=avail[key]||'';
-  if(current==='') avail[key]='○';
-  else if(current==='○') avail[key]='△';
-  else delete avail[key];
-  render();
+function classDay(i){slotConfig[i].slots=[true,true,true,true,true,true];renderSlots()}
+function closeDay(i){slotConfig[i].slots=[false,false,false,false,false,false];renderSlots()}
+function deleteDay(i){if(confirm(label(slotConfig[i].date)+'を削除しますか？')){slotConfig.splice(i,1);renderSlots()}}
+
+function addRaw(raw){
+  if(!raw){msg('slotsMsg','日付を選んでください。',false);return}
+  if(slotConfig.some(r=>r.date===raw)){msg('slotsMsg','同じ日付があります。',false);return}
+  slotConfig.push({date:raw,slots:[true,true,true,true,true,true]});
+  slotConfig.sort((a,b)=>a.date<b.date?-1:1);
+  renderSlots();
+  msg('slotsMsg','追加しました。保存ボタンを押すと反映されます。',true);
 }
 
-async function save(){
+function addDay(){
+  addRaw(rawFromInput('singleDate'));
+  $('singleDate').value='';
+}
+
+function makeRange(){
+  const s=$('rangeStart').value;
+  const e=$('rangeEnd').value;
+  if(!s||!e){msg('slotsMsg','開始日と終了日を選んでください。',false);return}
+
+  const sp=s.split('-').map(Number);
+  const ep=e.split('-').map(Number);
+  const start=new Date(sp[0],sp[1]-1,sp[2]);
+  const end=new Date(ep[0],ep[1]-1,ep[2]);
+
+  if(start>end){msg('slotsMsg','終了日は開始日より後にしてください。',false);return}
+
+  const map={};
+  slotConfig.forEach(r=>map[r.date]=r);
+
+  for(let d=new Date(start);d<=end;d.setDate(d.getDate()+1)){
+    const raw=d.getFullYear()+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+String(d.getDate()).padStart(2,'0');
+    if(!map[raw]) map[raw]={date:raw,slots:[true,true,true,true,true,true]};
+  }
+
+  slotConfig=Object.values(map).sort((a,b)=>a.date<b.date?-1:1);
+  renderSlots();
+  msg('slotsMsg','期間の枠を作成しました。保存してください。',true);
+}
+
+
+async function copySlotsFromOtherSchool(){
   try{
-    if(!(await checkTeacherStillActive())){
-      showMsg('saveMsg', inactiveMessage, false);
-      $('login').classList.remove('hidden');
-      $('main').classList.add('hidden');
-      $('logoutTop').classList.add('hidden');
-      if($('topBackBtn')) $('topBackBtn').classList.add('hidden');
+    const source = $('copySlotsSource').value;
+    const target = school;
+
+    if(source === target){
+      msg('slotsMsg','コピー元とコピー先が同じです。別の校舎を選んでください。',false);
       return;
     }
-    if(isDeadlinePassed()){
-      applyDeadlineState();
+
+    const warning =
+      '【重要】' + '\n\n' +
+      source + '校の授業枠を、現在表示中の ' + target + '校へコピーします。' + '\n\n' +
+      'この操作を行うと、' + target + '校の現在の授業枠設定はすべて削除され、' + source + '校の内容で完全に上書きされます。' + '\n\n' +
+      '元に戻したい場合は、自動バックアップから復元してください。' + '\n\n' +
+      '続けますか？';
+
+    if(!confirm(warning)) return;
+    if(!confirm('本当に上書きしますか？\n\n' + target + '校の現在の授業枠は全て消えて、' + source + '校と同じ内容になります。')) return;
+
+    msg('slotsMsg','コピー前に自動バックアップ中...',true);
+    await autoBackup('他校授業枠コピー前（' + source + '校 → ' + target + '校）');
+
+    msg('slotsMsg',source + '校の授業枠を読み込み中...',true);
+    const srcRows = await rest('class_days?select=school,date,slots&school=eq.' + encodeURIComponent(source) + '&order=date.asc');
+
+    if(!Array.isArray(srcRows) || srcRows.length === 0){
+      msg('slotsMsg',source + '校にコピーできる授業枠がありません。',false);
       return;
     }
-    showPopup('保存と送信しています。');
-    showMsg('saveMsg','保存と送信しています。',true);
-    await rest('availability?school=eq.'+encodeURIComponent(school)+'&teacher_code=eq.'+encodeURIComponent(teacher.code),{method:'DELETE'});
-    const rows=Object.entries(avail).map(([key,value])=>{
-      const [date,slot]=key.split('|');
-      return {school,teacher_code:teacher.code,teacher_name:teacher.name,date,slot_index:Number(slot),value};
-    });
-    if(rows.length>0) await rest('availability',{method:'POST',body:JSON.stringify(rows)});
-    showMsg('saveMsg','保存・送信しました。',true);
-    hidePopup('保存・送信しました。');
+
+    msg('slotsMsg',target + '校の授業枠を上書き中...',true);
+    await rest('class_days?school=eq.' + encodeURIComponent(target), {method:'DELETE'});
+
+    const rows = srcRows.map(r => ({
+      school: target,
+      date: r.date,
+      slots: Array.isArray(r.slots) ? r.slots : [true,true,true,true,true,true]
+    }));
+
+    await rest('class_days', {method:'POST', body: JSON.stringify(rows)});
+
+    msg('slotsMsg',source + '校の授業枠を ' + target + '校へコピーしました。件数：' + rows.length + '日分',true);
+    await loadSlots();
   }catch(e){
-    const p=document.getElementById('savePopup'); if(p) p.style.display='none';
-    showMsg('saveMsg','保存できません。\n'+(e.message||String(e)),false);
+    msg('slotsMsg','他校の授業枠をコピーできません。\n' + (e.message || String(e)),false);
   }
 }
 
-function logout(){
-  if(!confirm('ログアウトしますか？')) return;
-  localStorage.removeItem('step_teacher_code');
-  localStorage.removeItem('step_teacher_school');
-  location.reload();
-}
+async function saveSlots(){
+  try{
+    document.querySelectorAll('#slotsArea input[type=checkbox]').forEach(c=>{
+      slotConfig[Number(c.dataset.i)].slots[Number(c.dataset.j)]=c.checked;
+    });
 
+    msg('slotsMsg','保存中...',true);
+    await autoBackup('授業枠保存前');
 
-function goTop(){
-  location.href = 'https://stepkobetsu-hub.github.io/teacher-portal/';
-}
-function showPopup(text){
-  let p=document.getElementById('savePopup');
-  if(!p){
-    p=document.createElement('div');
-    p.id='savePopup';
-    p.style.cssText='position:fixed;inset:0;z-index:999;background:rgba(0,0,0,.22);display:flex;align-items:center;justify-content:center;padding:20px';
-    p.innerHTML='<div id="savePopupBox" style="background:#fff;border-radius:18px;padding:28px 34px;font-size:24px;font-weight:950;color:#166534;box-shadow:0 20px 50px rgba(0,0,0,.25);text-align:center"></div>';
-    document.body.appendChild(p);
+    await rest('class_days?school=eq.'+encodeURIComponent(school),{method:'DELETE'});
+
+    const rows=slotConfig.map(r=>({school:school,date:r.date,slots:r.slots}));
+    if(rows.length>0){
+      await rest('class_days',{method:'POST',body:JSON.stringify(rows)});
+    }
+
+    msg('slotsMsg','保存しました。件数：'+rows.length,true);
+    $('savePopup').style.display='flex';
+    setTimeout(()=>{$('savePopup').style.display='none'},1200);
+    await loadSlots();
+  }catch(e){
+    msg('slotsMsg','保存できません。\n'+(e.message||String(e)),false);
   }
-  document.getElementById('savePopupBox').textContent=text;
-  p.style.display='flex';
-}
-function hidePopup(text){
-  const p=document.getElementById('savePopup');
-  const b=document.getElementById('savePopupBox');
-  if(b) b.textContent=text;
-  if(p) setTimeout(()=>{p.style.display='none'},1200);
 }
 
-document.addEventListener('click',e=>{
-  const b=e.target.closest('.slot');
-  if(b) toggle(b.dataset.key);
-});
-$('s1').addEventListener('click',()=>setSchool('神領'));
-$('s2').addEventListener('click',()=>setSchool('大手町'));
-$('loginBtn').addEventListener('click',login);
-$('saveBtn').addEventListener('click',save);
-$('printBtn').addEventListener('click',()=>window.print());
-$('logoutTop').addEventListener('click',logout);
-$('topBackBtn').addEventListener('click',goTop);
-$('helpToggle').addEventListener('click',()=>{const h=$('helpText');h.classList.toggle('hidden');$('helpToggle').textContent=h.classList.contains('hidden')?'○・△の説明を表示':'○・△の説明を隠す';});
-$('deadlineClose').addEventListener('click', closeDeadlinePopup);
 
-document.addEventListener('DOMContentLoaded',()=>{
-  const savedCode=localStorage.getItem('step_teacher_code');
-  const savedSchool=localStorage.getItem('step_teacher_school');
-  if(savedSchool) setSchool(savedSchool);
-  if(savedCode){ $('code').value=savedCode; setTimeout(()=>login(),250); }
-});
+async function loadDeadline(showNotice=false){
+  try{
+    if($('deadlineSchoolLabel')) $('deadlineSchoolLabel').textContent = school + '校 講師出勤日提出：締切日';
+    const rows = await rest('deadlines?select=school,deadline&school=eq.'+encodeURIComponent(school));
+    const d = rows && rows.length ? rows[0].deadline : '';
+    $('deadlineDate').value = d ? String(d).replaceAll('/','-').slice(0,10) : '';
+    updateDeadlineLabel();
+    if(showNotice) msg('slotsMsg','締切日を再読み込みしました。',true);
+  }catch(e){
+    msg('slotsMsg','締切日を読み込みできません。\n'+(e.message||String(e)),false);
+  }
+}
+
+
+function updateDeadlineLabel(){
+  const raw = rawFromInput('deadlineDate');
+  if($('deadlineDisplayBtn')) $('deadlineDisplayBtn').textContent = raw ? label(raw) : '締切日を選択';
+}
+
+function openDeadlinePicker(){
+  const input = $('deadlineDate');
+  if(!input) return;
+  if(input.showPicker) input.showPicker();
+  else input.click();
+  input.focus();
+}
+
+async function saveDeadline(){
+  try{
+    const raw = rawFromInput('deadlineDate');
+    if(!raw){
+      msg('slotsMsg','締切日を選んでください。',false);
+      return;
+    }
+    msg('slotsMsg','締切日を保存中...',true);
+    await autoBackup('締切保存前');
+    await rest('deadlines', {
+      method:'POST',
+      body: JSON.stringify({school:school, deadline:raw}),
+      headers:{Prefer:'resolution=merge-duplicates'}
+    });
+    msg('slotsMsg','締切日を保存しました。 '+label(raw),true);
+  }catch(e){
+    msg('slotsMsg','締切日を保存できません。\n'+(e.message||String(e)),false);
+  }
+}
+
+
+async function loadTeachersView(){
+  msg('teachersMsg','読み込み中...',true);
+  try{
+    const t = await rest('teachers?select=code,name,active&active=eq.true&order=code.asc');
+    const d = await rest('class_days?select=school,date,slots&school=eq.'+encodeURIComponent(school)+'&order=date.asc');
+    const a = await rest('availability?select=school,teacher_code,date,slot_index,value&school=eq.'+encodeURIComponent(school));
+
+    teachers=t||[];
+    restoreDisplaySelection();
+    slotConfig=(d||[]).map(r=>({date:r.date,slots:Array.isArray(r.slots)?r.slots:[true,true,true,true,true,true]}));
+    availability=a||[];
+
+    renderTeachers();
+    msg('teachersMsg','読み込みました。',true);
+  }catch(e){
+    msg('teachersMsg','読み込みできません。\n'+(e.message||String(e)),false);
+  }
+}
+
+function markHtml(v){
+  if(v==='○') return '<span class="markIcon on"></span>';
+  if(v==='△') return '<span class="markIcon tri"></span>';
+  return '';
+}
+
+function renderTeachers(){
+  const displayTeachers = selectedTeacherCodes.length
+    ? teachers.filter(t => selectedTeacherCodes.includes(t.code))
+    : teachers;
+
+  if(!displayTeachers.length){
+    $('teachersArea').innerHTML='<p>まだ登録データがありません。</p>';
+    return;
+  }
+
+  let h='';
+  displayTeachers.forEach(t=>{
+    h+='<div class="teacherCard"><div class="teacherTitle">'+t.code+'　'+t.name+'</div><div class="tableWrap">';
+    h+='<table><thead><tr><th>日付</th>';
+    timeShort.forEach(x=>h+='<th>'+x+'</th>');
+    h+='</tr></thead><tbody>';
+
+    slotConfig.forEach(d=>{
+      const closed=(d.slots||[]).every(v=>!v);
+      h+='<tr class="'+(closed?'closed':'')+'"><td class="date">'+label(d.date)+'</td>';
+
+      for(let i=0;i<6;i++){
+        if(closed||!d.slots[i]){
+          h+='<td>ー</td>';
+        }else{
+          const row=availability.find(a=>a.teacher_code===t.code&&a.date===d.date&&Number(a.slot_index)===i);
+          h+='<td>'+markHtml(row?row.value:'')+'</td>';
+        }
+      }
+
+      h+='</tr>';
+    });
+
+    h+='</tbody></table></div></div>';
+  });
+
+  const prefix = selectedTeacherCodes.length ? '選択中：'+displayTeachers.length+'名' : '全員表示：'+displayTeachers.length+'名';
+  $('teachersArea').innerHTML='<div class="noPrint" style="font-weight:900;color:#1565c0;margin-bottom:10px">'+prefix+'</div>'+h;
+}
+
+
+async function loadStatusView(){
+  msg('statusMsg','読み込み中...',true);
+  try{
+    const t = await rest('teachers?select=code,name,email,active&active=eq.true&order=code.asc');
+    const a = await rest('availability?select=teacher_code,teacher_name,date,slot_index,value,school&school=eq.'+encodeURIComponent(school));
+
+    const teacherRows = t || [];
+    const availRows = a || [];
+    const submittedCodes = new Set(availRows.map(r => String(r.teacher_code)));
+
+    const submitted = teacherRows.filter(x => submittedCodes.has(String(x.code)));
+    const notSubmitted = teacherRows.filter(x => !submittedCodes.has(String(x.code)));
+
+    let h = '';
+    h += '<div class="statusCards">';
+    h += '<div class="statusCard">登録対象<div class="statusNum">'+teacherRows.length+'</div>名</div>';
+    h += '<div class="statusCard">提出済<div class="statusNum">'+submitted.length+'</div>名</div>';
+    h += '<div class="statusCard">未提出<div class="statusNum">'+notSubmitted.length+'</div>名</div>';
+    h += '</div>';
+
+    h += '<h3>未提出者一覧</h3>';
+    if(notSubmitted.length === 0){
+      h += '<p style="font-weight:900;color:#166534">未提出者はいません。</p>';
+    }else{
+      h += '<table class="statusTable"><thead><tr><th>コード</th><th>氏名</th><th>メール</th></tr></thead><tbody>';
+      notSubmitted.forEach(x=>{
+        h += '<tr><td>'+x.code+'</td><td>'+x.name+'</td><td>'+(x.email||'')+'</td></tr>';
+      });
+      h += '</tbody></table>';
+    }
+
+    h += '<h3>提出済一覧</h3>';
+    if(submitted.length === 0){
+      h += '<p>提出済の講師はいません。</p>';
+    }else{
+      h += '<table class="statusTable"><thead><tr><th>コード</th><th>氏名</th><th>登録件数</th><th>メール</th></tr></thead><tbody>';
+      submitted.forEach(x=>{
+        const count = availRows.filter(r => String(r.teacher_code) === String(x.code)).length;
+        h += '<tr><td>'+x.code+'</td><td>'+x.name+'</td><td>'+count+'</td><td>'+(x.email||'')+'</td></tr>';
+      });
+      h += '</tbody></table>';
+    }
+
+    $('statusArea').innerHTML = h;
+    msg('statusMsg','読み込みました。',true);
+  }catch(e){
+    msg('statusMsg','読み込みできません。\n'+(e.message||String(e)),false);
+  }
+}
+
+
+
+const BACKUP_KEY = 'step_teacher_schedule_auto_backup_v1';
+
+function timestampText(){
+  const d = new Date();
+  return d.getFullYear() + '/' + String(d.getMonth()+1).padStart(2,'0') + '/' + String(d.getDate()).padStart(2,'0') + ' ' + String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0') + ':' + String(d.getSeconds()).padStart(2,'0');
+}
+
+function filenameTimestamp(){
+  const d = new Date();
+  return d.getFullYear() + String(d.getMonth()+1).padStart(2,'0') + String(d.getDate()).padStart(2,'0') + '_' + String(d.getHours()).padStart(2,'0') + String(d.getMinutes()).padStart(2,'0') + String(d.getSeconds()).padStart(2,'0');
+}
+
+async function createBackup(reason='自動バックアップ'){
+  const data = {
+    app:'step_teacher_schedule_admin',
+    version:'1.9',
+    created_at: timestampText(),
+    reason: reason,
+    tables:{
+      class_days: await rest('class_days?select=*&order=school.asc,date.asc'),
+      deadlines: await rest('deadlines?select=*&order=school.asc'),
+      teachers: await rest('teachers?select=*&order=code.asc'),
+      availability: await rest('availability?select=*&order=school.asc,teacher_code.asc,date.asc,slot_index.asc')
+    }
+  };
+  localStorage.setItem(BACKUP_KEY, JSON.stringify(data));
+  return data;
+}
+
+async function autoBackup(reason){
+  try{
+    const data = await createBackup(reason || '自動バックアップ');
+    console.log('auto backup saved', data.created_at, data.reason);
+    return data;
+  }catch(e){
+    console.warn('auto backup failed', e);
+    return null;
+  }
+}
+
+function getLatestBackup(){
+  const text = localStorage.getItem(BACKUP_KEY);
+  if(!text) return null;
+  try{return JSON.parse(text)}catch(e){return null}
+}
+
+function backupSummary(data){
+  if(!data || !data.tables) return 'バックアップがありません。';
+  const t = data.tables;
+  return '作成日時：' + (data.created_at || '') + '\n' +
+    '理由：' + (data.reason || '') + '\n' +
+    '授業枠：' + ((t.class_days||[]).length) + '件\n' +
+    '締切：' + ((t.deadlines||[]).length) + '件\n' +
+    '講師：' + ((t.teachers||[]).length) + '件\n' +
+    '出勤登録：' + ((t.availability||[]).length) + '件';
+}
+
+function loadBackupView(){
+  const data = getLatestBackup();
+  msg('backupMsg', backupSummary(data), !!data);
+}
+
+async function downloadCurrentBackup(){
+  try{
+    msg('backupMsg','現在の設定をバックアップ中...',true);
+    const data = await createBackup('手動ダウンロード');
+    const blob = new Blob([JSON.stringify(data,null,2)], {type:'application/json'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'step_schedule_backup_' + filenameTimestamp() + '.json';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(a.href);
+    msg('backupMsg','バックアップを保存しました。\n\n' + backupSummary(data),true);
+  }catch(e){
+    msg('backupMsg','バックアップできません。\n'+(e.message||String(e)),false);
+  }
+}
+
+function cleanRows(rows){
+  return (rows||[]).map(r=>{
+    const x = {...r};
+    return x;
+  });
+}
+
+async function restoreTable(table, filter, rows){
+  await rest(table + '?' + filter, {method:'DELETE'});
+  const cleaned = cleanRows(rows);
+  const size = 500;
+  for(let i=0;i<cleaned.length;i+=size){
+    const chunk = cleaned.slice(i,i+size);
+    if(chunk.length){
+      await rest(table, {method:'POST', body:JSON.stringify(chunk)});
+    }
+  }
+}
+
+async function restoreBackupData(data){
+  if(!data || !data.tables) throw new Error('バックアップファイルの形式が違います。');
+  const summary = backupSummary(data);
+  if(!confirm('バックアップから復元します。\n\n' + summary + '\n\n現在のデータは復元内容で上書きされます。よろしいですか？')) return;
+  if(!confirm('念のためもう一度確認します。\n復元を実行してよろしいですか？')) return;
+
+  msg('backupMsg','復元前の自動バックアップを作成中...',true);
+  await autoBackup('復元前の自動バックアップ');
+
+  msg('backupMsg','復元中...',true);
+  const t = data.tables;
+  await restoreTable('availability','school=not.is.null',t.availability||[]);
+  await restoreTable('class_days','school=not.is.null',t.class_days||[]);
+  await restoreTable('deadlines','school=not.is.null',t.deadlines||[]);
+  await restoreTable('teachers','code=not.is.null',t.teachers||[]);
+  localStorage.setItem(BACKUP_KEY, JSON.stringify(data));
+  msg('backupMsg','復元しました。\n\n' + summary,true);
+  loadCurrent();
+}
+
+async function restoreLatestAutoBackup(){
+  try{
+    const data = getLatestBackup();
+    if(!data){msg('backupMsg','直近の自動バックアップがありません。',false);return;}
+    await restoreBackupData(data);
+  }catch(e){
+    msg('backupMsg','復元できません。\n'+(e.message||String(e)),false);
+  }
+}
+
+async function restoreFromFile(){
+  try{
+    const f = $('restoreFile').files && $('restoreFile').files[0];
+    if(!f){msg('backupMsg','復元するJSONファイルを選んでください。',false);return;}
+    const text = await f.text();
+    const data = JSON.parse(text);
+    await restoreBackupData(data);
+  }catch(e){
+    msg('backupMsg','ファイルから復元できません。\n'+(e.message||String(e)),false);
+  }
+}
+
+function showLatestBackupInfo(){
+  const data = getLatestBackup();
+  msg('backupMsg', backupSummary(data), !!data);
+}
+
+async function loadTeacherMaster(){
+  msg('teacherMasterMsg','読み込み中...',true);
+  try{
+    const showActive = $('showActiveTeachers') ? $('showActiveTeachers').checked : true;
+    const showInactive = $('showInactiveTeachers') ? $('showInactiveTeachers').checked : false;
+    const rows = await rest('teachers?select=code,name,email,active,retired_at&order=code.asc');
+    const filtered = (rows||[]).filter(t => (t.active && showActive) || (!t.active && showInactive));
+    let h='<table><thead><tr><th>コード</th><th>氏名</th><th>メール</th><th>状態</th><th>無効化日</th><th class="noPrint">操作</th></tr></thead><tbody>';
+    filtered.forEach(t=>{
+      const active = !!t.active;
+      h+='<tr class="'+(active?'':'inactiveRow')+'">';
+      h+='<td>'+escapeHtml(t.code)+'</td>';
+      h+='<td>'+escapeHtml(t.name)+'</td>';
+      h+='<td>'+escapeHtml(t.email||'')+'</td>';
+      h+='<td><span class="statusBadge '+(active?'on':'off')+'">'+(active?'有効':'無効')+'</span></td>';
+      h+='<td>'+(t.retired_at ? escapeHtml(String(t.retired_at)) : '')+'</td>';
+      h+='<td class="noPrint"><button class="'+(active?'red':'primary')+' toggleBtn" type="button" onclick="toggleTeacherActive(\''+jsQuote(t.code)+'\','+(active?'false':'true')+')">'+(active?'無効にする':'有効に戻す')+'</button></td>';
+      h+='</tr>';
+    });
+    h+='</tbody></table>';
+    $('teacherMasterArea').innerHTML=h;
+    const activeCount=(rows||[]).filter(t=>t.active).length;
+    const inactiveCount=(rows||[]).filter(t=>!t.active).length;
+    msg('teacherMasterMsg','読み込みました。表示：'+filtered.length+'名 / 有効：'+activeCount+'名 / 無効：'+inactiveCount+'名',true);
+  }catch(e){
+    msg('teacherMasterMsg','読み込みできません。\n'+(e.message||String(e)),false);
+  }
+}
+
+function escapeHtml(v){
+  return String(v ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+}
+
+function jsQuote(v){
+  return String(v ?? '').replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+}
+
+async function toggleTeacherActive(code, nextActive){
+  try{
+    const label = nextActive ? '有効に戻します' : '無効にします';
+    if(!confirm(code + ' を' + label + '。よろしいですか？')) return;
+    msg('teacherMasterMsg','変更中...',true);
+    await autoBackup('講師有効/無効変更前');
+    const payload = {active: !!nextActive};
+    if(nextActive){
+      payload.retired_at = null;
+    }else{
+      const d = new Date();
+      payload.retired_at = d.getFullYear() + '/' + String(d.getMonth()+1).padStart(2,'0') + '/' + String(d.getDate()).padStart(2,'0');
+    }
+    await rest('teachers?code=eq.'+encodeURIComponent(code), {
+      method:'PATCH',
+      body: JSON.stringify(payload)
+    });
+    msg('teacherMasterMsg','変更しました。',true);
+    await loadTeacherMaster();
+  }catch(e){
+    msg('teacherMasterMsg','変更できません。\n'+(e.message||String(e))+'\n\n※retired_at列が未作成の場合は、下のSQLをSupabaseで実行してください。',false);
+  }
+}
+
+async function addTeacher(){
+  try{
+    const code=$('newCode').value.trim();
+    const name=$('newName').value.trim();
+    if(!code||!name){msg('teacherMasterMsg','コードと氏名を入力してください。',false);return}
+
+    const row={code:code,name:name,active:true};
+    await autoBackup('講師追加/更新前');
+    await rest('teachers',{method:'POST',body:JSON.stringify(row),headers:{Prefer:'resolution=merge-duplicates'}});
+
+    $('newCode').value='';
+    $('newName').value='';
+    msg('teacherMasterMsg','保存しました。',true);
+    await loadTeacherMaster();
+  }catch(e){
+    msg('teacherMasterMsg','保存できません。\n'+(e.message||String(e)),false);
+  }
+}
+
+
+function openTeacherSelect(mode){
+  selectMode = mode;
+  if(!teachers || teachers.length === 0){
+    msg('teachersMsg','先生データがありません。再読み込みしてください。',false);
+    return;
+  }
+
+  $('teacherSelectTitle').textContent = mode === 'print' ? '印刷する先生を選択' : '表示する先生を選択';
+  const saved = mode === 'print' ? readSavedTeacherSelection('print') : selectedTeacherCodes;
+  const current = effectiveTeacherCodes(saved);
+
+  let h='';
+  teachers.forEach(t=>{
+    const checked = current.includes(t.code) ? 'checked' : '';
+    h += '<label><input class="teacherCheck" type="checkbox" value="'+t.code+'" '+checked+'> '+t.code+'　'+t.name+'</label>';
+  });
+  $('teacherChecks').innerHTML = h;
+  updateTeacherSelectSummary();
+  $('teacherSelectModal').style.display='flex';
+}
+
+function closeTeacherSelect(){
+  $('teacherSelectModal').style.display='none';
+}
+
+function teacherSelectAll(v){
+  document.querySelectorAll('.teacherCheck').forEach(c=>c.checked=v);
+  updateTeacherSelectSummary();
+}
+
+function teacherSelectionKey(mode){
+  return 'step_teacher_' + mode + '_' + school;
+}
+
+function allTeacherCodes(){
+  return (teachers || []).map(t=>String(t.code));
+}
+
+function normalizeTeacherSelection(codes){
+  const valid = new Set(allTeacherCodes());
+  const normalized = Array.from(new Set((codes || []).map(String))).filter(code=>valid.has(code));
+  return normalized.length === 0 || normalized.length === valid.size ? [] : normalized;
+}
+
+function effectiveTeacherCodes(codes){
+  const normalized = normalizeTeacherSelection(codes);
+  return normalized.length ? normalized : allTeacherCodes();
+}
+
+function readSavedTeacherSelection(mode){
+  const text = localStorage.getItem(teacherSelectionKey(mode));
+  if(text === null) return [];
+  try{
+    const parsed = JSON.parse(text);
+    return Array.isArray(parsed) ? normalizeTeacherSelection(parsed) : [];
+  }catch(e){
+    return [];
+  }
+}
+
+function saveTeacherSelection(mode, codes){
+  localStorage.setItem(teacherSelectionKey(mode), JSON.stringify(normalizeTeacherSelection(codes)));
+}
+
+function restoreDisplaySelection(){
+  selectedTeacherCodes = readSavedTeacherSelection('display');
+}
+
+function restoreTeacherSelectionInModal(){
+  const codes = effectiveTeacherCodes(selectMode === 'print' ? readSavedTeacherSelection('print') : readSavedTeacherSelection('display'));
+  const set = new Set(codes);
+  document.querySelectorAll('.teacherCheck').forEach(c=>{ c.checked = set.has(c.value); });
+  updateTeacherSelectSummary();
+}
+
+function selectedCodesFromModal(){
+  return Array.from(document.querySelectorAll('.teacherCheck:checked')).map(c=>c.value);
+}
+
+function updateTeacherSelectSummary(){
+  const count = selectedCodesFromModal().length;
+  $('teacherSelectSummary').textContent = '選択中：' + count + '名';
+}
+
+function runTeacherSelect(){
+  const codes = selectedCodesFromModal();
+  if(codes.length === 0){
+    alert('先生を1人以上選択してください。');
+    return;
+  }
+
+  closeTeacherSelect();
+
+  if(selectMode === 'display'){
+    selectedTeacherCodes = normalizeTeacherSelection(codes);
+    saveTeacherSelection('display', selectedTeacherCodes);
+    renderTeachers();
+  }else{
+    const before = selectedTeacherCodes.slice();
+    const printCodes = normalizeTeacherSelection(codes);
+    saveTeacherSelection('print', printCodes);
+    selectedTeacherCodes = printCodes;
+    renderTeachers();
+    setTimeout(()=>{
+      window.print();
+      selectedTeacherCodes = before;
+      renderTeachers();
+    },200);
+  }
+}
+
+
+
+
+
+function setImportBusy(isBusy, text){
+  const b1 = $('syncTeachersFromSheet');
+  const b2 = $('importTeachers');
+  if(b1) b1.disabled = isBusy;
+  if(b2) b2.disabled = isBusy;
+  if(text) msg('teacherMasterMsg', text, true);
+}
+
+function extractSheetIdAndGid(url){
+  const s = String(url || '');
+  const idMatch = s.match(/\/d\/([^/]+)/);
+  const gidMatch = s.match(/[?&#]gid=([0-9]+)/);
+  return {
+    id: idMatch ? idMatch[1] : '',
+    gid: gidMatch ? gidMatch[1] : '0'
+  };
+}
+
+function parseCsvLine(line){
+  const out = [];
+  let cur = '';
+  let inQ = false;
+  for(let i=0;i<line.length;i++){
+    const ch = line[i];
+    if(ch === '"'){
+      if(inQ && line[i+1] === '"'){ cur += '"'; i++; }
+      else inQ = !inQ;
+    }else if(ch === ',' && !inQ){
+      out.push(cur);
+      cur = '';
+    }else{
+      cur += ch;
+    }
+  }
+  out.push(cur);
+  return out;
+}
+
+function parseCsv(text){
+  const rows = [];
+  let row = [];
+  let cur = '';
+  let inQ = false;
+  const s = String(text || '').replace(/\r\n/g,'\n').replace(/\r/g,'\n');
+  for(let i=0;i<s.length;i++){
+    const ch = s[i];
+    if(ch === '"'){
+      if(inQ && s[i+1] === '"'){ cur += '"'; i++; }
+      else inQ = !inQ;
+    }else if(ch === ',' && !inQ){
+      row.push(cur);
+      cur = '';
+    }else if(ch === '\n' && !inQ){
+      row.push(cur);
+      rows.push(row);
+      row = [];
+      cur = '';
+    }else{
+      cur += ch;
+    }
+  }
+  if(cur || row.length){ row.push(cur); rows.push(row); }
+  return rows;
+}
+
+function rowsToTeachers(rows){
+  const result = [];
+  rows.forEach(cols=>{
+    const code = String(cols[0] || '').trim();
+    const name = String(cols[1] || '').trim();
+    const activeFlag = String(cols[3] || '').trim();
+    const email = String(cols[15] || '').trim();
+
+    if(!code || !name) return;
+    if(code === 'コード' || name === '氏名') return;
+
+    const isActive = activeFlag === '1';
+    const row = {
+      code: code,
+      name: name,
+      email: email || null,
+      active: isActive
+    };
+    if(!isActive){
+      const d = new Date();
+      row.retired_at = d.getFullYear() + '/' + String(d.getMonth()+1).padStart(2,'0') + '/' + String(d.getDate()).padStart(2,'0');
+    }else{
+      row.retired_at = null;
+    }
+    result.push(row);
+  });
+  return result;
+}
+
+async function syncTeachersFromSheetUrl(){
+  try{
+    const info = extractSheetIdAndGid($('teacherMasterUrl').value);
+    if(!info.id){
+      msg('teacherMasterMsg','GoogleスプレッドシートURLを確認してください。',false);
+      return;
+    }
+
+    if(!confirm('Googleスプレッドシートから講師マスターを同期します。よろしいですか？')) return;
+
+    setImportBusy(true,'Googleスプレッドシートから取得中...');
+    await autoBackup('講師マスターURL同期前');
+
+    const csvUrl = 'https://docs.google.com/spreadsheets/d/' + info.id + '/gviz/tq?tqx=out:csv&gid=' + info.gid + '&_=' + Date.now();
+    const res = await fetch(csvUrl);
+    if(!res.ok) throw new Error('Googleシートを取得できません。共有設定または公開設定を確認してください。');
+
+    const csv = await res.text();
+    const rows = parseCsv(csv);
+    const teachers = rowsToTeachers(rows);
+
+    if(teachers.length === 0){
+      msg('teacherMasterMsg','同期対象がありません。A列コード・B列氏名・P列メールを確認してください。',false);
+      return;
+    }
+
+    await rest('teachers', {
+      method:'POST',
+      body: JSON.stringify(teachers),
+      headers:{Prefer:'resolution=merge-duplicates'}
+    });
+
+    const activeCount = teachers.filter(t=>t.active).length;
+    const inactiveCount = teachers.length - activeCount;
+    msg('teacherMasterMsg','講師マスターを同期しました。合計：'+teachers.length+'名 / 有効：'+activeCount+'名 / 無効：'+inactiveCount+'名',true);
+    await loadTeacherMaster();
+    setImportBusy(false);
+  }catch(e){
+    setImportBusy(false);
+    msg('teacherMasterMsg','URL同期できませんでした。\n'+(e.message||String(e))+'\n\n下の貼り付け方式を使ってください。',false);
+  }
+}
+
+
+function parseTeacherPaste(text){
+  const lines = String(text || '').split(/\r?\n/).map(l=>l.trim()).filter(Boolean);
+  const rows = [];
+
+  lines.forEach(line=>{
+    const cols = line.split('\t');
+    const code = String(cols[0] || '').trim();
+    const name = String(cols[1] || '').trim();
+    const activeFlag = String(cols[3] || '').trim();
+    const email = String(cols[15] || '').trim();
+
+    if(!code || !name) return;
+    if(code === 'コード' || name === '氏名') return;
+
+    const isActive = activeFlag === '1';
+    const row = {
+      code: code,
+      name: name,
+      email: email || null,
+      active: isActive
+    };
+    if(!isActive){
+      const d = new Date();
+      row.retired_at = d.getFullYear() + '/' + String(d.getMonth()+1).padStart(2,'0') + '/' + String(d.getDate()).padStart(2,'0');
+    }else{
+      row.retired_at = null;
+    }
+    rows.push(row);
+  });
+
+  return rows;
+}
+
+async function importTeachersFromPaste(){
+  try{
+    const text = $('teacherPaste').value;
+    const rows = parseTeacherPaste(text);
+
+    if(rows.length === 0){
+      msg('teacherMasterMsg','登録対象がありません。A列コード・B列氏名を含めて、A〜P列を貼り付けてください。',false);
+      return;
+    }
+
+    const activeCount = rows.filter(t=>t.active).length;
+    const inactiveCount = rows.length - activeCount;
+    if(!confirm(rows.length + '名を講師として同期します。\n有効：' + activeCount + '名 / 無効：' + inactiveCount + '名\nよろしいですか？')) return;
+
+    setImportBusy(true,'一括登録中...');
+    await autoBackup('講師マスター貼り付け同期前');
+
+    await rest('teachers', {
+      method:'POST',
+      body: JSON.stringify(rows),
+      headers:{Prefer:'resolution=merge-duplicates'}
+    });
+
+    msg('teacherMasterMsg','一括同期しました。合計：'+rows.length+'名 / 有効：'+activeCount+'名 / 無効：'+inactiveCount+'名',true);
+    await loadTeacherMaster();
+    setImportBusy(false);
+  }catch(e){
+    setImportBusy(false);
+    msg('teacherMasterMsg','一括登録できません。\n'+(e.message||String(e)),false);
+  }
+}
+
+
+$('schoolS').onclick=()=>setSchool('神領');
+$('schoolO').onclick=()=>setSchool('大手町');
+$('tabSlots').onclick=()=>setTab('slots');
+$('tabTeachers').onclick=()=>setTab('teachers');
+$('tabStatus').onclick=()=>setTab('status');
+$('tabTeacherMaster').onclick=()=>setTab('master');
+$('tabBackup').onclick=()=>setTab('backup');
+$('makeRange').onclick=makeRange;
+$('addDay').onclick=addDay;
+$('saveSlots').onclick=saveSlots;
+$('reloadSlots').onclick=loadSlots;
+$('copySlotsFromSchool').onclick=copySlotsFromOtherSchool;
+$('reloadDeadline').onclick=()=>loadDeadline(true);
+$('saveDeadline').onclick=saveDeadline;
+$('deadlineDate').onchange=updateDeadlineLabel;
+$('deadlineDisplayBtn').onclick=openDeadlinePicker;
+$('reloadTeachers').onclick=loadTeachersView;
+$('selectDisplayBtn').onclick=()=>openTeacherSelect('display');
+$('printBtn').onclick=()=>openTeacherSelect('print');
+$('teacherSelectClose').onclick=closeTeacherSelect;
+$('teacherAllOn').onclick=()=>teacherSelectAll(true);
+$('teacherAllOff').onclick=()=>teacherSelectAll(false);
+$('teacherRestoreSaved').onclick=restoreTeacherSelectionInModal;
+$('teacherSelectRun').onclick=runTeacherSelect;
+$('teacherChecks').addEventListener('change',updateTeacherSelectSummary);
+$('addTeacher').onclick=addTeacher;
+$('reloadStatus').onclick=loadStatusView;
+$('printStatus').onclick=()=>window.print();
+$('reloadTeacherMaster').onclick=loadTeacherMaster;
+$('showActiveTeachers').onchange=loadTeacherMaster;
+$('showInactiveTeachers').onchange=loadTeacherMaster;
+$('syncTeachersFromSheet').onclick=syncTeachersFromSheetUrl;
+$('importTeachers').onclick=importTeachersFromPaste;
+$('clearTeacherPaste').onclick=()=>{$('teacherPaste').value='';};
+$('makeManualBackup').onclick=downloadCurrentBackup;
+$('restoreLatestAuto').onclick=restoreLatestAutoBackup;
+$('restoreFromFile').onclick=restoreFromFile;
+$('showBackupInfo').onclick=showLatestBackupInfo;
+
+loadSlots();
+setTimeout(()=>autoBackup('画面起動時の自動バックアップ'),1800);
 </script>
 </body>
 </html>
