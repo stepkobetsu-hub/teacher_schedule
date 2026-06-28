@@ -139,6 +139,17 @@ input[type=file]{font-size:14px;padding:8px;border:1px solid #cbd5e1;border-radi
       <button id="reloadSlots" class="gray" type="button">再読み込み</button>
     </div>
 
+    <div class="row noPrint" style="background:#fff7ed;border:1px solid #fed7aa;border-radius:12px;padding:10px">
+      <b>他校の授業枠をコピー</b>
+      <span>コピー元</span>
+      <select id="copySlotsSource" style="font-size:16px;padding:9px;border:1px solid #cbd5e1;border-radius:8px">
+        <option value="神領">神領校</option>
+        <option value="大手町">大手町校</option>
+      </select>
+      <button id="copySlotsFromSchool" class="orange" type="button">他校の内容をコピーして上書き</button>
+      <span style="font-size:13px;color:#8a3a1c;font-weight:800">※現在表示中の校舎の授業枠は全て上書きされます。</span>
+    </div>
+
     <div id="slotsArea" class="tableWrap"></div>
     <div id="slotsMsg" class="msg"></div>
   </section>
@@ -325,6 +336,7 @@ function setSchool(s){
   selectedTeacherCodes=[];
   $('schoolS').classList.toggle('active',s==='神領');
   $('schoolO').classList.toggle('active',s==='大手町');
+  if($('copySlotsSource')) $('copySlotsSource').value = (s === '神領' ? '大手町' : '神領');
   loadCurrent();
 }
 
@@ -433,6 +445,56 @@ function makeRange(){
   slotConfig=Object.values(map).sort((a,b)=>a.date<b.date?-1:1);
   renderSlots();
   msg('slotsMsg','期間の枠を作成しました。保存してください。',true);
+}
+
+
+async function copySlotsFromOtherSchool(){
+  try{
+    const source = $('copySlotsSource').value;
+    const target = school;
+
+    if(source === target){
+      msg('slotsMsg','コピー元とコピー先が同じです。別の校舎を選んでください。',false);
+      return;
+    }
+
+    const warning =
+      '【重要】' + '\n\n' +
+      source + '校の授業枠を、現在表示中の ' + target + '校へコピーします。' + '\n\n' +
+      'この操作を行うと、' + target + '校の現在の授業枠設定はすべて削除され、' + source + '校の内容で完全に上書きされます。' + '\n\n' +
+      '元に戻したい場合は、自動バックアップから復元してください。' + '\n\n' +
+      '続けますか？';
+
+    if(!confirm(warning)) return;
+    if(!confirm('本当に上書きしますか？\n\n' + target + '校の現在の授業枠は全て消えて、' + source + '校と同じ内容になります。')) return;
+
+    msg('slotsMsg','コピー前に自動バックアップ中...',true);
+    await autoBackup('他校授業枠コピー前（' + source + '校 → ' + target + '校）');
+
+    msg('slotsMsg',source + '校の授業枠を読み込み中...',true);
+    const srcRows = await rest('class_days?select=school,date,slots&school=eq.' + encodeURIComponent(source) + '&order=date.asc');
+
+    if(!Array.isArray(srcRows) || srcRows.length === 0){
+      msg('slotsMsg',source + '校にコピーできる授業枠がありません。',false);
+      return;
+    }
+
+    msg('slotsMsg',target + '校の授業枠を上書き中...',true);
+    await rest('class_days?school=eq.' + encodeURIComponent(target), {method:'DELETE'});
+
+    const rows = srcRows.map(r => ({
+      school: target,
+      date: r.date,
+      slots: Array.isArray(r.slots) ? r.slots : [true,true,true,true,true,true]
+    }));
+
+    await rest('class_days', {method:'POST', body: JSON.stringify(rows)});
+
+    msg('slotsMsg',source + '校の授業枠を ' + target + '校へコピーしました。件数：' + rows.length + '日分',true);
+    await loadSlots();
+  }catch(e){
+    msg('slotsMsg','他校の授業枠をコピーできません。\n' + (e.message || String(e)),false);
+  }
 }
 
 async function saveSlots(){
@@ -1130,6 +1192,7 @@ $('makeRange').onclick=makeRange;
 $('addDay').onclick=addDay;
 $('saveSlots').onclick=saveSlots;
 $('reloadSlots').onclick=loadSlots;
+$('copySlotsFromSchool').onclick=copySlotsFromOtherSchool;
 $('reloadDeadline').onclick=loadDeadline;
 $('saveDeadline').onclick=saveDeadline;
 $('deadlineDate').onchange=updateDeadlineLabel;
