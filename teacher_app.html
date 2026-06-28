@@ -209,7 +209,7 @@ function setSchool(s){
 }
 
 async function findTeacher(code){
-  const rows = await rest('teachers?select=code,name,school,email,active&code=eq.' + encodeURIComponent(code) + '&school=eq.' + encodeURIComponent(school));
+  const rows = await rest('teachers?select=code,name,email,active&code=eq.' + encodeURIComponent(code));
   if(!Array.isArray(rows) || rows.length === 0) return null;
   const t = rows[0];
   if(!isActiveTeacher(t)){
@@ -220,7 +220,7 @@ async function findTeacher(code){
 
 async function checkTeacherStillActive(){
   if(!teacher || !teacher.code) return false;
-  const rows = await rest('teachers?select=code,name,school,email,active&code=eq.' + encodeURIComponent(teacher.code) + '&school=eq.' + encodeURIComponent(school));
+  const rows = await rest('teachers?select=code,name,email,active&code=eq.' + encodeURIComponent(teacher.code));
   const t = Array.isArray(rows) && rows.length ? rows[0] : null;
   if(!isActiveTeacher(t)){
     localStorage.removeItem('step_teacher_code');
