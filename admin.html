@@ -87,13 +87,28 @@ td.actions{min-width:210px}
 button:disabled{opacity:.55;cursor:not-allowed}
 @media(max-width:700px){.statusCards{grid-template-columns:1fr}}
 
-.deadlinePanel{margin-left:auto;background:linear-gradient(135deg,#fff7ed,#eff6ff);border:2px solid #f97316;border-radius:16px;padding:12px 14px;box-shadow:0 8px 20px rgba(249,115,22,.18);min-width:330px}
-.deadlinePanelTitle{font-weight:950;color:#9a3412;margin-bottom:7px;font-size:15px}
-.deadlineDisplay{display:block;width:100%;border:2px solid #1565c0;background:#fff;color:#1565c0;border-radius:12px;font-size:23px;font-weight:950;padding:12px 14px;text-align:center}
-.deadlinePanel .deadlineActions{display:flex;gap:8px;margin-top:8px;align-items:center}
+.deadlinePanel{margin-left:auto;background:linear-gradient(135deg,#fff7ed,#ffffff);border:2px solid #f97316;border-radius:16px;padding:10px 12px;box-shadow:0 8px 20px rgba(249,115,22,.14);min-width:620px;max-width:720px}
+.deadlinePanelTop{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.deadlinePanelTitle{font-weight:950;color:#9a3412;font-size:15px;white-space:nowrap}
+.deadlinePanelBody{display:flex;gap:10px;align-items:center;flex:1;min-width:380px}
+.deadlineDisplay{display:block;flex:1;border:2px solid #1565c0;background:#fff;color:#1565c0;border-radius:12px;font-size:24px;font-weight:950;padding:9px 16px;text-align:center;min-height:48px;letter-spacing:.02em}
+.deadlineDisplay:hover{background:#eff6ff}
+.deadlinePanel .deadlineActions{display:flex;gap:8px;align-items:center;white-space:nowrap}
+.deadlinePanel .deadlineActions button{padding:10px 14px;white-space:nowrap}
 .deadlinePanel input[type=date]{position:absolute;opacity:0;pointer-events:none;width:1px;height:1px}
-.deadlineNote{font-size:12px;color:#8a3a1c;font-weight:800;margin-top:6px}
-@media(max-width:760px){.deadlinePanel{min-width:100%;margin-left:0}.deadlineDisplay{font-size:20px}}
+.deadlineNote{font-size:11px;color:#8a3a1c;font-weight:800;margin-top:6px;text-align:right}
+.compactMsg{font-size:13px!important;padding:8px 10px!important;margin:8px 0 0!important;border-radius:10px!important;line-height:1.35!important;text-align:left!important;min-height:0}
+.slotControls{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:14px;align-items:center;margin:10px 0 8px}
+.slotControlsLeft{min-width:0}
+.slotControlRow{align-items:center;margin:8px 0}
+.slotControlRow b{min-width:94px}
+.slotSaveBox{min-width:220px;max-width:270px;display:flex;flex-direction:column;align-items:stretch;justify-content:center;gap:4px}
+.slotSaveButtons{display:flex;gap:8px;justify-content:flex-end;align-items:center}
+.slotSaveButtons .primary{width:112px;height:54px;padding:0;font-size:18px;border-radius:13px}
+.slotSaveButtons .gray{width:92px;height:54px;padding:0;font-size:15px;border-radius:13px}
+@media(max-width:1000px){.deadlinePanel{min-width:100%;max-width:none;margin-left:0}.deadlinePanelTop{display:block}.deadlinePanelTitle{margin-bottom:6px}.deadlinePanelBody{min-width:0}.slotControls{grid-template-columns:1fr}.slotSaveBox{width:100%;max-width:none}.slotSaveButtons{justify-content:flex-start}.slotSaveButtons .primary{width:140px}.slotSaveButtons .gray{width:110px}}
+@media(max-width:760px){.deadlinePanelBody{flex-direction:column;align-items:stretch}.deadlinePanel .deadlineActions{justify-content:stretch}.deadlinePanel .deadlineActions button{flex:1}.deadlineDisplay{font-size:20px}}
+
 
 
 .inactiveRow{background:#f8fafc;color:#94a3b8}
@@ -111,7 +126,7 @@ input[type=file]{font-size:14px;padding:8px;border:1px solid #cbd5e1;border-radi
 </head>
 <body>
 <div class="header">
-  <h1>夏休み出勤管理 <small>Supabase Ver.1.11</small></h1>
+  <h1>夏休み出勤管理 <small>Supabase Ver.1.13</small></h1>
   <p>個別指導ステップ</p>
 </div>
 
@@ -136,30 +151,43 @@ input[type=file]{font-size:14px;padding:8px;border:1px solid #cbd5e1;border-radi
         <p style="margin:0 0 8px">ここで作った日付・時間帯が、講師アプリ・先生別一覧・印刷の基準になります。</p>
       </div>
       <div class="deadlinePanel noPrint">
-        <div id="deadlineSchoolLabel" class="deadlinePanelTitle">神領校 締切日</div>
-        <button id="deadlineDisplayBtn" class="deadlineDisplay" type="button">締切日を選択</button>
-        <input id="deadlineDate" type="date">
-        <div class="deadlineActions">
-          <button id="saveDeadline" class="primary" type="button" style="flex:1">締切日を保存</button>
-          <button id="reloadDeadline" class="gray" type="button">再読込</button>
+        <div class="deadlinePanelTop">
+          <div id="deadlineSchoolLabel" class="deadlinePanelTitle">神領校 講師出勤日提出：締切日</div>
+          <div class="deadlinePanelBody">
+            <button id="deadlineDisplayBtn" class="deadlineDisplay" type="button">締切日を選択</button>
+            <input id="deadlineDate" type="date">
+            <div class="deadlineActions">
+              <button id="saveDeadline" class="primary" type="button">締切日を保存</button>
+              <button id="reloadDeadline" class="gray" type="button">再読込</button>
+            </div>
+          </div>
         </div>
-        <div class="deadlineNote">※日付部分をクリックすると変更できます。</div>
+        <div class="deadlineNote">日付部分をクリックすると変更できます。</div>
       </div>
     </div>
-    <div id="deadlineMsg" class="msg"></div>
 
-    <div class="row noPrint">
-      <b>期間設定</b>
-      <input id="rangeStart" type="date"> <span>〜</span> <input id="rangeEnd" type="date">
-      <button id="makeRange" class="gray" type="button">期間の枠を作成</button>
-    </div>
+    <div class="slotControls noPrint">
+      <div class="slotControlsLeft">
+        <div class="row slotControlRow">
+          <b>期間設定</b>
+          <input id="rangeStart" type="date"> <span>〜</span> <input id="rangeEnd" type="date">
+          <button id="makeRange" class="blue" type="button">期間の枠を作成</button>
+        </div>
 
-    <div class="row noPrint">
-      <b>授業日の追加</b>
-      <input id="singleDate" type="date">
-      <button id="addDay" class="blue" type="button">授業日を追加</button>
-      <button id="saveSlots" class="primary big" style="margin-left:auto" type="button">保存する</button>
-      <button id="reloadSlots" class="gray" type="button">再読み込み</button>
+        <div class="row slotControlRow">
+          <b>授業日の追加</b>
+          <input id="singleDate" type="date">
+          <button id="addDay" class="blue" type="button">授業日を追加</button>
+        </div>
+      </div>
+
+      <div class="slotSaveBox">
+        <div class="slotSaveButtons">
+          <button id="saveSlots" class="primary" type="button">保存</button>
+          <button id="reloadSlots" class="gray" type="button">再読込</button>
+        </div>
+        <div id="slotsMsg" class="msg compactMsg"></div>
+      </div>
     </div>
 
     <div class="row noPrint" style="background:#fff7ed;border:1px solid #fed7aa;border-radius:12px;padding:10px">
@@ -174,7 +202,6 @@ input[type=file]{font-size:14px;padding:8px;border:1px solid #cbd5e1;border-radi
     </div>
 
     <div id="slotsArea" class="tableWrap"></div>
-    <div id="slotsMsg" class="msg"></div>
   </section>
 
 
@@ -259,7 +286,7 @@ input[type=file]{font-size:14px;padding:8px;border:1px solid #cbd5e1;border-radi
     <div id="backupMsg" class="msg"></div>
   </section>
 
-  <div class="small noPrint">Build Supabase Ver.1.11</div>
+  <div class="small noPrint">Build Supabase Ver.1.13</div>
 </div>
 
 
@@ -298,11 +325,21 @@ const timeShort = ['13:00','14:20','15:45','17:10','18:35','20:00'];
 
 function $(id){return document.getElementById(id)}
 
+let msgTimers = {};
 function msg(id,t,ok=true){
   const e=$(id);
+  if(!e) return;
+  if(msgTimers[id]){ clearTimeout(msgTimers[id]); msgTimers[id]=null; }
   e.textContent=t||'';
   e.className='msg '+(ok?'ok':'err');
   e.style.display=t?'block':'none';
+  // 成功メッセージは画面を圧迫しないように自動で消します。エラーは残します。
+  if(t && ok && !String(t).includes('中')){
+    msgTimers[id]=setTimeout(()=>{
+      e.textContent='';
+      e.style.display='none';
+    },3000);
+  }
 }
 
 function rawFromInput(id){
@@ -531,19 +568,19 @@ async function saveSlots(){
 }
 
 
-async function loadDeadline(){
-  msg('deadlineMsg','読み込み中...',true);
+async function loadDeadline(showNotice=false){
   try{
-    if($('deadlineSchoolLabel')) $('deadlineSchoolLabel').textContent = school + '校 締切日';
+    if($('deadlineSchoolLabel')) $('deadlineSchoolLabel').textContent = school + '校 講師出勤日提出：締切日';
     const rows = await rest('deadlines?select=school,deadline&school=eq.'+encodeURIComponent(school));
     const d = rows && rows.length ? rows[0].deadline : '';
     $('deadlineDate').value = d ? String(d).replaceAll('/','-').slice(0,10) : '';
     updateDeadlineLabel();
-    msg('deadlineMsg','読み込みました。',true);
+    if(showNotice) msg('slotsMsg','締切日を再読み込みしました。',true);
   }catch(e){
-    msg('deadlineMsg','読み込みできません。\n'+(e.message||String(e)),false);
+    msg('slotsMsg','締切日を読み込みできません。\n'+(e.message||String(e)),false);
   }
 }
+
 
 function updateDeadlineLabel(){
   const raw = rawFromInput('deadlineDate');
@@ -562,19 +599,19 @@ async function saveDeadline(){
   try{
     const raw = rawFromInput('deadlineDate');
     if(!raw){
-      msg('deadlineMsg','締切日を選んでください。',false);
+      msg('slotsMsg','締切日を選んでください。',false);
       return;
     }
-    msg('deadlineMsg','保存中...',true);
+    msg('slotsMsg','締切日を保存中...',true);
     await autoBackup('締切保存前');
     await rest('deadlines', {
       method:'POST',
       body: JSON.stringify({school:school, deadline:raw}),
       headers:{Prefer:'resolution=merge-duplicates'}
     });
-    msg('deadlineMsg','保存しました。 '+label(raw),true);
+    msg('slotsMsg','締切日を保存しました。 '+label(raw),true);
   }catch(e){
-    msg('deadlineMsg','保存できません。\n'+(e.message||String(e)),false);
+    msg('slotsMsg','締切日を保存できません。\n'+(e.message||String(e)),false);
   }
 }
 
@@ -1208,7 +1245,7 @@ $('addDay').onclick=addDay;
 $('saveSlots').onclick=saveSlots;
 $('reloadSlots').onclick=loadSlots;
 $('copySlotsFromSchool').onclick=copySlotsFromOtherSchool;
-$('reloadDeadline').onclick=loadDeadline;
+$('reloadDeadline').onclick=()=>loadDeadline(true);
 $('saveDeadline').onclick=saveDeadline;
 $('deadlineDate').onchange=updateDeadlineLabel;
 $('deadlineDisplayBtn').onclick=openDeadlinePicker;
