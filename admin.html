@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>夏休み出勤管理</title>
+<title>夏休み出勤管理 Supabase Ver.2.5</title>
 <style>
 *{box-sizing:border-box}
 body{margin:0;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Noto Sans JP",sans-serif;background:#eef3fb;color:#111827}
@@ -121,7 +121,7 @@ input[type=file]{font-size:14px;padding:8px;border:1px solid #cbd5e1;border-radi
 </head>
 <body>
 <div class="header">
-  <h1>夏休み出勤管理 <small>Supabase Ver.1.13</small></h1>
+  <h1>夏休み出勤管理 <small>Supabase Ver.2.5</small></h1>
   <p>個別指導ステップ</p>
 </div>
 
@@ -276,7 +276,7 @@ input[type=file]{font-size:14px;padding:8px;border:1px solid #cbd5e1;border-radi
     <div id="backupMsg" class="msg"></div>
   </section>
 
-  <div class="small noPrint">Build Supabase Ver.1.13</div>
+    <div class="small noPrint">Build Supabase Ver.2.5</div>
 </div>
 
 
@@ -286,6 +286,7 @@ input[type=file]{font-size:14px;padding:8px;border:1px solid #cbd5e1;border-radi
     <div class="row">
       <button id="teacherAllOn" class="gray" type="button">全員選択</button>
       <button id="teacherAllOff" class="gray" type="button">全員解除</button>
+      <button id="teacherSelectSaveTop" class="primary" type="button">表示設定を保存</button>
     </div>
     <div id="teacherSelectSummary" class="selectSummary"></div>
     <div id="teacherChecks" class="teacherChecks"></div>
@@ -301,6 +302,7 @@ input[type=file]{font-size:14px;padding:8px;border:1px solid #cbd5e1;border-radi
 <script>
 const SUPABASE_URL = 'https://jbiolkvegexkqjcwtyye.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_1si6OSrS0AGP19FstAudug_ErlLMMqX';
+// Build Supabase Ver.2.5
 
 let school = '神領';
 let tab = 'slots';
@@ -959,7 +961,8 @@ function openTeacherSelect(mode){
   }
 
   $('teacherSelectTitle').textContent = mode === 'print' ? '印刷する先生を選択' : '表示する先生を選択';
-  $('teacherSelectRun').textContent = mode === 'print' ? '印刷' : '実行';
+  $('teacherSelectSaveTop').style.display = mode === 'print' ? 'none' : '';
+  $('teacherSelectRun').textContent = mode === 'print' ? '印刷' : '表示設定を保存';
   const modalTeachers = teacherCandidatesForMode(mode);
   const current = mode === 'print'
     ? modalTeachers.map(t=>String(t.code))
@@ -1293,6 +1296,7 @@ $('printBtn').onclick=()=>openTeacherSelect('print');
 $('teacherSelectClose').onclick=closeTeacherSelect;
 $('teacherAllOn').onclick=()=>teacherSelectAll(true);
 $('teacherAllOff').onclick=()=>teacherSelectAll(false);
+$('teacherSelectSaveTop').onclick=runTeacherSelect;
 $('teacherSelectRun').onclick=runTeacherSelect;
 $('teacherChecks').addEventListener('change',updateTeacherSelectSummary);
 $('addTeacher').onclick=addTeacher;
