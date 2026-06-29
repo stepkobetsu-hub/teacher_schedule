@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>夏休み出勤管理 Supabase Ver.2.8</title>
+<title>夏休み出勤管理 Supabase Ver.2.9</title>
 <style>
 *{box-sizing:border-box}
 body{margin:0;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Noto Sans JP",sans-serif;background:#eef3fb;color:#111827}
@@ -88,24 +88,24 @@ td.actions{min-width:210px}
 button:disabled{opacity:.55;cursor:not-allowed}
 @media(max-width:700px){.statusCards{grid-template-columns:1fr}}
 
-.deadlinePanel{margin-left:auto;background:linear-gradient(135deg,#fff7ed,#ffffff);border:2px solid #f97316;border-radius:16px;padding:10px 12px;box-shadow:0 8px 20px rgba(249,115,22,.14);min-width:620px;max-width:720px}
-.deadlinePanelTop{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.deadlinePanel{margin-left:auto;background:linear-gradient(135deg,#fff7ed,#ffffff);border:2px solid #f97316;border-radius:16px;padding:8px 12px;box-shadow:0 8px 20px rgba(249,115,22,.14);min-width:760px;max-width:980px}
+.deadlinePanelTop{display:flex;align-items:center;gap:10px;flex-wrap:nowrap}
 .deadlinePanelTitle{font-weight:950;color:#9a3412;font-size:15px;white-space:nowrap;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.deadlineSchoolBadge{display:inline-flex;align-items:center;justify-content:center;border:2px solid #1565c0;background:#eff6ff;color:#1565c0;border-radius:12px;padding:7px 14px;font-size:22px;font-weight:950;line-height:1}
+.deadlineSchoolBadge{display:inline-flex;align-items:center;justify-content:center;border:2px solid #1565c0;background:#eff6ff;color:#1565c0;border-radius:12px;padding:6px 14px;font-size:22px;font-weight:950;line-height:1}
 .deadlineSchoolBadge.ote{border-color:#7c3aed;background:#f5f3ff;color:#6d28d9}
 .deadlineTitleText{font-size:15px;color:#9a3412;font-weight:950}
-.deadlinePanelBody{display:flex;gap:10px;align-items:center;flex:1;min-width:380px}
-.deadlineDisplay{display:block;flex:1;border:2px solid #1565c0;background:#fff;color:#1565c0;border-radius:12px;font-size:24px;font-weight:950;padding:9px 16px;text-align:center;min-height:48px;letter-spacing:.02em}
+.deadlinePanelBody{display:flex;gap:10px;align-items:center;flex:1;min-width:0}
+.deadlineDisplay{display:block;flex:0 0 250px;border:2px solid #1565c0;background:#fff;color:#1565c0;border-radius:12px;font-size:24px;font-weight:950;padding:6px 14px;text-align:center;min-height:42px;letter-spacing:.02em;white-space:nowrap}
 .deadlineDisplay:hover{background:#eff6ff}
 .deadlinePanel .deadlineActions{display:flex;gap:8px;align-items:center;white-space:nowrap}
-.deadlinePanel .deadlineActions button{padding:10px 14px;white-space:nowrap}
+.deadlinePanel .deadlineActions button{padding:9px 14px;white-space:nowrap}
 .deadlinePanel input[type=date]{position:absolute;opacity:0;pointer-events:none;width:1px;height:1px}
-.deadlineNote{font-size:11px;color:#8a3a1c;font-weight:800;margin-top:6px;text-align:right}
+.deadlineNote{font-size:11px;color:#8a3a1c;font-weight:800;margin-top:3px;text-align:right}
 .compactMsg{font-size:13px!important;padding:9px 12px!important;margin:8px 0 0!important;border-radius:10px!important;line-height:1.35!important;text-align:left!important;min-height:0}
 .slotSaveBox{margin-left:auto;min-width:340px;display:flex;flex-direction:column;align-items:stretch;gap:4px}
 .slotSaveButtons{display:flex;gap:10px;justify-content:flex-end;align-items:center}
 .slotSaveButtons .big{min-width:230px}
-@media(max-width:1000px){.deadlinePanel{min-width:100%;max-width:none;margin-left:0}.deadlinePanelTop{display:block}.deadlinePanelTitle{margin-bottom:6px}.deadlinePanelBody{min-width:0}.slotSaveBox{margin-left:0;width:100%}}
+@media(max-width:1000px){.deadlinePanel{min-width:100%;max-width:none;margin-left:0}.deadlinePanelTop{display:block}.deadlinePanelTitle{margin-bottom:6px}.deadlinePanelBody{min-width:0}.deadlineDisplay{flex:1 1 auto}.slotSaveBox{margin-left:0;width:100%}}
 @media(max-width:760px){.deadlinePanelBody{flex-direction:column;align-items:stretch}.deadlinePanel .deadlineActions{justify-content:stretch}.deadlinePanel .deadlineActions button{flex:1}.deadlineDisplay{font-size:20px}}
 
 
@@ -125,7 +125,7 @@ input[type=file]{font-size:14px;padding:8px;border:1px solid #cbd5e1;border-radi
 </head>
 <body>
 <div class="header">
-  <h1>夏休み出勤管理 <small>Supabase Ver.2.8</small></h1>
+  <h1>夏休み出勤管理 <small>Supabase Ver.2.9</small></h1>
   <p>個別指導ステップ</p>
 </div>
 
@@ -281,7 +281,7 @@ input[type=file]{font-size:14px;padding:8px;border:1px solid #cbd5e1;border-radi
     <div id="backupMsg" class="msg"></div>
   </section>
 
-    <div class="small noPrint">Build Supabase Ver.2.8</div>
+    <div class="small noPrint">Build Supabase Ver.2.9</div>
 </div>
 
 
@@ -308,7 +308,7 @@ input[type=file]{font-size:14px;padding:8px;border:1px solid #cbd5e1;border-radi
 <script>
 const SUPABASE_URL = 'https://jbiolkvegexkqjcwtyye.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_1si6OSrS0AGP19FstAudug_ErlLMMqX';
-// Build Supabase Ver.2.8
+// Build Supabase Ver.2.9
 
 let school = '神領';
 let tab = 'slots';
