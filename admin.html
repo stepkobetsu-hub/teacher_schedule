@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>夏休み出勤管理 Supabase Ver.2.5</title>
+<title>夏休み出勤管理 Supabase Ver.2.6</title>
 <style>
 *{box-sizing:border-box}
 body{margin:0;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Noto Sans JP",sans-serif;background:#eef3fb;color:#111827}
@@ -82,6 +82,7 @@ td.actions{min-width:210px}
 .statusCards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:12px 0}
 .statusCard{background:#eff6ff;border:1px solid #bfdbfe;border-radius:14px;padding:16px;text-align:center;font-weight:900}
 .statusNum{font-size:34px;color:#1565c0;margin-top:6px}
+.statusNote{background:#f8fafc;border:1px solid #cbd5e1;border-radius:12px;padding:12px 14px;margin:10px 0 18px;font-weight:900;color:#334155;line-height:1.7}
 .statusTable{margin-top:12px}
 .loadingInline{display:inline-block;margin-left:10px;font-weight:900;color:#1565c0}
 button:disabled{opacity:.55;cursor:not-allowed}
@@ -121,7 +122,7 @@ input[type=file]{font-size:14px;padding:8px;border:1px solid #cbd5e1;border-radi
 </head>
 <body>
 <div class="header">
-  <h1>夏休み出勤管理 <small>Supabase Ver.2.5</small></h1>
+  <h1>夏休み出勤管理 <small>Supabase Ver.2.6</small></h1>
   <p>個別指導ステップ</p>
 </div>
 
@@ -276,7 +277,7 @@ input[type=file]{font-size:14px;padding:8px;border:1px solid #cbd5e1;border-radi
     <div id="backupMsg" class="msg"></div>
   </section>
 
-    <div class="small noPrint">Build Supabase Ver.2.5</div>
+    <div class="small noPrint">Build Supabase Ver.2.6</div>
 </div>
 
 
@@ -287,6 +288,7 @@ input[type=file]{font-size:14px;padding:8px;border:1px solid #cbd5e1;border-radi
       <button id="teacherAllOn" class="gray" type="button">全員選択</button>
       <button id="teacherAllOff" class="gray" type="button">全員解除</button>
       <button id="teacherSelectSaveTop" class="primary" type="button">表示設定を保存</button>
+      <button id="teacherSelectCloseTop" class="red" type="button">閉じる</button>
     </div>
     <div id="teacherSelectSummary" class="selectSummary"></div>
     <div id="teacherChecks" class="teacherChecks"></div>
@@ -302,7 +304,7 @@ input[type=file]{font-size:14px;padding:8px;border:1px solid #cbd5e1;border-radi
 <script>
 const SUPABASE_URL = 'https://jbiolkvegexkqjcwtyye.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_1si6OSrS0AGP19FstAudug_ErlLMMqX';
-// Build Supabase Ver.2.5
+// Build Supabase Ver.2.6
 
 let school = '神領';
 let tab = 'slots';
@@ -679,10 +681,22 @@ async function loadStatusView(){
   try{
     const t = await rest('teachers?select=code,name,email,active&active=eq.true&order=code.asc');
     const a = await rest('availability?select=teacher_code,teacher_name,date,slot_index,value,school&school=eq.'+encodeURIComponent(school));
+    const allA = await rest('availability?select=teacher_code,school');
 
     const teacherRows = t || [];
     const availRows = a || [];
+    const allAvailRows = allA || [];
+    const activeCodes = new Set(teacherRows.map(x => String(x.code)));
     const submittedCodes = new Set(availRows.map(r => String(r.teacher_code)));
+    const schoolSubmitted = {神領:new Set(), 大手町:new Set()};
+    allAvailRows.forEach(r=>{
+      const code = String(r.teacher_code || '');
+      const rowSchool = String(r.school || '');
+      if(activeCodes.has(code) && schoolSubmitted[rowSchool]){
+        schoolSubmitted[rowSchool].add(code);
+      }
+    });
+    const multiSubmittedCodes = Array.from(schoolSubmitted['神領']).filter(code => schoolSubmitted['大手町'].has(code));
 
     const submitted = teacherRows.filter(x => submittedCodes.has(String(x.code)));
     const notSubmitted = teacherRows.filter(x => !submittedCodes.has(String(x.code)));
@@ -692,6 +706,11 @@ async function loadStatusView(){
     h += '<div class="statusCard">登録対象<div class="statusNum">'+teacherRows.length+'</div>名</div>';
     h += '<div class="statusCard">提出済<div class="statusNum">'+submitted.length+'</div>名</div>';
     h += '<div class="statusCard">未提出<div class="statusNum">'+notSubmitted.length+'</div>名</div>';
+    h += '</div>';
+    h += '<div class="statusNote">校舎別提出数：神領校 '+schoolSubmitted['神領'].size+'名 ／ 大手町校 '+schoolSubmitted['大手町'].size+'名';
+    if(multiSubmittedCodes.length > 0){
+      h += '<br>神領校と大手町校の掛け持ち提出：'+multiSubmittedCodes.length+'名';
+    }
     h += '</div>';
 
     h += '<h3>未提出者一覧</h3>';
@@ -962,6 +981,7 @@ function openTeacherSelect(mode){
 
   $('teacherSelectTitle').textContent = mode === 'print' ? '印刷する先生を選択' : '表示する先生を選択';
   $('teacherSelectSaveTop').style.display = mode === 'print' ? 'none' : '';
+  $('teacherSelectCloseTop').style.display = mode === 'print' ? 'none' : '';
   $('teacherSelectRun').textContent = mode === 'print' ? '印刷' : '表示設定を保存';
   const modalTeachers = teacherCandidatesForMode(mode);
   const current = mode === 'print'
@@ -1294,6 +1314,7 @@ $('reloadTeachers').onclick=loadTeachersView;
 $('selectDisplayBtn').onclick=()=>openTeacherSelect('display');
 $('printBtn').onclick=()=>openTeacherSelect('print');
 $('teacherSelectClose').onclick=closeTeacherSelect;
+$('teacherSelectCloseTop').onclick=closeTeacherSelect;
 $('teacherAllOn').onclick=()=>teacherSelectAll(true);
 $('teacherAllOff').onclick=()=>teacherSelectAll(false);
 $('teacherSelectSaveTop').onclick=runTeacherSelect;
