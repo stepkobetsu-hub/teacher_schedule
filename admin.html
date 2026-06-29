@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>夏休み出勤管理 Supabase Ver.2.6</title>
+<title>夏休み出勤管理 Supabase Ver.2.7</title>
 <style>
 *{box-sizing:border-box}
 body{margin:0;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Noto Sans JP",sans-serif;background:#eef3fb;color:#111827}
@@ -90,7 +90,10 @@ button:disabled{opacity:.55;cursor:not-allowed}
 
 .deadlinePanel{margin-left:auto;background:linear-gradient(135deg,#fff7ed,#ffffff);border:2px solid #f97316;border-radius:16px;padding:10px 12px;box-shadow:0 8px 20px rgba(249,115,22,.14);min-width:620px;max-width:720px}
 .deadlinePanelTop{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
-.deadlinePanelTitle{font-weight:950;color:#9a3412;font-size:15px;white-space:nowrap}
+.deadlinePanelTitle{font-weight:950;color:#9a3412;font-size:15px;white-space:nowrap;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.deadlineSchoolBadge{display:inline-flex;align-items:center;justify-content:center;border:2px solid #1565c0;background:#eff6ff;color:#1565c0;border-radius:12px;padding:7px 14px;font-size:22px;font-weight:950;line-height:1}
+.deadlineSchoolBadge.ote{border-color:#7c3aed;background:#f5f3ff;color:#6d28d9}
+.deadlineTitleText{font-size:15px;color:#9a3412;font-weight:950}
 .deadlinePanelBody{display:flex;gap:10px;align-items:center;flex:1;min-width:380px}
 .deadlineDisplay{display:block;flex:1;border:2px solid #1565c0;background:#fff;color:#1565c0;border-radius:12px;font-size:24px;font-weight:950;padding:9px 16px;text-align:center;min-height:48px;letter-spacing:.02em}
 .deadlineDisplay:hover{background:#eff6ff}
@@ -122,7 +125,7 @@ input[type=file]{font-size:14px;padding:8px;border:1px solid #cbd5e1;border-radi
 </head>
 <body>
 <div class="header">
-  <h1>夏休み出勤管理 <small>Supabase Ver.2.6</small></h1>
+  <h1>夏休み出勤管理 <small>Supabase Ver.2.7</small></h1>
   <p>個別指導ステップ</p>
 </div>
 
@@ -148,7 +151,7 @@ input[type=file]{font-size:14px;padding:8px;border:1px solid #cbd5e1;border-radi
       </div>
       <div class="deadlinePanel noPrint">
         <div class="deadlinePanelTop">
-          <div id="deadlineSchoolLabel" class="deadlinePanelTitle">神領校 講師出勤日提出：締切日</div>
+          <div id="deadlineSchoolLabel" class="deadlinePanelTitle"><span class="deadlineSchoolBadge">神領校</span><span class="deadlineTitleText">講師出勤日提出：締切日</span></div>
           <div class="deadlinePanelBody">
             <button id="deadlineDisplayBtn" class="deadlineDisplay" type="button">締切日を選択</button>
             <input id="deadlineDate" type="date">
@@ -277,7 +280,7 @@ input[type=file]{font-size:14px;padding:8px;border:1px solid #cbd5e1;border-radi
     <div id="backupMsg" class="msg"></div>
   </section>
 
-    <div class="small noPrint">Build Supabase Ver.2.6</div>
+    <div class="small noPrint">Build Supabase Ver.2.7</div>
 </div>
 
 
@@ -304,7 +307,7 @@ input[type=file]{font-size:14px;padding:8px;border:1px solid #cbd5e1;border-radi
 <script>
 const SUPABASE_URL = 'https://jbiolkvegexkqjcwtyye.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_1si6OSrS0AGP19FstAudug_ErlLMMqX';
-// Build Supabase Ver.2.6
+// Build Supabase Ver.2.7
 
 let school = '神領';
 let tab = 'slots';
@@ -564,7 +567,10 @@ async function saveSlots(){
 
 async function loadDeadline(showNotice=false){
   try{
-    if($('deadlineSchoolLabel')) $('deadlineSchoolLabel').textContent = school + '校 講師出勤日提出：締切日';
+    if($('deadlineSchoolLabel')){
+      const badgeClass = school === '大手町' ? 'deadlineSchoolBadge ote' : 'deadlineSchoolBadge';
+      $('deadlineSchoolLabel').innerHTML = '<span class="'+badgeClass+'">'+school+'校</span><span class="deadlineTitleText">講師出勤日提出：締切日</span>';
+    }
     const rows = await rest('deadlines?select=school,deadline&school=eq.'+encodeURIComponent(school));
     const d = rows && rows.length ? rows[0].deadline : '';
     $('deadlineDate').value = d ? String(d).replaceAll('/','-').slice(0,10) : '';
