@@ -286,7 +286,6 @@ input[type=file]{font-size:14px;padding:8px;border:1px solid #cbd5e1;border-radi
     <div class="row">
       <button id="teacherAllOn" class="gray" type="button">全員選択</button>
       <button id="teacherAllOff" class="gray" type="button">全員解除</button>
-      <button id="teacherRestoreSaved" class="gray" type="button">前回設定に戻す</button>
     </div>
     <div id="teacherSelectSummary" class="selectSummary"></div>
     <div id="teacherChecks" class="teacherChecks"></div>
@@ -960,12 +959,15 @@ function openTeacherSelect(mode){
   }
 
   $('teacherSelectTitle').textContent = mode === 'print' ? '印刷する先生を選択' : '表示する先生を選択';
-  const saved = mode === 'print' ? readSavedTeacherSelection('print') : selectedTeacherCodes;
-  const current = effectiveTeacherCodes(saved);
+  $('teacherSelectRun').textContent = mode === 'print' ? '印刷' : '実行';
+  const modalTeachers = teacherCandidatesForMode(mode);
+  const current = mode === 'print'
+    ? modalTeachers.map(t=>String(t.code))
+    : effectiveTeacherCodes(selectedTeacherCodes);
 
   let h='';
-  teachers.forEach(t=>{
-    const checked = current.includes(t.code) ? 'checked' : '';
+  modalTeachers.forEach(t=>{
+    const checked = current.includes(String(t.code)) ? 'checked' : '';
     h += '<label><input class="teacherCheck" type="checkbox" value="'+t.code+'" '+checked+'> '+t.code+'　'+t.name+'</label>';
   });
   $('teacherChecks').innerHTML = h;
@@ -982,8 +984,8 @@ function teacherSelectAll(v){
   updateTeacherSelectSummary();
 }
 
-function teacherSelectionKey(mode){
-  return 'step_teacher_' + mode + '_' + school;
+function teacherSelectionKey(){
+  return 'step_display_' + school;
 }
 
 function allTeacherCodes(){
@@ -1001,8 +1003,14 @@ function effectiveTeacherCodes(codes){
   return normalized.length ? normalized : allTeacherCodes();
 }
 
-function readSavedTeacherSelection(mode){
-  const text = localStorage.getItem(teacherSelectionKey(mode));
+function teacherCandidatesForMode(mode){
+  if(mode !== 'print') return teachers || [];
+  const visible = new Set(effectiveTeacherCodes(selectedTeacherCodes));
+  return (teachers || []).filter(t=>visible.has(String(t.code)));
+}
+
+function readSavedTeacherSelection(){
+  const text = localStorage.getItem(teacherSelectionKey());
   if(text === null) return [];
   try{
     const parsed = JSON.parse(text);
@@ -1012,19 +1020,12 @@ function readSavedTeacherSelection(mode){
   }
 }
 
-function saveTeacherSelection(mode, codes){
-  localStorage.setItem(teacherSelectionKey(mode), JSON.stringify(normalizeTeacherSelection(codes)));
+function saveTeacherSelection(codes){
+  localStorage.setItem(teacherSelectionKey(), JSON.stringify(normalizeTeacherSelection(codes)));
 }
 
 function restoreDisplaySelection(){
-  selectedTeacherCodes = readSavedTeacherSelection('display');
-}
-
-function restoreTeacherSelectionInModal(){
-  const codes = effectiveTeacherCodes(selectMode === 'print' ? readSavedTeacherSelection('print') : readSavedTeacherSelection('display'));
-  const set = new Set(codes);
-  document.querySelectorAll('.teacherCheck').forEach(c=>{ c.checked = set.has(c.value); });
-  updateTeacherSelectSummary();
+  selectedTeacherCodes = readSavedTeacherSelection();
 }
 
 function selectedCodesFromModal(){
@@ -1047,12 +1048,11 @@ function runTeacherSelect(){
 
   if(selectMode === 'display'){
     selectedTeacherCodes = normalizeTeacherSelection(codes);
-    saveTeacherSelection('display', selectedTeacherCodes);
+    saveTeacherSelection(selectedTeacherCodes);
     renderTeachers();
   }else{
     const before = selectedTeacherCodes.slice();
     const printCodes = normalizeTeacherSelection(codes);
-    saveTeacherSelection('print', printCodes);
     selectedTeacherCodes = printCodes;
     renderTeachers();
     setTimeout(()=>{
@@ -1293,7 +1293,6 @@ $('printBtn').onclick=()=>openTeacherSelect('print');
 $('teacherSelectClose').onclick=closeTeacherSelect;
 $('teacherAllOn').onclick=()=>teacherSelectAll(true);
 $('teacherAllOff').onclick=()=>teacherSelectAll(false);
-$('teacherRestoreSaved').onclick=restoreTeacherSelectionInModal;
 $('teacherSelectRun').onclick=runTeacherSelect;
 $('teacherChecks').addEventListener('change',updateTeacherSelectSummary);
 $('addTeacher').onclick=addTeacher;
