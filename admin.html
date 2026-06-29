@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>夏休み出勤管理 Supabase Ver.2.7</title>
+<title>夏休み出勤管理 Supabase Ver.2.8</title>
 <style>
 *{box-sizing:border-box}
 body{margin:0;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Noto Sans JP",sans-serif;background:#eef3fb;color:#111827}
@@ -125,7 +125,7 @@ input[type=file]{font-size:14px;padding:8px;border:1px solid #cbd5e1;border-radi
 </head>
 <body>
 <div class="header">
-  <h1>夏休み出勤管理 <small>Supabase Ver.2.7</small></h1>
+  <h1>夏休み出勤管理 <small>Supabase Ver.2.8</small></h1>
   <p>個別指導ステップ</p>
 </div>
 
@@ -188,6 +188,7 @@ input[type=file]{font-size:14px;padding:8px;border:1px solid #cbd5e1;border-radi
       <b>他校の授業枠をコピー</b>
       <span>コピー元</span>
       <select id="copySlotsSource" style="font-size:16px;padding:9px;border:1px solid #cbd5e1;border-radius:8px">
+        <option value="">-</option>
         <option value="神領">神領校</option>
         <option value="大手町">大手町校</option>
       </select>
@@ -280,7 +281,7 @@ input[type=file]{font-size:14px;padding:8px;border:1px solid #cbd5e1;border-radi
     <div id="backupMsg" class="msg"></div>
   </section>
 
-    <div class="small noPrint">Build Supabase Ver.2.7</div>
+    <div class="small noPrint">Build Supabase Ver.2.8</div>
 </div>
 
 
@@ -307,7 +308,7 @@ input[type=file]{font-size:14px;padding:8px;border:1px solid #cbd5e1;border-radi
 <script>
 const SUPABASE_URL = 'https://jbiolkvegexkqjcwtyye.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_1si6OSrS0AGP19FstAudug_ErlLMMqX';
-// Build Supabase Ver.2.7
+// Build Supabase Ver.2.8
 
 let school = '神領';
 let tab = 'slots';
@@ -380,7 +381,7 @@ function setSchool(s){
   restoreDisplaySelection();
   $('schoolS').classList.toggle('active',s==='神領');
   $('schoolO').classList.toggle('active',s==='大手町');
-  if($('copySlotsSource')) $('copySlotsSource').value = (s === '神領' ? '大手町' : '神領');
+  if($('copySlotsSource')) $('copySlotsSource').value = '';
   loadCurrent();
 }
 
@@ -494,6 +495,11 @@ async function copySlotsFromOtherSchool(){
   try{
     const source = $('copySlotsSource').value;
     const target = school;
+
+    if(!source){
+      msg('slotsMsg','コピー元を選んでください。',false);
+      return;
+    }
 
     if(source === target){
       msg('slotsMsg','コピー元とコピー先が同じです。別の校舎を選んでください。',false);
