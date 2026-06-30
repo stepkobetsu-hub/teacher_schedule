@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>夏休み出勤管理 Supabase Ver.3.0</title>
+<title>夏休み出勤管理 Supabase Ver.3.1</title>
 <style>
 *{box-sizing:border-box}
 body{margin:0;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Noto Sans JP",sans-serif;background:#eef3fb;color:#111827}
@@ -125,7 +125,7 @@ input[type=file]{font-size:14px;padding:8px;border:1px solid #cbd5e1;border-radi
 </head>
 <body>
 <div class="header">
-  <h1>夏休み出勤管理 <small>Supabase Ver.3.0</small></h1>
+  <h1>夏休み出勤管理 <small>Supabase Ver.3.1</small></h1>
   <p>個別指導ステップ</p>
 </div>
 
@@ -283,7 +283,7 @@ input[type=file]{font-size:14px;padding:8px;border:1px solid #cbd5e1;border-radi
     <div id="backupMsg" class="msg"></div>
   </section>
 
-    <div class="small noPrint">Build Supabase Ver.3.0</div>
+    <div class="small noPrint">Build Supabase Ver.3.1</div>
 </div>
 
 
@@ -310,7 +310,7 @@ input[type=file]{font-size:14px;padding:8px;border:1px solid #cbd5e1;border-radi
 <script>
 const SUPABASE_URL = 'https://jbiolkvegexkqjcwtyye.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_1si6OSrS0AGP19FstAudug_ErlLMMqX';
-// Build Supabase Ver.3.0
+// Build Supabase Ver.3.1
 const SCHEDULE_TRANSFER_TARGETS = {
   '神領': {
     name: '神領予定表',
@@ -1177,7 +1177,12 @@ async function transferSchedule(codes){
     };
 
     msg(tab === 'status' ? 'statusMsg' : 'teachersMsg','予定表へ一括入力のプレビューを送信中...',true);
-    await postScheduleAction(webAppUrl, Object.assign({action: 'previewBulkWrite'}, basePayload));
+    const preview = await postScheduleAction(webAppUrl, Object.assign({action: 'previewBulkWrite'}, basePayload));
+    const previewResult = preview.result || {};
+    if(Number(previewResult.foundCells || 0) === 0){
+      msg(tab === 'status' ? 'statusMsg' : 'teachersMsg','転記できる担当欄が見つかりませんでした。\n' + formatScheduleResult(previewResult),false);
+      return;
+    }
 
     const teacherNames = selectedTeachers.map(t => t.code + ' ' + t.name).join('\n');
     const confirmText =
@@ -1185,28 +1190,65 @@ async function transferSchedule(codes){
       '校舎：' + school + '校\n' +
       '転記先URL：' + target.url + '\n' +
       '対象講師数：' + selectedTeachers.length + '名\n' +
-      '転記件数：' + entries.length + '件\n' +
+      '対象データ：' + entries.length + '件\n' +
+      'プレビュー：' + formatScheduleResult(previewResult) + '\n' +
       '処理：' + (writeMode === 'replace' ? '既存の担当欄を消して入れ直す' : '既存の担当欄に追記する') + '\n\n' +
       '対象講師：\n' + teacherNames + '\n\n' +
       'OKなら本実行します。';
     if(!confirm(confirmText)) return;
 
     msg(tab === 'status' ? 'statusMsg' : 'teachersMsg','予定表へ一括入力を実行中...',true);
-    await postScheduleAction(webAppUrl, Object.assign({action: 'bulkWriteToSchedule'}, basePayload));
+    const executed = await postScheduleAction(webAppUrl, Object.assign({action: 'bulkWriteToSchedule'}, basePayload));
+    const executedResult = executed.result || {};
+    const missing = Array.isArray(executedResult.missing) ? executedResult.missing : [];
+    const actualWritten = Number(executedResult.actualWritten || 0);
+    const writtenCells = Number(executedResult.writtenCells || 0);
+    const resultText = formatScheduleResult(executedResult);
+    if(missing.length || actualWritten === 0 || writtenCells === 0){
+      msg(tab === 'status' ? 'statusMsg' : 'teachersMsg','予定表へ一括入力は完了していません。\n' + resultText,false);
+      return;
+    }
 
-    msg(tab === 'status' ? 'statusMsg' : 'teachersMsg','予定表へ一括入力リクエストを送信しました。予定表を確認してください。\n転記先：' + target.url,true);
+    msg(tab === 'status' ? 'statusMsg' : 'teachersMsg','予定表へ一括入力が完了しました。\n' + resultText + '\n転記先：' + target.url,true);
   }catch(e){
     msg(tab === 'status' ? 'statusMsg' : 'teachersMsg','予定表へ一括入力できません。\n'+(e.message||String(e)),false);
   }
 }
 
 async function postScheduleAction(webAppUrl, payload){
-  await fetch(webAppUrl, {
-      method: 'POST',
-      mode: 'no-cors',
-      headers: {'Content-Type':'text/plain;charset=utf-8'},
-      body: JSON.stringify(payload)
+  const res = await fetch(webAppUrl, {
+    method: 'POST',
+    headers: {'Content-Type':'text/plain;charset=utf-8'},
+    body: JSON.stringify(payload)
   });
+  const text = await res.text();
+  let data;
+  try{
+    data = JSON.parse(text);
+  }catch(e){
+    throw new Error('GASからJSONを読み取れませんでした。\nHTTP ' + res.status + '\n' + text.slice(0, 300));
+  }
+  if(!res.ok || !data.ok){
+    throw new Error((data && data.error) ? data.error : ('GASエラー HTTP ' + res.status));
+  }
+  return data;
+}
+
+function formatScheduleResult(result){
+  const missing = Array.isArray(result && result.missing) ? result.missing : [];
+  const lines = [
+    '対象データ：' + Number((result && result.totalEntries) || 0) + '件',
+    '検出セル：' + Number((result && result.foundCells) || 0) + '枠',
+    '書き込み成功：' + Number((result && result.actualWritten) || 0) + '件',
+    '書き込みセル：' + Number((result && result.writtenCells) || 0) + '枠',
+    '見つからなかった枠：' + missing.length + '件'
+  ];
+  if(missing.length){
+    lines.push('未発見：');
+    lines.push(missing.slice(0, 20).map(m => '- ' + (m.label || (m.date + ' ' + m.time))).join('\n'));
+    if(missing.length > 20) lines.push('...ほか ' + (missing.length - 20) + '件');
+  }
+  return lines.join('\n');
 }
 
 
