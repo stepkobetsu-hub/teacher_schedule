@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>夏休み出勤管理 Supabase Ver.2.7</title>
+<title>夏休み出勤管理 Supabase Ver.3.0</title>
 <style>
 *{box-sizing:border-box}
 body{margin:0;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Noto Sans JP",sans-serif;background:#eef3fb;color:#111827}
@@ -125,7 +125,7 @@ input[type=file]{font-size:14px;padding:8px;border:1px solid #cbd5e1;border-radi
 </head>
 <body>
 <div class="header">
-  <h1>夏休み出勤管理 <small>Supabase Ver.2.7</small></h1>
+  <h1>夏休み出勤管理 <small>Supabase Ver.3.0</small></h1>
   <p>個別指導ステップ</p>
 </div>
 
@@ -206,7 +206,7 @@ input[type=file]{font-size:14px;padding:8px;border:1px solid #cbd5e1;border-radi
       <button id="reloadTeachers" class="gray" type="button">再読み込み</button>
       <button id="selectDisplayBtn" class="blue" type="button">表示する先生を選択</button>
       <button id="printBtn" class="gray" type="button">印刷する先生を選択</button>
-      <button id="transferScheduleBtn" class="orange" type="button">予定表へ転記</button>
+      <button id="transferScheduleBtn" class="orange" type="button">予定表へ一括入力</button>
     </div>
     <div id="teachersArea"></div>
     <div id="teachersMsg" class="msg"></div>
@@ -218,7 +218,7 @@ input[type=file]{font-size:14px;padding:8px;border:1px solid #cbd5e1;border-radi
     <div class="row noPrint">
       <button id="reloadStatus" class="gray" type="button">再読み込み</button>
       <button id="printStatus" class="gray" type="button">印刷する</button>
-      <button id="transferScheduleFromStatusBtn" class="orange" type="button">予定表へ転記</button>
+      <button id="transferScheduleFromStatusBtn" class="orange" type="button">予定表へ一括入力</button>
     </div>
     <div id="statusArea"></div>
     <div id="statusMsg" class="msg"></div>
@@ -283,7 +283,7 @@ input[type=file]{font-size:14px;padding:8px;border:1px solid #cbd5e1;border-radi
     <div id="backupMsg" class="msg"></div>
   </section>
 
-    <div class="small noPrint">Build Supabase Ver.2.7</div>
+    <div class="small noPrint">Build Supabase Ver.3.0</div>
 </div>
 
 
@@ -299,7 +299,7 @@ input[type=file]{font-size:14px;padding:8px;border:1px solid #cbd5e1;border-radi
     <div id="teacherSelectSummary" class="selectSummary"></div>
     <div id="teacherChecks" class="teacherChecks"></div>
     <div class="row" style="margin-top:14px">
-      <button id="teacherSelectRun" class="primary" type="button">表示設定を保存</button>
+      <button id="teacherSelectRun" class="primary" type="button">実行</button>
       <button id="teacherSelectClose" class="red" type="button">閉じる</button>
     </div>
   </div>
@@ -310,7 +310,7 @@ input[type=file]{font-size:14px;padding:8px;border:1px solid #cbd5e1;border-radi
 <script>
 const SUPABASE_URL = 'https://jbiolkvegexkqjcwtyye.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_1si6OSrS0AGP19FstAudug_ErlLMMqX';
-// Build Supabase Ver.2.7
+// Build Supabase Ver.3.0
 const SCHEDULE_TRANSFER_TARGETS = {
   '神領': {
     name: '神領予定表',
@@ -1140,6 +1140,9 @@ async function transferSchedule(codes){
     if(!target) throw new Error('転記先が設定されていません。');
 
     const selected = new Set((codes || []).map(String));
+    const selectedTeachers = (teachers || [])
+      .filter(t => selected.has(String(t.code)))
+      .map(t => ({code: String(t.code), name: t.name || '', email: t.email || ''}));
     const webAppUrl = getScheduleTransferWebAppUrl();
     if(!webAppUrl){
       msg(tab === 'status' ? 'statusMsg' : 'teachersMsg','予定表転記用 Apps Script WebアプリURLが未設定です。',false);
@@ -1163,27 +1166,47 @@ async function transferSchedule(codes){
       return;
     }
 
-    const payload = {
-      action: 'transferAvailabilityToSchedule',
+    const writeMode = confirm('既存の担当欄を消してから転記しますか？\n\nOK：該当する担当欄を消して入れ直す\nキャンセル：既存の担当欄に追記する') ? 'replace' : 'append';
+    const basePayload = {
       school: school,
       target: target,
       timeShort: timeShort,
+      writeMode: writeMode,
+      teachers: selectedTeachers,
       entries: entries
     };
 
-    if(!confirm(school + '校の予定表へ ' + selected.size + '名分 / ' + entries.length + '件を転記します。\n続けますか？')) return;
+    msg(tab === 'status' ? 'statusMsg' : 'teachersMsg','予定表へ一括入力のプレビューを送信中...',true);
+    await postScheduleAction(webAppUrl, Object.assign({action: 'previewBulkWrite'}, basePayload));
 
-    await fetch(webAppUrl, {
+    const teacherNames = selectedTeachers.map(t => t.code + ' ' + t.name).join('\n');
+    const confirmText =
+      '予定表へ一括入力します。\n\n' +
+      '校舎：' + school + '校\n' +
+      '転記先URL：' + target.url + '\n' +
+      '対象講師数：' + selectedTeachers.length + '名\n' +
+      '転記件数：' + entries.length + '件\n' +
+      '処理：' + (writeMode === 'replace' ? '既存の担当欄を消して入れ直す' : '既存の担当欄に追記する') + '\n\n' +
+      '対象講師：\n' + teacherNames + '\n\n' +
+      'OKなら本実行します。';
+    if(!confirm(confirmText)) return;
+
+    msg(tab === 'status' ? 'statusMsg' : 'teachersMsg','予定表へ一括入力を実行中...',true);
+    await postScheduleAction(webAppUrl, Object.assign({action: 'bulkWriteToSchedule'}, basePayload));
+
+    msg(tab === 'status' ? 'statusMsg' : 'teachersMsg','予定表へ一括入力リクエストを送信しました。予定表を確認してください。\n転記先：' + target.url,true);
+  }catch(e){
+    msg(tab === 'status' ? 'statusMsg' : 'teachersMsg','予定表へ一括入力できません。\n'+(e.message||String(e)),false);
+  }
+}
+
+async function postScheduleAction(webAppUrl, payload){
+  await fetch(webAppUrl, {
       method: 'POST',
       mode: 'no-cors',
       headers: {'Content-Type':'text/plain;charset=utf-8'},
       body: JSON.stringify(payload)
-    });
-
-    msg(tab === 'status' ? 'statusMsg' : 'teachersMsg','予定表へ転記リクエストを送信しました。予定表を確認してください。\n転記先：' + target.url,true);
-  }catch(e){
-    msg(tab === 'status' ? 'statusMsg' : 'teachersMsg','予定表へ転記できません。\n'+(e.message||String(e)),false);
-  }
+  });
 }
 
 
