@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>夏休み出勤管理 Supabase Ver.2.9</title>
+<title>夏休み出勤管理 Supabase Ver.2.7</title>
 <style>
 *{box-sizing:border-box}
 body{margin:0;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Noto Sans JP",sans-serif;background:#eef3fb;color:#111827}
@@ -125,7 +125,7 @@ input[type=file]{font-size:14px;padding:8px;border:1px solid #cbd5e1;border-radi
 </head>
 <body>
 <div class="header">
-  <h1>夏休み出勤管理 <small>Supabase Ver.2.9</small></h1>
+  <h1>夏休み出勤管理 <small>Supabase Ver.2.7</small></h1>
   <p>個別指導ステップ</p>
 </div>
 
@@ -206,6 +206,7 @@ input[type=file]{font-size:14px;padding:8px;border:1px solid #cbd5e1;border-radi
       <button id="reloadTeachers" class="gray" type="button">再読み込み</button>
       <button id="selectDisplayBtn" class="blue" type="button">表示する先生を選択</button>
       <button id="printBtn" class="gray" type="button">印刷する先生を選択</button>
+      <button id="transferScheduleBtn" class="orange" type="button">予定表へ転記</button>
     </div>
     <div id="teachersArea"></div>
     <div id="teachersMsg" class="msg"></div>
@@ -217,6 +218,7 @@ input[type=file]{font-size:14px;padding:8px;border:1px solid #cbd5e1;border-radi
     <div class="row noPrint">
       <button id="reloadStatus" class="gray" type="button">再読み込み</button>
       <button id="printStatus" class="gray" type="button">印刷する</button>
+      <button id="transferScheduleFromStatusBtn" class="orange" type="button">予定表へ転記</button>
     </div>
     <div id="statusArea"></div>
     <div id="statusMsg" class="msg"></div>
@@ -281,7 +283,7 @@ input[type=file]{font-size:14px;padding:8px;border:1px solid #cbd5e1;border-radi
     <div id="backupMsg" class="msg"></div>
   </section>
 
-    <div class="small noPrint">Build Supabase Ver.2.9</div>
+    <div class="small noPrint">Build Supabase Ver.2.7</div>
 </div>
 
 
@@ -297,7 +299,7 @@ input[type=file]{font-size:14px;padding:8px;border:1px solid #cbd5e1;border-radi
     <div id="teacherSelectSummary" class="selectSummary"></div>
     <div id="teacherChecks" class="teacherChecks"></div>
     <div class="row" style="margin-top:14px">
-      <button id="teacherSelectRun" class="primary" type="button">実行</button>
+      <button id="teacherSelectRun" class="primary" type="button">表示設定を保存</button>
       <button id="teacherSelectClose" class="red" type="button">閉じる</button>
     </div>
   </div>
@@ -308,7 +310,21 @@ input[type=file]{font-size:14px;padding:8px;border:1px solid #cbd5e1;border-radi
 <script>
 const SUPABASE_URL = 'https://jbiolkvegexkqjcwtyye.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_1si6OSrS0AGP19FstAudug_ErlLMMqX';
-// Build Supabase Ver.2.9
+// Build Supabase Ver.2.7
+const SCHEDULE_TRANSFER_TARGETS = {
+  '神領': {
+    name: '神領予定表',
+    spreadsheetId: '1vlCqsHYq837RyKfzTDk6gIwhChJvr1wxS0jDpN7xrJk',
+    gid: '0',
+    url: 'https://docs.google.com/spreadsheets/d/1vlCqsHYq837RyKfzTDk6gIwhChJvr1wxS0jDpN7xrJk/edit?gid=0#gid=0'
+  },
+  '大手町': {
+    name: '大手町予定表',
+    spreadsheetId: '1LMbLBRwRXDt7hi8_mouk2GNs7425RIXsNv_diTfCAbg',
+    gid: '142388158',
+    url: 'https://docs.google.com/spreadsheets/d/1LMbLBRwRXDt7hi8_mouk2GNs7425RIXsNv_diTfCAbg/edit?gid=142388158#gid=142388158'
+  }
+};
 
 let school = '神領';
 let tab = 'slots';
@@ -984,19 +1000,22 @@ async function addTeacher(){
 }
 
 
-function openTeacherSelect(mode){
+async function openTeacherSelect(mode){
   selectMode = mode;
+  if((mode === 'transfer' || mode === 'print') && (!teachers || teachers.length === 0)){
+    await loadTeachersView();
+  }
   if(!teachers || teachers.length === 0){
     msg('teachersMsg','先生データがありません。再読み込みしてください。',false);
     return;
   }
 
-  $('teacherSelectTitle').textContent = mode === 'print' ? '印刷する先生を選択' : '表示する先生を選択';
-  $('teacherSelectSaveTop').style.display = mode === 'print' ? 'none' : '';
-  $('teacherSelectCloseTop').style.display = mode === 'print' ? 'none' : '';
-  $('teacherSelectRun').textContent = mode === 'print' ? '印刷' : '表示設定を保存';
+  $('teacherSelectTitle').textContent = mode === 'print' ? '印刷する先生を選択' : (mode === 'transfer' ? '予定表へ転記する先生を選択' : '表示する先生を選択');
+  $('teacherSelectSaveTop').style.display = mode === 'display' ? '' : 'none';
+  $('teacherSelectCloseTop').style.display = mode === 'display' ? '' : 'none';
+  $('teacherSelectRun').textContent = mode === 'print' ? '印刷' : (mode === 'transfer' ? '予定表へ転記' : '表示設定を保存');
   const modalTeachers = teacherCandidatesForMode(mode);
-  const current = mode === 'print'
+  const current = (mode === 'print' || mode === 'transfer')
     ? modalTeachers.map(t=>String(t.code))
     : effectiveTeacherCodes(selectedTeacherCodes);
 
@@ -1039,7 +1058,7 @@ function effectiveTeacherCodes(codes){
 }
 
 function teacherCandidatesForMode(mode){
-  if(mode !== 'print') return teachers || [];
+  if(mode !== 'print' && mode !== 'transfer') return teachers || [];
   const visible = new Set(effectiveTeacherCodes(selectedTeacherCodes));
   return (teachers || []).filter(t=>visible.has(String(t.code)));
 }
@@ -1072,7 +1091,7 @@ function updateTeacherSelectSummary(){
   $('teacherSelectSummary').textContent = '選択中：' + count + '名';
 }
 
-function runTeacherSelect(){
+async function runTeacherSelect(){
   const codes = selectedCodesFromModal();
   if(codes.length === 0){
     alert('先生を1人以上選択してください。');
@@ -1085,6 +1104,8 @@ function runTeacherSelect(){
     selectedTeacherCodes = normalizeTeacherSelection(codes);
     saveTeacherSelection(selectedTeacherCodes);
     renderTeachers();
+  }else if(selectMode === 'transfer'){
+    await transferSchedule(codes);
   }else{
     const before = selectedTeacherCodes.slice();
     const printCodes = normalizeTeacherSelection(codes);
@@ -1095,6 +1116,73 @@ function runTeacherSelect(){
       selectedTeacherCodes = before;
       renderTeachers();
     },200);
+  }
+}
+
+function scheduleTransferWebAppKey(){
+  return 'step_schedule_transfer_webapp_' + school;
+}
+
+function getScheduleTransferWebAppUrl(){
+  let url = localStorage.getItem(scheduleTransferWebAppKey()) || '';
+  if(url) return url;
+  url = prompt(school + '校の予定表転記用 Apps Script WebアプリURLを入力してください。');
+  if(url){
+    localStorage.setItem(scheduleTransferWebAppKey(), url.trim());
+    return url.trim();
+  }
+  return '';
+}
+
+async function transferSchedule(codes){
+  try{
+    const target = SCHEDULE_TRANSFER_TARGETS[school];
+    if(!target) throw new Error('転記先が設定されていません。');
+
+    const selected = new Set((codes || []).map(String));
+    const webAppUrl = getScheduleTransferWebAppUrl();
+    if(!webAppUrl){
+      msg(tab === 'status' ? 'statusMsg' : 'teachersMsg','予定表転記用 Apps Script WebアプリURLが未設定です。',false);
+      return;
+    }
+
+    msg(tab === 'status' ? 'statusMsg' : 'teachersMsg','予定表へ転記するデータを作成中...',true);
+    const rows = await rest('availability?select=teacher_code,teacher_name,date,slot_index,value,school&school=eq.' + encodeURIComponent(school));
+    const entries = (rows || [])
+      .filter(r => selected.has(String(r.teacher_code)) && (r.value === '○' || r.value === '△'))
+      .map(r => ({
+        teacher_code: String(r.teacher_code),
+        teacher_name: r.teacher_name || '',
+        date: r.date,
+        slot_index: Number(r.slot_index),
+        value: r.value
+      }));
+
+    if(entries.length === 0){
+      msg(tab === 'status' ? 'statusMsg' : 'teachersMsg','転記対象の○・△がありません。',false);
+      return;
+    }
+
+    const payload = {
+      action: 'transferAvailabilityToSchedule',
+      school: school,
+      target: target,
+      timeShort: timeShort,
+      entries: entries
+    };
+
+    if(!confirm(school + '校の予定表へ ' + selected.size + '名分 / ' + entries.length + '件を転記します。\n続けますか？')) return;
+
+    await fetch(webAppUrl, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: {'Content-Type':'text/plain;charset=utf-8'},
+      body: JSON.stringify(payload)
+    });
+
+    msg(tab === 'status' ? 'statusMsg' : 'teachersMsg','予定表へ転記リクエストを送信しました。予定表を確認してください。\n転記先：' + target.url,true);
+  }catch(e){
+    msg(tab === 'status' ? 'statusMsg' : 'teachersMsg','予定表へ転記できません。\n'+(e.message||String(e)),false);
   }
 }
 
@@ -1325,6 +1413,7 @@ $('deadlineDisplayBtn').onclick=openDeadlinePicker;
 $('reloadTeachers').onclick=loadTeachersView;
 $('selectDisplayBtn').onclick=()=>openTeacherSelect('display');
 $('printBtn').onclick=()=>openTeacherSelect('print');
+$('transferScheduleBtn').onclick=()=>openTeacherSelect('transfer');
 $('teacherSelectClose').onclick=closeTeacherSelect;
 $('teacherSelectCloseTop').onclick=closeTeacherSelect;
 $('teacherAllOn').onclick=()=>teacherSelectAll(true);
@@ -1335,6 +1424,7 @@ $('teacherChecks').addEventListener('change',updateTeacherSelectSummary);
 $('addTeacher').onclick=addTeacher;
 $('reloadStatus').onclick=loadStatusView;
 $('printStatus').onclick=()=>window.print();
+$('transferScheduleFromStatusBtn').onclick=()=>openTeacherSelect('transfer');
 $('reloadTeacherMaster').onclick=loadTeacherMaster;
 $('showActiveTeachers').onchange=loadTeacherMaster;
 $('showInactiveTeachers').onchange=loadTeacherMaster;
