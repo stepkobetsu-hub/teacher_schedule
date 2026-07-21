@@ -67,9 +67,16 @@ td.actions{min-width:210px}
 /* teacher select modal */
 .modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:500;align-items:center;justify-content:center;padding:16px}
 .modalBox{background:#fff;border-radius:16px;width:100%;max-width:560px;max-height:82vh;overflow:auto;padding:18px;box-shadow:0 20px 50px rgba(0,0,0,.25)}
+.teacherSearch{display:block;width:100%;min-width:0;margin:10px 0 6px;padding:11px 12px!important}
 .teacherChecks label{display:block;padding:8px 4px;border-bottom:1px solid #eee;font-weight:800}
 .teacherChecks input{width:18px;height:18px;margin-right:8px}
+.teacherNoResults{display:none;padding:20px 8px;text-align:center;color:#64748b;font-weight:800}
 .selectSummary{font-weight:900;color:#1565c0;margin:8px 0}
+@media(max-width:600px){
+  .modal{padding:8px}
+  .modalBox{padding:14px;max-height:92vh}
+  .teacherSearch{font-size:16px;width:100%}
+}
 @media print{
   .teacherCard{page-break-after:always;break-after:page}
   .teacherCard:last-child{page-break-after:auto;break-after:auto}
@@ -290,6 +297,7 @@ input[type=file]{font-size:14px;padding:8px;border:1px solid #cbd5e1;border-radi
 <div id="teacherSelectModal" class="modal noPrint">
   <div class="modalBox">
     <h3 id="teacherSelectTitle">先生を選択</h3>
+    <input id="teacherSearch" class="teacherSearch" type="text" placeholder="氏名・講師コードで検索" autocomplete="off">
     <div class="row">
       <button id="teacherAllOn" class="gray" type="button">全員選択</button>
       <button id="teacherAllOff" class="gray" type="button">全員解除</button>
@@ -298,6 +306,7 @@ input[type=file]{font-size:14px;padding:8px;border:1px solid #cbd5e1;border-radi
     </div>
     <div id="teacherSelectSummary" class="selectSummary"></div>
     <div id="teacherChecks" class="teacherChecks"></div>
+    <div id="teacherNoResults" class="teacherNoResults">該当する先生が見つかりません</div>
     <div class="row" style="margin-top:14px">
       <button id="teacherSelectRun" class="primary" type="button">実行</button>
       <button id="teacherSelectClose" class="red" type="button">閉じる</button>
@@ -1027,6 +1036,8 @@ async function openTeacherSelect(mode){
     h += '<label><input class="teacherCheck" type="checkbox" value="'+t.code+'" '+checked+'> '+t.code+'　'+t.name+'</label>';
   });
   $('teacherChecks').innerHTML = h;
+  $('teacherSearch').value = '';
+  filterTeacherChecks();
   updateTeacherSelectSummary();
   $('teacherSelectModal').style.display='flex';
 }
@@ -1036,8 +1047,25 @@ function closeTeacherSelect(){
 }
 
 function teacherSelectAll(v){
-  document.querySelectorAll('.teacherCheck').forEach(c=>c.checked=v);
+  document.querySelectorAll('.teacherCheck').forEach(c=>{
+    if(!c.closest('label').hidden) c.checked=v;
+  });
   updateTeacherSelectSummary();
+}
+
+function normalizeTeacherSearchText(value){
+  return String(value || '').normalize('NFKC').toLocaleLowerCase('ja');
+}
+
+function filterTeacherChecks(){
+  const query = normalizeTeacherSearchText($('teacherSearch').value).trim();
+  let visibleCount = 0;
+  document.querySelectorAll('#teacherChecks label').forEach(label=>{
+    const visible = !query || normalizeTeacherSearchText(label.textContent).includes(query);
+    label.hidden = !visible;
+    if(visible) visibleCount++;
+  });
+  $('teacherNoResults').style.display = visibleCount === 0 ? 'block' : 'none';
 }
 
 function teacherSelectionKey(){
@@ -1415,6 +1443,7 @@ $('teacherAllOff').onclick=()=>teacherSelectAll(false);
 $('teacherSelectSaveTop').onclick=runTeacherSelect;
 $('teacherSelectRun').onclick=runTeacherSelect;
 $('teacherChecks').addEventListener('change',updateTeacherSelectSummary);
+$('teacherSearch').addEventListener('input',filterTeacherChecks);
 $('addTeacher').onclick=addTeacher;
 $('reloadStatus').onclick=loadStatusView;
 $('printStatus').onclick=()=>window.print();
