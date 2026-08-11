@@ -114,8 +114,8 @@ td.date{
 <h2>ログイン</h2>
 <label>校舎</label>
 <div class="schoolRow"><button id="s1" class="schoolBtn on" type="button">神領校</button><button id="s2" class="schoolBtn" type="button">大手町校</button></div>
-<label>コード番号</label><input id="code" inputmode="numeric" type="number" placeholder="例：7002">
-<button id="loginBtn" class="primary" type="button">ログイン</button>
+<label>登録メールアドレス</label><input id="email" type="email" autocomplete="email" placeholder="登録済みのメールアドレス">
+<button id="loginBtn" class="primary" type="button">ログインリンクを送信</button>
 <div id="loginMsg" class="msg"></div>
 </div></div>
 
@@ -140,6 +140,8 @@ td.date{
 const SUPABASE_URL = 'https://jbiolkvegexkqjcwtyye.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_1si6OSrS0AGP19FstAudug_ErlLMMqX';
 // Build Supabase Ver.3.2
+const TEACHER_SESSION_KEY = 'step_teacher_schedule_session';
+let teacherSession = null;
 
 let school = '神領';
 let teacher = null;
@@ -152,6 +154,43 @@ const timeHeaders = ['13:00<br>14:15','14:20<br>15:35','15:45<br>17:00','17:10<b
 function $(id){return document.getElementById(id)}
 function showMsg(id,text,ok=true){const el=$(id);el.textContent=text||'';el.className='msg '+(ok?'ok':'err')}
 function dateLabel(raw){const p=String(raw).replaceAll('-','/').split('/').map(Number);const d=new Date(p[0],p[1]-1,p[2]);return String(raw).replaceAll('-','/')+'（'+'日月火水木金土'[d.getDay()]+'）'}
+
+function saveTeacherSession(session){
+  teacherSession=session||null;
+  if(session)localStorage.setItem(TEACHER_SESSION_KEY,JSON.stringify(session));
+  else localStorage.removeItem(TEACHER_SESSION_KEY);
+}
+
+function consumeTeacherAuthHash(){
+  const params=new URLSearchParams(location.hash.replace(/^#/,''));
+  const accessToken=params.get('access_token');
+  if(!accessToken)return;
+  saveTeacherSession({
+    access_token:accessToken,
+    refresh_token:params.get('refresh_token')||'',
+    expires_at:Math.floor(Date.now()/1000)+Number(params.get('expires_in')||3600)
+  });
+  history.replaceState(null,'',location.pathname+location.search);
+}
+
+async function refreshTeacherSession(){
+  if(!teacherSession||!teacherSession.refresh_token)return null;
+  const res=await fetch(SUPABASE_URL+'/auth/v1/token?grant_type=refresh_token',{
+    method:'POST',headers:{apikey:SUPABASE_KEY,'Content-Type':'application/json'},
+    body:JSON.stringify({refresh_token:teacherSession.refresh_token})
+  });
+  if(!res.ok){saveTeacherSession(null);return null}
+  const data=await res.json();
+  saveTeacherSession({access_token:data.access_token,refresh_token:data.refresh_token,expires_at:Math.floor(Date.now()/1000)+Number(data.expires_in||3600)});
+  return teacherSession.access_token;
+}
+
+async function getTeacherToken(){
+  if(!teacherSession){try{teacherSession=JSON.parse(localStorage.getItem(TEACHER_SESSION_KEY)||'null')}catch(e){teacherSession=null}}
+  if(!teacherSession||!teacherSession.access_token)return null;
+  if(Number(teacherSession.expires_at||0)<=Math.floor(Date.now()/1000)+60)return refreshTeacherSession();
+  return teacherSession.access_token;
+}
 
 function isActiveTeacher(t){
   return t && (t.active === true || String(t.active).toLowerCase() === 'true');
@@ -187,11 +226,13 @@ function applyDeadlineState(){
 }
 
 async function rest(path, options={}){
+  const token=await getTeacherToken();
+  if(!token)throw new Error('ログインが必要です。');
   const res = await fetch(SUPABASE_URL + '/rest/v1/' + path, {
     ...options,
     headers: {
       apikey: SUPABASE_KEY,
-      Authorization: 'Bearer ' + SUPABASE_KEY,
+      Authorization: 'Bearer ' + token,
       'Content-Type': 'application/json',
       Prefer: 'return=representation',
       ...(options.headers || {})
@@ -214,8 +255,8 @@ function syncSchoolFromButtons(){
   setSchool(school);
 }
 
-async function findTeacher(code){
-  const rows = await rest('teachers?select=code,name,email,active&code=eq.' + encodeURIComponent(code));
+async function findTeacher(email){
+  const rows = await rest('teachers?select=code,name,email,active&email=ilike.' + encodeURIComponent(email));
   if(!Array.isArray(rows) || rows.length === 0) return null;
   const t = rows[0];
   if(!isActiveTeacher(t)){
@@ -229,7 +270,6 @@ async function checkTeacherStillActive(){
   const rows = await rest('teachers?select=code,name,email,active&code=eq.' + encodeURIComponent(teacher.code));
   const t = Array.isArray(rows) && rows.length ? rows[0] : null;
   if(!isActiveTeacher(t)){
-    localStorage.removeItem('step_teacher_code');
     localStorage.removeItem('step_teacher_school');
     teacher = null;
     showMsg('loginMsg', inactiveMessage, false);
@@ -272,35 +312,41 @@ function closeDeadlinePopup(){
 
 async function login(){
   try{
-    const code=$('code').value.trim();
-    if(!code){showMsg('loginMsg','コード番号を入力してください。',false);return}
+    const email=String($('email').value||'').trim().toLowerCase();
+    if(!email||!email.includes('@')){showMsg('loginMsg','登録メールアドレスを入力してください。',false);return}
     syncSchoolFromButtons();
-    showMsg('loginMsg','確認中...',true);
-
-    const found = await findTeacher(code);
-    if(!found) throw new Error('コード番号が見つかりません。');
-
-    teacher=found;
-    localStorage.setItem('step_teacher_code',code);
     localStorage.setItem('step_teacher_school',school);
-
-    await loadData();
-    $('login').classList.add('hidden');
-    $('main').classList.remove('hidden');
-    $('logoutTop').classList.remove('hidden');
-    if($('topBackBtn')) $('topBackBtn').classList.remove('hidden');
-    $('teacherName').textContent=school+'校　'+teacher.name+'さん';
-    await loadDeadlineNotice();
+    showMsg('loginMsg','ログインリンクを送信しています...',true);
+    const redirectTo=location.origin+location.pathname;
+    const res=await fetch(SUPABASE_URL+'/auth/v1/otp?redirect_to='+encodeURIComponent(redirectTo),{
+      method:'POST',headers:{apikey:SUPABASE_KEY,'Content-Type':'application/json'},
+      body:JSON.stringify({email:email,create_user:true,data:{}})
+    });
+    const text=await res.text();
+    if(!res.ok)throw new Error(text||('HTTP '+res.status));
+    showMsg('loginMsg','ログインメールを送信しました。メール内のリンクを開いてください。',true);
   }catch(e){
     const m = e.message || String(e);
-    if(m.includes('現在利用できません')){
-      localStorage.removeItem('step_teacher_code');
-      localStorage.removeItem('step_teacher_school');
-      showMsg('loginMsg', m, false);
-    }else{
-      showMsg('loginMsg','ログインできません。\n'+m,false);
-    }
+    showMsg('loginMsg','ログインできません。\n'+m,false);
   }
+}
+
+async function completeTeacherLogin(){
+  consumeTeacherAuthHash();
+  const token=await getTeacherToken();
+  if(!token)return;
+  const userRes=await fetch(SUPABASE_URL+'/auth/v1/user',{headers:{apikey:SUPABASE_KEY,Authorization:'Bearer '+token}});
+  const user=userRes.ok?await userRes.json():null;
+  if(!user||!user.email){saveTeacherSession(null);return}
+  const found=await findTeacher(String(user.email).toLowerCase());
+  if(!found){saveTeacherSession(null);showMsg('loginMsg','このメールアドレスは講師マスターに登録されていません。',false);return}
+  if(!isActiveTeacher(found)){saveTeacherSession(null);showMsg('loginMsg',inactiveMessage,false);return}
+  teacher=found;
+  await loadData();
+  $('login').classList.add('hidden');$('main').classList.remove('hidden');$('logoutTop').classList.remove('hidden');
+  if($('topBackBtn'))$('topBackBtn').classList.remove('hidden');
+  $('teacherName').textContent=school+'校　'+teacher.name+'さん';
+  await loadDeadlineNotice();
 }
 
 async function loadData(){
@@ -374,7 +420,7 @@ async function save(){
 
 function logout(){
   if(!confirm('ログアウトしますか？')) return;
-  localStorage.removeItem('step_teacher_code');
+  saveTeacherSession(null);
   localStorage.removeItem('step_teacher_school');
   location.reload();
 }
@@ -417,10 +463,9 @@ $('helpToggle').addEventListener('click',()=>{const h=$('helpText');h.classList.
 $('deadlineClose').addEventListener('click', closeDeadlinePopup);
 
 document.addEventListener('DOMContentLoaded',()=>{
-  const savedCode=localStorage.getItem('step_teacher_code');
   const savedSchool=localStorage.getItem('step_teacher_school');
   if(savedSchool) setSchool(savedSchool);
-  if(savedCode){ $('code').value=savedCode; setTimeout(()=>login(),250); }
+  completeTeacherLogin().catch(e=>showMsg('loginMsg','ログインを確認できません。\n'+(e.message||String(e)),false));
 });
 </script>
 </body>

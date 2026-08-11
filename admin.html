@@ -128,6 +128,11 @@ button:disabled{opacity:.55;cursor:not-allowed}
 .backupBox h3{margin:0 0 8px;color:#1565c0}
 .backupList{font-size:13px;line-height:1.7;color:#475569}
 input[type=file]{font-size:14px;padding:8px;border:1px solid #cbd5e1;border-radius:8px;background:#fff}
+.authGate{position:fixed;inset:0;z-index:1000;background:#eef3fb;display:flex;align-items:center;justify-content:center;padding:20px}
+.authGate.hidden{display:none}
+.authCard{width:min(460px,100%);background:#fff;border-radius:16px;padding:24px;box-shadow:0 20px 50px rgba(15,23,42,.18)}
+.authCard h2{margin:0 0 10px;color:#1565c0}.authCard p{line-height:1.6;color:#475569}
+.authCard input{width:100%;margin:8px 0}.adminLogout{position:absolute;right:18px;top:17px;background:#fff;color:#1565c0}
 
 </style>
 </head>
@@ -135,6 +140,17 @@ input[type=file]{font-size:14px;padding:8px;border:1px solid #cbd5e1;border-radi
 <div class="header">
   <h1>夏休み出勤管理 <small>Supabase Ver.3.2</small></h1>
   <p>個別指導ステップ</p>
+</div>
+<button id="adminLogout" class="adminLogout hidden noPrint" type="button">ログアウト</button>
+
+<div id="authGate" class="authGate">
+  <div class="authCard">
+    <h2>管理者ログイン</h2>
+    <p>登録済みのSTEP管理者メールへ安全なログインリンクを送信します。一度ログインすると、このブラウザではログアウトするまで状態を保持します。</p>
+    <input id="adminEmail" type="email" autocomplete="email" placeholder="管理者メールアドレス">
+    <button id="sendLoginLink" class="blue" type="button">ログインリンクを送信</button>
+    <div id="authMsg" class="msg"></div>
+  </div>
 </div>
 
 <div class="wrap">
@@ -321,6 +337,9 @@ input[type=file]{font-size:14px;padding:8px;border:1px solid #cbd5e1;border-radi
 const SUPABASE_URL = 'https://jbiolkvegexkqjcwtyye.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_1si6OSrS0AGP19FstAudug_ErlLMMqX';
 // Build Supabase Ver.3.2
+const ADMIN_SESSION_KEY = 'step_teacher_schedule_admin_session';
+const ADMIN_EMAILS = ['stepkobetsu@gmail.com','stepkobetsustaff@gmail.com'];
+let adminSession = null;
 const SCHEDULE_TRANSFER_TARGETS = {
   '神領': {
     name: '神領予定表',
@@ -350,6 +369,78 @@ const timeLabels = ['13:00<br>14:15','14:20<br>15:35','15:45<br>17:00','17:10<br
 const timeShort = ['13:00','14:20','15:45','17:10','18:35','20:00'];
 
 function $(id){return document.getElementById(id)}
+
+function saveAdminSession(session){
+  adminSession=session||null;
+  if(session) localStorage.setItem(ADMIN_SESSION_KEY,JSON.stringify(session));
+  else localStorage.removeItem(ADMIN_SESSION_KEY);
+}
+
+function consumeAdminAuthHash(){
+  const params=new URLSearchParams(location.hash.replace(/^#/,''));
+  const accessToken=params.get('access_token');
+  const refreshToken=params.get('refresh_token');
+  if(!accessToken)return;
+  saveAdminSession({
+    access_token:accessToken,
+    refresh_token:refreshToken||'',
+    expires_at:Math.floor(Date.now()/1000)+Number(params.get('expires_in')||3600)
+  });
+  history.replaceState(null,'',location.pathname+location.search);
+}
+
+async function refreshAdminSession(){
+  if(!adminSession||!adminSession.refresh_token)return null;
+  const res=await fetch(SUPABASE_URL+'/auth/v1/token?grant_type=refresh_token',{
+    method:'POST',headers:{apikey:SUPABASE_KEY,'Content-Type':'application/json'},
+    body:JSON.stringify({refresh_token:adminSession.refresh_token})
+  });
+  if(!res.ok){saveAdminSession(null);return null;}
+  const data=await res.json();
+  saveAdminSession({access_token:data.access_token,refresh_token:data.refresh_token,expires_at:Math.floor(Date.now()/1000)+Number(data.expires_in||3600)});
+  return adminSession.access_token;
+}
+
+async function getAdminToken(){
+  if(!adminSession){
+    try{adminSession=JSON.parse(localStorage.getItem(ADMIN_SESSION_KEY)||'null')}catch(e){adminSession=null}
+  }
+  if(!adminSession||!adminSession.access_token)return null;
+  if(Number(adminSession.expires_at||0)<=Math.floor(Date.now()/1000)+60)return refreshAdminSession();
+  return adminSession.access_token;
+}
+
+async function sendAdminLoginLink(){
+  const email=String($('adminEmail').value||'').trim().toLowerCase();
+  if(!ADMIN_EMAILS.includes(email)){msg('authMsg','このメールアドレスは管理者として登録されていません。',false);return;}
+  $('sendLoginLink').disabled=true;
+  msg('authMsg','ログインリンクを送信しています...',true);
+  try{
+    const redirectTo=location.origin+location.pathname;
+    const res=await fetch(SUPABASE_URL+'/auth/v1/otp?redirect_to='+encodeURIComponent(redirectTo),{
+      method:'POST',headers:{apikey:SUPABASE_KEY,'Content-Type':'application/json'},
+      body:JSON.stringify({email:email,create_user:true,data:{}})
+    });
+    const text=await res.text();
+    if(!res.ok)throw new Error(text||('HTTP '+res.status));
+    msg('authMsg','ログインメールを送信しました。メール内のリンクを開いてください。',true);
+  }catch(e){msg('authMsg','ログインメールを送信できません。\n'+(e.message||String(e)),false)}
+  finally{$('sendLoginLink').disabled=false}
+}
+
+async function startAdmin(){
+  consumeAdminAuthHash();
+  const token=await getAdminToken();
+  if(!token){$('authGate').classList.remove('hidden');return;}
+  const res=await fetch(SUPABASE_URL+'/auth/v1/user',{headers:{apikey:SUPABASE_KEY,Authorization:'Bearer '+token}});
+  const user=res.ok?await res.json():null;
+  if(!user||!ADMIN_EMAILS.includes(String(user.email||'').toLowerCase())){
+    saveAdminSession(null);$('authGate').classList.remove('hidden');msg('authMsg','管理者権限を確認できませんでした。',false);return;
+  }
+  $('authGate').classList.add('hidden');$('adminLogout').classList.remove('hidden');
+  loadSlots();
+  setTimeout(()=>autoBackup('画面起動時の自動バックアップ'),1800);
+}
 
 let msgTimers = {};
 function msg(id,t,ok=true){
@@ -387,11 +478,13 @@ function label(raw){
 }
 
 async function rest(path, options={}){
+  const token=await getAdminToken();
+  if(!token){$('authGate').classList.remove('hidden');throw new Error('管理者ログインが必要です。');}
   const res = await fetch(SUPABASE_URL + '/rest/v1/' + path, {
     ...options,
     headers:{
       apikey: SUPABASE_KEY,
-      Authorization: 'Bearer ' + SUPABASE_KEY,
+      Authorization: 'Bearer ' + token,
       'Content-Type':'application/json',
       Prefer:'return=representation',
       ...(options.headers||{})
@@ -1460,8 +1553,9 @@ $('restoreLatestAuto').onclick=restoreLatestAutoBackup;
 $('restoreFromFile').onclick=restoreFromFile;
 $('showBackupInfo').onclick=showLatestBackupInfo;
 
-loadSlots();
-setTimeout(()=>autoBackup('画面起動時の自動バックアップ'),1800);
+$('sendLoginLink').onclick=sendAdminLoginLink;
+$('adminLogout').onclick=()=>{saveAdminSession(null);location.reload()};
+startAdmin();
 </script>
 </body>
 </html>
