@@ -45,8 +45,8 @@ test('認証APIは正式講師マスターをサーバー側参照し共有秘�
   assert.doesNotMatch(gas, /7002.*0415/);
 });
 
-test('管理者Magic Linkと許可メールは変更しない', () => {
-  assert.match(admin, /ADMIN_EMAILS = \['stepkobetsu@gmail\.com','stepkobetsustaff@gmail\.com'\]/);
-  assert.match(admin, /sendAdminLoginLink/);
-  assert.match(admin, /redirectTo=location\.origin\+location\.pathname/);
+test('講師認証と管理者認証は別のEdge Functionを使う', () => {
+  assert.match(teacher, /\/functions\/v1\/teacher-login/);
+  assert.match(admin, /\/functions\/v1\/admin-login/);
+  assert.doesNotMatch(admin, /\/functions\/v1\/teacher-login/);
 });

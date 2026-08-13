@@ -29,4 +29,13 @@ Supabase の講師テーブルへ保存せず、専用 Apps Script API が正式
 - `supabase/functions/teacher-login/index.ts`
 - `teacher_auth_gas.gs`
 
-管理者画面の Magic Link 認証は講師認証とは分離して維持しています。
+## 管理者認証
+
+管理者画面は同一 GitHub Pages origin に保存された `stepStaffAppAuth` の
+`systemPortalSessionToken` を使用します。`admin-login` Edge Function が
+STEPスタッフ共通認証APIの `verifySystemPortal` でトークンと最新権限を
+サーバー側検証し、`app_metadata.schedule_admin` を持つSupabase Auth
+セッションをメール送信なしで発行します。
+
+管理者Magic Linkは使用しません。従来の許可メール判定はRLSの互換経路として
+残し、STEP共通認証から発行された管理者セッションも同じRLSで許可します。

@@ -2,3 +2,6 @@ project_id = "jbiolkvegexkqjcwtyye"
 
 [functions.teacher-login]
 verify_jwt = false
+
+[functions.admin-login]
+verify_jwt = false
