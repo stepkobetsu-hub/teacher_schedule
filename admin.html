@@ -337,7 +337,9 @@ const SUPABASE_URL = 'https://jbiolkvegexkqjcwtyye.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_1si6OSrS0AGP19FstAudug_ErlLMMqX';
 // Build Supabase Ver.3.3
 const ADMIN_SESSION_KEY = 'step_teacher_schedule_admin_session';
+const ADMIN_STEP_BINDING_KEY = 'step_teacher_schedule_admin_step_binding';
 const STEP_STAFF_AUTH_KEY = 'stepStaffAppAuth';
+const STEP_REVERIFY_INTERVAL_MS = 5 * 60 * 1000;
 const STEP_REGISTRY_URL = 'https://stepkobetsu-hub.github.io/step-system-registry/';
 let adminSession = null;
 const SCHEDULE_TRANSFER_TARGETS = {
@@ -401,18 +403,36 @@ function getStepStaffAuth(){
   try{return JSON.parse(localStorage.getItem(STEP_STAFF_AUTH_KEY)||'null')}catch(e){return null}
 }
 
+async function hashStepSessionToken(token){
+  const digest=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(token));
+  return Array.from(new Uint8Array(digest)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+
+function saveStepBinding(tokenHash){
+  localStorage.setItem(ADMIN_STEP_BINDING_KEY,JSON.stringify({tokenHash,verifiedAt:Date.now()}));
+}
+
+function clearStepBinding(){localStorage.removeItem(ADMIN_STEP_BINDING_KEY)}
+
+async function getRecentlyVerifiedAdminToken(systemPortalSessionToken){
+  let binding=null;
+  try{binding=JSON.parse(localStorage.getItem(ADMIN_STEP_BINDING_KEY)||'null')}catch(e){binding=null}
+  if(!binding||Date.now()-Number(binding.verifiedAt||0)>STEP_REVERIFY_INTERVAL_MS)return null;
+  const tokenHash=await hashStepSessionToken(systemPortalSessionToken);
+  if(binding.tokenHash!==tokenHash)return null;
+  return getAdminToken();
+}
+
 function showStepLoginRequired(message){
   saveAdminSession(null);
+  clearStepBinding();
   $('adminApp').classList.add('hidden');
   $('adminLogout').classList.add('hidden');
   $('authGate').classList.remove('hidden');
   msg('authMsg',message||'',false);
 }
 
-async function requestAdminSession(){
-  const staffAuth=getStepStaffAuth();
-  const systemPortalSessionToken=String(staffAuth?.systemPortalSessionToken||'').trim();
-  if(!systemPortalSessionToken)throw new Error('STEPスタッフログインが必要です。');
+async function requestAdminSession(systemPortalSessionToken){
   const res=await fetch(SUPABASE_URL+'/functions/v1/admin-login',{
     method:'POST',
     headers:{apikey:SUPABASE_KEY,'Content-Type':'application/json'},
@@ -421,12 +441,19 @@ async function requestAdminSession(){
   const data=await res.json().catch(()=>null);
   if(!res.ok||!data?.session)throw new Error(data?.error||'STEPスタッフログインを確認できません。');
   saveAdminSession(data.session);
+  saveStepBinding(await hashStepSessionToken(systemPortalSessionToken));
   return data.session.access_token;
 }
 
 async function startAdmin(){
+  const staffAuth=getStepStaffAuth();
+  const systemPortalSessionToken=String(staffAuth?.systemPortalSessionToken||'').trim();
+  if(!systemPortalSessionToken){showStepLoginRequired('STEPスタッフログインが必要です。');return}
   let token;
-  try{token=await requestAdminSession()}catch(e){showStepLoginRequired(e.message||'STEPスタッフログインが必要です。');return}
+  try{
+    token=await getRecentlyVerifiedAdminToken(systemPortalSessionToken);
+    if(!token)token=await requestAdminSession(systemPortalSessionToken);
+  }catch(e){showStepLoginRequired(e.message||'STEPスタッフログインが必要です。');return}
   const res=await fetch(SUPABASE_URL+'/auth/v1/user',{headers:{apikey:SUPABASE_KEY,Authorization:'Bearer '+token}});
   const user=res.ok?await res.json():null;
   if(!user||user.app_metadata?.schedule_admin!==true){
@@ -444,6 +471,7 @@ async function logoutAdmin(){
     try{await fetch(SUPABASE_URL+'/auth/v1/logout?scope=local',{method:'POST',headers:{apikey:SUPABASE_KEY,Authorization:'Bearer '+token}})}catch(e){}
   }
   saveAdminSession(null);
+  clearStepBinding();
   location.href=STEP_REGISTRY_URL;
 }
 

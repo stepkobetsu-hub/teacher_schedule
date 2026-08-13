@@ -26,16 +26,14 @@ async function sha256(value: string) {
 }
 
 async function fetchStepVerification(sessionToken: string) {
-  let response = await fetch(STEP_AUTH_API, {
+  const response = await fetch(STEP_AUTH_API, {
     method: "POST",
     headers: { "Content-Type": "text/plain;charset=utf-8" },
     body: JSON.stringify({ action: "verifySystemPortal", systemPortalSessionToken: sessionToken }),
-    redirect: "manual",
+    // Match the canonical registry client. Apps Script responds through a
+    // googleusercontent redirect, and fetch must follow it to obtain the JSON.
+    redirect: "follow",
   });
-  if ([301, 302, 303, 307, 308].includes(response.status)) {
-    const location = response.headers.get("location");
-    if (location) response = await fetch(new URL(location, STEP_AUTH_API), { headers: { Accept: "application/json" } });
-  }
   if (!response.ok) return null;
   const text = await response.text();
   try { return JSON.parse(text); } catch { return null; }
@@ -73,7 +71,9 @@ Deno.serve(async (req) => {
   try { verified = await fetchStepVerification(sessionToken); } catch { verified = null; }
   const code = String(verified?.code || "").trim();
   const permissionLevel = String(verified?.permissionLevel || "").trim();
-  if (verified?.success !== true || !/^\d{4,8}$/.test(code) || !ADMIN_PERMISSION_LEVELS.has(permissionLevel)) {
+  // The formal STEP verifier is authoritative for the staff code. Do not impose
+  // the teacher-number format here: STEP staff IDs may be shorter or non-numeric.
+  if (verified?.success !== true || !code || code.length > 64 || !ADMIN_PERMISSION_LEVELS.has(permissionLevel)) {
     await Promise.all([
       admin.rpc("schedule_login_rate_record", { p_key: pairKey, p_limit: 5, p_success: false }),
       admin.rpc("schedule_login_rate_record", { p_key: ipKey, p_limit: 30, p_success: false }),
@@ -86,7 +86,8 @@ Deno.serve(async (req) => {
     admin.rpc("schedule_login_rate_record", { p_key: ipKey, p_limit: 30, p_success: true }),
   ]);
 
-  const syntheticEmail = `schedule-admin-${code}@auth.invalid`;
+  const staffKey = (await sha256(code)).slice(0, 32);
+  const syntheticEmail = `schedule-admin-${staffKey}@auth.invalid`;
   const { data: usersData, error: usersError } = await admin.auth.admin.listUsers({ page: 1, perPage: 1000 });
   if (usersError) return json({ error: "安全な管理者セッションを発行できません。" }, 500, origin);
   let authUser = usersData.users.find((user) => user.email === syntheticEmail);
