@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>夏休み出勤管理 Supabase Ver.3.3</title>
+<title>夏休み出勤管理 Supabase Ver.3.3.1</title>
 <style>
 *{box-sizing:border-box}
 body{margin:0;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Noto Sans JP",sans-serif;background:#eef3fb;color:#111827}
@@ -138,7 +138,7 @@ input[type=file]{font-size:14px;padding:8px;border:1px solid #cbd5e1;border-radi
 </head>
 <body>
 <div class="header">
-  <h1>夏休み出勤管理 <small>Supabase Ver.3.3</small></h1>
+  <h1>夏休み出勤管理 <small>Supabase Ver.3.3.1</small></h1>
   <p>個別指導ステップ</p>
 </div>
 <button id="adminLogout" class="adminLogout hidden noPrint" type="button">ログアウト</button>
@@ -306,7 +306,7 @@ input[type=file]{font-size:14px;padding:8px;border:1px solid #cbd5e1;border-radi
     <div id="backupMsg" class="msg"></div>
   </section>
 
-    <div class="small noPrint">Build Supabase Ver.3.3</div>
+    <div class="small noPrint">Build Supabase Ver.3.3.1</div>
 </div>
 
 
@@ -335,7 +335,7 @@ input[type=file]{font-size:14px;padding:8px;border:1px solid #cbd5e1;border-radi
 <script>
 const SUPABASE_URL = 'https://jbiolkvegexkqjcwtyye.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_1si6OSrS0AGP19FstAudug_ErlLMMqX';
-// Build Supabase Ver.3.3
+// Build Supabase Ver.3.3.1
 const ADMIN_SESSION_KEY = 'step_teacher_schedule_admin_session';
 const ADMIN_STEP_BINDING_KEY = 'step_teacher_schedule_admin_step_binding';
 const STEP_STAFF_AUTH_KEY = 'stepStaffAppAuth';
@@ -372,10 +372,45 @@ const timeShort = ['13:00','14:20','15:45','17:10','18:35','20:00'];
 
 function $(id){return document.getElementById(id)}
 
+function isStorageQuotaError(error){
+  return !!error && (
+    error.name === 'QuotaExceededError' ||
+    error.name === 'NS_ERROR_DOM_QUOTA_REACHED' ||
+    error.code === 22 ||
+    error.code === 1014
+  );
+}
+
+function setLocalStorageSafely(key, value){
+  try{
+    localStorage.setItem(key, value);
+    return true;
+  }catch(error){
+    // 旧版の自動バックアップは全出勤データをlocalStorageへ保存していたため、
+    // 同一オリジンの保存上限に達することがあります。認証を優先して古いバックアップを退避します。
+    if(isStorageQuotaError(error)){
+      try{localStorage.removeItem('step_teacher_schedule_auto_backup_v1')}catch(e){}
+      try{
+        localStorage.setItem(key, value);
+        return true;
+      }catch(retryError){
+        console.warn('localStorage save skipped after quota recovery', key, retryError);
+        return false;
+      }
+    }
+    console.warn('localStorage save skipped', key, error);
+    return false;
+  }
+}
+
+function removeLocalStorageSafely(key){
+  try{localStorage.removeItem(key)}catch(error){console.warn('localStorage remove skipped', key, error)}
+}
+
 function saveAdminSession(session){
   adminSession=session||null;
-  if(session) localStorage.setItem(ADMIN_SESSION_KEY,JSON.stringify(session));
-  else localStorage.removeItem(ADMIN_SESSION_KEY);
+  if(session) setLocalStorageSafely(ADMIN_SESSION_KEY,JSON.stringify(session));
+  else removeLocalStorageSafely(ADMIN_SESSION_KEY);
 }
 
 async function refreshAdminSession(){
@@ -409,10 +444,11 @@ async function hashStepSessionToken(token){
 }
 
 function saveStepBinding(tokenHash){
-  localStorage.setItem(ADMIN_STEP_BINDING_KEY,JSON.stringify({tokenHash,verifiedAt:Date.now()}));
+  // 保存領域がいっぱいでも、今回確認できた管理者ログインは継続させます。
+  setLocalStorageSafely(ADMIN_STEP_BINDING_KEY,JSON.stringify({tokenHash,verifiedAt:Date.now()}));
 }
 
-function clearStepBinding(){localStorage.removeItem(ADMIN_STEP_BINDING_KEY)}
+function clearStepBinding(){removeLocalStorageSafely(ADMIN_STEP_BINDING_KEY)}
 
 async function getRecentlyVerifiedAdminToken(systemPortalSessionToken){
   let binding=null;
@@ -936,7 +972,9 @@ async function createBackup(reason='自動バックアップ'){
       availability: await rest('availability?select=*&order=school.asc,teacher_code.asc,date.asc,slot_index.asc')
     }
   };
-  localStorage.setItem(BACKUP_KEY, JSON.stringify(data));
+  if(!setLocalStorageSafely(BACKUP_KEY, JSON.stringify(data))){
+    console.warn('automatic backup was not stored because browser storage is full');
+  }
   return data;
 }
 
@@ -1025,7 +1063,7 @@ async function restoreBackupData(data){
   await restoreTable('class_days','school=not.is.null',t.class_days||[]);
   await restoreTable('deadlines','school=not.is.null',t.deadlines||[]);
   await restoreTable('teachers','code=not.is.null',t.teachers||[]);
-  localStorage.setItem(BACKUP_KEY, JSON.stringify(data));
+  setLocalStorageSafely(BACKUP_KEY, JSON.stringify(data));
   msg('backupMsg','復元しました。\n\n' + summary,true);
   loadCurrent();
 }
@@ -1232,7 +1270,7 @@ function readSavedTeacherSelection(){
 }
 
 function saveTeacherSelection(codes){
-  localStorage.setItem(teacherSelectionKey(), JSON.stringify(normalizeTeacherSelection(codes)));
+  setLocalStorageSafely(teacherSelectionKey(), JSON.stringify(normalizeTeacherSelection(codes)));
 }
 
 function restoreDisplaySelection(){
